@@ -116,7 +116,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
     const a = map.stations[seg.from]; const b = map.stations[seg.to];
     if (!a || !b) continue;
     const mid = { x: (a.position.x + b.position.x) / 2, y: (a.position.y + b.position.y) / 2 };
-    parts.push(`<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dy="-0.5em" font-family="${esc(map.style.fontFamily ?? "Noto Sans, sans-serif")}" font-size="${map.style.fontSize}" font-weight="600" fill="#111" stroke="${esc(map.style.background)}" stroke-width="4" paint-order="stroke">${esc(displayName(line.name, "Line", map.style.labelLanguage))}</text>`);
+    parts.push(`<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dy="-0.5em" font-family="${esc(map.style.fontFamily ?? "Noto Sans, sans-serif")}" font-size="${map.style.fontSize}" font-weight="600" fill="${esc(map.style.labelColor ?? "#000000")}" stroke="${esc(map.style.background)}" stroke-width="4" paint-order="stroke">${esc(displayName(line.name, "Line", map.style.labelLanguage))}</text>`);
   }
 
   // Stations
@@ -135,7 +135,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
     const lp = stationLabelPos(map, s.id);
     const name = displayName(s.name, "Untitled station", map.style.labelLanguage);
     const labelRot = s.rotation ? ` transform="rotate(${s.rotation} ${lp.x} ${lp.y})"` : "";
-    parts.push(`<text${labelRot} x="${lp.x}" y="${lp.y}" text-anchor="${anchorTextAnchor(s.labelAnchor)}" dominant-baseline="${anchorBaseline(s.labelAnchor)}" font-family="${esc(map.style.fontFamily ?? "Noto Sans, sans-serif")}" font-size="${map.style.fontSize}" fill="#111">${esc(name)}</text>`);
+    parts.push(`<text${labelRot} x="${lp.x}" y="${lp.y}" text-anchor="${anchorTextAnchor(s.labelAnchor)}" dominant-baseline="${anchorBaseline(s.labelAnchor)}" font-family="${esc(map.style.fontFamily ?? "Noto Sans, sans-serif")}" font-size="${map.style.fontSize}" fill="${esc(map.style.labelColor ?? "#000000")}">${esc(name)}</text>`);
   }
 
   parts.push(`</svg>`);

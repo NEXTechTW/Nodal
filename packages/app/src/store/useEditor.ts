@@ -127,6 +127,7 @@ interface EditorState {
   setStationLabelOffset(id: string, offset: Vec2): void;
   setFontSize(n: number): void;
   setFontFamily(f: string): void;
+  setLabelColor(c: string): void;
   setStationRadius(n: number): void;
   setGridStep(n: number): void;
   connectStations(lineId: string, from: string, to: string): void;
@@ -556,6 +557,12 @@ export const useEditor = create<EditorState>((set, get) => {
       set((s) => ({
         map: { ...s.map, style: { ...s.map.style, fontFamily: f } },
         lastActionLabel: "Change font",
+      }));
+    },
+    setLabelColor: (c) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, labelColor: c } },
+        lastActionLabel: "Change text color",
       }));
     },
     setStationRadius: (n) => {

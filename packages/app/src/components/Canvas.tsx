@@ -788,7 +788,7 @@ export function Canvas() {
                       fontFamily={map.style.fontFamily ?? "Noto Sans, sans-serif"}
                       fontSize={map.style.fontSize}
                       fontWeight={isSel ? 600 : 500}
-                      style={{ pointerEvents: "none", fill: "var(--color-text)" }}
+                      style={{ pointerEvents: "none", fill: map.style.labelColor ?? "#000000" }}
                     >
                       {isBilingual ? (
                         <>
@@ -886,7 +886,7 @@ export function Canvas() {
                 paintOrder="stroke"
                 style={{
                   pointerEvents: "none",
-                  fill: "var(--color-text)",
+                  fill: map.style.labelColor ?? "#000000",
                   stroke: map.style.background,
                 }}
               >

@@ -101,6 +101,7 @@ export const metroMapSchema = {
         cornerRadius: { type: "number", minimum: 0 },
         snap45: { type: "boolean", deprecated: true, description: "Deprecated and ignored; kept so older files still validate." },
         labelLanguage: { type: "string" },
+        labelColor: { type: "string", pattern: "^#" },
         fontFamily: { type: "string" },
         fontSize: { type: "number", exclusiveMinimum: 0 },
         stationRadius: { type: "number", exclusiveMinimum: 0 },

@@ -52,6 +52,9 @@ export function validateMap(value: unknown): ValidationIssue[] {
   // snap45 is deprecated and ignored; validate only when present.
   if (style.snap45 !== undefined && typeof style.snap45 !== "boolean") push("$.style.snap45", "must be boolean");
   if (typeof style.labelLanguage !== "string") push("$.style.labelLanguage", "must be string");
+  if (style.labelColor !== undefined && (typeof style.labelColor !== "string" || !HEX_RE.test(style.labelColor))) {
+    push("$.style.labelColor", "must be a hex color");
+  }
   if (typeof style.fontSize !== "number" || !(style.fontSize > 0)) push("$.style.fontSize", "must be number > 0");
   if (typeof style.stationRadius !== "number" || !(style.stationRadius > 0)) push("$.style.stationRadius", "must be number > 0");
 

@@ -310,6 +310,7 @@ export function PropertiesPanel() {
   const setMapBackground = useEditor((s) => s.setMapBackground);
   const setFontSize = useEditor((s) => s.setFontSize);
   const setFontFamily = useEditor((s) => s.setFontFamily);
+  const setLabelColor = useEditor((s) => s.setLabelColor);
   const setStationRadius = useEditor((s) => s.setStationRadius);
   const setGridStep = useEditor((s) => s.setGridStep);
   const cornerRadius = useEditor((s) => s.cornerRadius);
@@ -771,6 +772,15 @@ export function PropertiesPanel() {
                   <option value="system-ui, sans-serif">System</option>
                   <option value="Georgia, serif">Georgia (serif)</option>
                 </select>
+              </PropRow>
+
+              <PropRow label="Text color">
+                <input
+                  type="color"
+                  value={map.style.labelColor ?? "#000000"}
+                  onChange={(e) => setLabelColor(e.target.value)}
+                  aria-label="Label text color"
+                />
               </PropRow>
 
               <div style={{ marginTop: 12 }}>
