@@ -733,14 +733,43 @@ export function PropertiesPanel() {
                   value={map.style.fontFamily ?? "Noto Sans, sans-serif"}
                   onChange={(e) => setFontFamily(e.target.value)}
                 >
-                  <option value="Noto Sans, sans-serif">Noto Sans</option>
-                  <option value="'Noto Sans TC', 'Noto Sans', sans-serif">Noto Sans TC</option>
+                  <option value="Anton, sans-serif">Anton</option>
+                  <option value="Archivo, sans-serif">Archivo</option>
+                  <option value="Barlow, sans-serif">Barlow</option>
+                  <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
+                  <option value="'Fira Sans', sans-serif">Fira Sans</option>
+                  <option value="'IBM Plex Sans', sans-serif">IBM Plex Sans</option>
+                  <option value="'IBM Plex Mono', monospace">IBM Plex Mono</option>
                   <option value="Inter, system-ui, sans-serif">Inter</option>
-                  <option value="Roboto, sans-serif">Roboto</option>
+                  <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                  <option value="Karla, sans-serif">Karla</option>
+                  <option value="Lato, sans-serif">Lato</option>
+                  <option value="Manrope, sans-serif">Manrope</option>
+                  <option value="Merriweather, serif">Merriweather</option>
+                  <option value="Montserrat, sans-serif">Montserrat</option>
+                  <option value="Mulish, sans-serif">Mulish</option>
+                  <option value="Noto Sans, sans-serif">Noto Sans</option>
+                  <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+                  <option value="'Noto Sans SC', sans-serif">Noto Sans SC</option>
+                  <option value="'Noto Sans TC', 'Noto Sans', sans-serif">Noto Sans TC</option>
+                  <option value="'Noto Serif SC', serif">Noto Serif SC</option>
+                  <option value="Nunito, sans-serif">Nunito</option>
                   <option value="'Open Sans', sans-serif">Open Sans</option>
+                  <option value="Oswald, sans-serif">Oswald</option>
+                  <option value="'Playfair Display', serif">Playfair Display</option>
+                  <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+                  <option value="Poppins, sans-serif">Poppins</option>
+                  <option value="'Public Sans', sans-serif">Public Sans</option>
+                  <option value="Quicksand, sans-serif">Quicksand</option>
+                  <option value="Raleway, sans-serif">Raleway</option>
+                  <option value="Roboto, sans-serif">Roboto</option>
+                  <option value="Rubik, sans-serif">Rubik</option>
+                  <option value="'Source Sans 3', sans-serif">Source Sans 3</option>
+                  <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+                  <option value="Ubuntu, sans-serif">Ubuntu</option>
+                  <option value="'Work Sans', sans-serif">Work Sans</option>
                   <option value="system-ui, sans-serif">System</option>
                   <option value="Georgia, serif">Georgia (serif)</option>
-                  <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
                 </select>
               </PropRow>
 
