@@ -6,7 +6,7 @@ import { exampleMap } from "../example.js";
 
 type Item = { label: string; action: () => void; disabled?: boolean; shortcut?: string };
 
-/** Adobe-style menu bar (File … Help). Dropdowns close on Escape / outside click. */
+/** Nodal menu bar (File … Help). Dropdowns close on Escape / outside click. */
 export function MenuBar() {
   const map = useEditor((s) => s.map);
   const canUndo = useEditor((s) => s.stack.canUndo);
@@ -21,6 +21,7 @@ export function MenuBar() {
   const theme = useEditor((s) => s.theme);
   const toggleTheme = useEditor((s) => s.toggleTheme);
   const setViewport = useEditor((s) => s.setViewport);
+  const setTool = useEditor((s) => s.setTool);
   const avoidLabels = useEditor((s) => s.avoidLabelOverlaps);
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState<string | null>(null);
@@ -69,31 +70,35 @@ export function MenuBar() {
       items: [
         { label: "Undo", action: undo, disabled: !canUndo, shortcut: "Ctrl+Z" },
         { label: "Redo", action: redo, disabled: !canRedo, shortcut: "Ctrl+Shift+Z" },
+      ],
+    },
+    {
+      label: "Map",
+      items: [
+        { label: "Arrange labels (avoid overlap)", action: avoidLabels },
+        { label: "Load example (Lumen City)", action: () => { loadMap(exampleMap()); setToast("Example map loaded"); } },
+      ],
+    },
+    {
+      label: "Station",
+      items: [
+        { label: "Add station tool", action: () => setTool("add-station"), shortcut: "A" },
+        { label: "Select tool", action: () => setTool("select"), shortcut: "V" },
         { label: "Delete selected station", action: deleteSelected, disabled: !selectedStationId, shortcut: "Del" },
       ],
     },
     {
-      label: "Composition",
+      label: "Line",
+      items: [
+        { label: "Connect tool (drag between stations)", action: () => setTool("connect"), shortcut: "C" },
+        { label: "Lines are created in the Lines panel", action: () => {}, disabled: true },
+      ],
+    },
+    {
+      label: "Label",
       items: [
         { label: "Arrange labels (avoid overlap)", action: avoidLabels },
-      ],
-    },
-    {
-      label: "Layer",
-      items: [
-        { label: "Lines are listed in the panel on the left", action: () => {}, disabled: true },
-      ],
-    },
-    {
-      label: "Effect",
-      items: [
-        { label: "Rounded corners are set in Properties", action: () => {}, disabled: true },
-      ],
-    },
-    {
-      label: "Animation",
-      items: [
-        { label: "No animation settings yet", action: () => {}, disabled: true },
+        { label: "Label language is set in Properties", action: () => {}, disabled: true },
       ],
     },
     {
