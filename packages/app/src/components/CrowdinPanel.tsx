@@ -41,7 +41,7 @@ export function CrowdinPanel({ lang }: { lang: UiLang }) {
       </div>
       <a
         className="btn btn-sm"
-        href="https://crowdin.com/projects"
+        href="https://crowdin.com/project/nodal"
         target="_blank"
         rel="noreferrer noopener"
         style={{ textDecoration: "none", marginTop: 8, display: "inline-flex" }}

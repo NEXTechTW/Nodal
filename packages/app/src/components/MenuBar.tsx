@@ -190,7 +190,7 @@ export function MenuBar() {
       items: [
         {
           label: "Open Crowdin project",
-          action: () => window.open("https://crowdin.com/projects", "_blank", "noopener"),
+          action: () => window.open("https://crowdin.com/project/nodal", "_blank", "noopener"),
         },
         {
           label: "Translation sources (en.json)",
