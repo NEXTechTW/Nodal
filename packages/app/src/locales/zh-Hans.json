@@ -1,0 +1,22 @@
+{
+  "File": "文件",
+  "Edit": "编辑",
+  "Map": "地图",
+  "Station": "车站",
+  "Line": "路线",
+  "Label": "标签",
+  "View": "查看",
+  "Window": "窗口",
+  "Help": "帮助",
+  "Save": "保存",
+  "Load": "加载",
+  "ExportSVG": "导出 SVG",
+  "PNG": "PNG",
+  "PDF": "PDF",
+  "Example": "示例",
+  "Undo": "撤销",
+  "Redo": "重做",
+  "NewMap": "新建地图",
+  "OpenExample": "打开示例",
+  "LoadJSON": "载入 JSON…"
+}

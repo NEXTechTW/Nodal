@@ -1,0 +1,22 @@
+{
+  "File": "File",
+  "Edit": "Edit",
+  "Map": "Map",
+  "Station": "Station",
+  "Line": "Line",
+  "Label": "Label",
+  "View": "View",
+  "Window": "Window",
+  "Help": "Help",
+  "Save": "Save",
+  "Load": "Load",
+  "ExportSVG": "Export SVG",
+  "PNG": "PNG",
+  "PDF": "PDF",
+  "Example": "Example",
+  "Undo": "Undo",
+  "Redo": "Redo",
+  "NewMap": "New map",
+  "OpenExample": "Open example",
+  "LoadJSON": "Load JSON…"
+}

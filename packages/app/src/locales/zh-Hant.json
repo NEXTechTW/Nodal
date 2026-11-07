@@ -1,0 +1,22 @@
+{
+  "File": "檔案",
+  "Edit": "編輯",
+  "Map": "地圖",
+  "Station": "車站",
+  "Line": "路線",
+  "Label": "標籤",
+  "View": "檢視",
+  "Window": "視窗",
+  "Help": "說明",
+  "Save": "儲存",
+  "Load": "讀取",
+  "ExportSVG": "匯出 SVG",
+  "PNG": "PNG",
+  "PDF": "PDF",
+  "Example": "範例",
+  "Undo": "復原",
+  "Redo": "重做",
+  "NewMap": "新地圖",
+  "OpenExample": "開啟範例",
+  "LoadJSON": "讀取 JSON…"
+}

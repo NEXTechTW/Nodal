@@ -37,6 +37,8 @@ export function MenuBar() {
   const selectedStationId = useEditor((s) => s.selectedStationId);
   const duplicateStation = useEditor((s) => s.duplicateStation);
   const deleteSelectedStation = useEditor((s) => s.deleteSelectedStation);
+  const uiLang = useEditor((s) => s.uiLang);
+  const setUiLang = useEditor((s) => s.setUiLang);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState<string | null>(null);
@@ -150,6 +152,24 @@ export function MenuBar() {
         { label: "Zoom In", action: zoomIn, shortcut: "Ctrl++" },
         { label: "Zoom Out", action: zoomOut, shortcut: "Ctrl+-" },
         { label: "Fit All in View", action: zoomFit, shortcut: "F" },
+      ],
+    },
+    {
+      label: "Language",
+      items: [
+        { label: "English", action: () => setUiLang("en") },
+        { label: "繁體中文", action: () => setUiLang("zh-Hant") },
+        { label: "简体中文", action: () => setUiLang("zh-Hans") },
+        { label: "العربية", action: () => setUiLang("ar") },
+        { label: "日本語", action: () => setUiLang("ja") },
+        { label: "한국어", action: () => setUiLang("ko") },
+        { label: "Русский", action: () => setUiLang("ru") },
+        { divider: true },
+        {
+          label: `Current: ${uiLang}`,
+          action: () => {},
+          disabled: true,
+        },
       ],
     },
     {

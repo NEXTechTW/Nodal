@@ -74,6 +74,7 @@ interface EditorState {
   activeLineId: string | null;
   cornerRadius: number;
   theme: Theme;
+  uiLang: import("../i18n.js").UiLang;
   toast: string | null;
   error: string | null;
   lastActionLabel: string | null;
@@ -103,6 +104,7 @@ interface EditorState {
   setViewport(v: Partial<Viewport>): void;
   setTheme(t: Theme): void;
   toggleTheme(): void;
+  setUiLang(l: import("../i18n.js").UiLang): void;
   setCornerRadius(n: number): void;
   selectStation(id: string | null): void;
   selectLine(id: string | null): void;
@@ -179,6 +181,20 @@ export const useEditor = create<EditorState>((set, get) => {
     activeLineId: null,
     cornerRadius: 18,
     theme: initialTheme(),
+    uiLang: (() => {
+      try {
+        const v = localStorage.getItem("nodal:uillang");
+        if (v) return v as import("../i18n.js").UiLang;
+      } catch { /* ignore */ }
+      const nav = typeof navigator !== "undefined" ? navigator.language : "en";
+      if (nav.startsWith("zh-TW") || nav.startsWith("zh-HK")) return "zh-Hant";
+      if (nav.startsWith("zh")) return "zh-Hans";
+      if (nav.startsWith("ar")) return "ar";
+      if (nav.startsWith("ja")) return "ja";
+      if (nav.startsWith("ko")) return "ko";
+      if (nav.startsWith("ru")) return "ru";
+      return "en";
+    })(),
     toast: null,
     error: null,
     lastActionLabel: null,
@@ -213,6 +229,10 @@ export const useEditor = create<EditorState>((set, get) => {
       const next: Theme = get().theme === "dark" ? "light" : "dark";
       try { localStorage.setItem("nodal:theme", next); } catch { /* ignore */ }
       set({ theme: next });
+    },
+    setUiLang: (l) => {
+      try { localStorage.setItem("nodal:uillang", l); } catch { /* ignore */ }
+      set({ uiLang: l });
     },
     setCornerRadius: (n) => set({ cornerRadius: n }),
     selectStation: (id) => set({ selectedStationId: id, selectedLineId: null }),

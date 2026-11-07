@@ -1,0 +1,9 @@
+# Crowdin config for Nodal UI strings.
+# Source: packages/app/src/locales/en.json
+# Translations sync to packages/app/src/locales/<locale>.json
+# Docs: https://support.crowdin.com/api/v2/#operation/api.projects.translations.report.download
+files:
+  - source: /packages/app/src/locales/en.json
+    translation: /packages/app/src/locales/%two_letters_code%.json
+    update_option: update_as_unapproved
+  # Station/line names live inside map files, not here.

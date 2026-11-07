@@ -1,0 +1,22 @@
+{
+  "File": "파일",
+  "Edit": "편집",
+  "Map": "지도",
+  "Station": "역",
+  "Line": "노선",
+  "Label": "라벨",
+  "View": "보기",
+  "Window": "창",
+  "Help": "도움말",
+  "Save": "저장",
+  "Load": "열기",
+  "ExportSVG": "SVG 내보내기",
+  "PNG": "PNG",
+  "PDF": "PDF",
+  "Example": "예제",
+  "Undo": "되돌리기",
+  "Redo": "다시 실행",
+  "NewMap": "새 지도",
+  "OpenExample": "예제 열기",
+  "LoadJSON": "JSON 열기…"
+}

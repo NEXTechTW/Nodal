@@ -1,0 +1,22 @@
+{
+  "File": "ملف",
+  "Edit": "تحرير",
+  "Map": "الخريطة",
+  "Station": "المحطة",
+  "Line": "الخط",
+  "Label": "التسمية",
+  "View": "عرض",
+  "Window": "نافذة",
+  "Help": "مساعدة",
+  "Save": "حفظ",
+  "Load": "تحميل",
+  "ExportSVG": "تصدير SVG",
+  "PNG": "PNG",
+  "PDF": "PDF",
+  "Example": "مثال",
+  "Undo": "تراجع",
+  "Redo": "إعادة",
+  "NewMap": "خريطة جديدة",
+  "OpenExample": "فتح مثال",
+  "LoadJSON": "تحميل JSON…"
+}

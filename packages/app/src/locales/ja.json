@@ -1,0 +1,22 @@
+{
+  "File": "ファイル",
+  "Edit": "編集",
+  "Map": "地図",
+  "Station": "駅",
+  "Line": "路線",
+  "Label": "ラベル",
+  "View": "表示",
+  "Window": "ウインドウ",
+  "Help": "ヘルプ",
+  "Save": "保存",
+  "Load": "開く",
+  "ExportSVG": "SVG書き出し",
+  "PNG": "PNG",
+  "PDF": "PDF",
+  "Example": "例",
+  "Undo": "元に戻す",
+  "Redo": "やり直し",
+  "NewMap": "新しい地図",
+  "OpenExample": "例を開く",
+  "LoadJSON": "JSONを開く…"
+}

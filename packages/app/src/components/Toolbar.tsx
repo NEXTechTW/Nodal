@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
+import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
 import {
   AddStationIcon,
@@ -35,6 +36,8 @@ export function Toolbar() {
   const selectedStationId = useEditor((s) => s.selectedStationId);
   const selectedLineId = useEditor((s) => s.selectedLineId);
   const activeLineId = useEditor((s) => s.activeLineId);
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (k: string) => t(uiLang, k);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileOpen, setFileOpen] = useState(false);
@@ -222,24 +225,24 @@ export function Toolbar() {
         {fileOpen && (
           <div className="menu-pop" role="menu" aria-label="Export menu" style={{ right: 0, left: "auto", minWidth: 200 }}>
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportSVG(); }}>
-              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> Export SVG</span>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> {tr("ExportSVG")}</span>
               <span className="menu-shortcut">Vector</span>
             </button>
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportPNG(); }}>
-              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> Export PNG</span>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> {tr("PNG")}</span>
               <span className="menu-shortcut">Image</span>
             </button>
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportPDF(); }}>
-              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> Print PDF…</span>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> {tr("PDF")}</span>
               <span className="menu-shortcut">Doc</span>
             </button>
             <div className="menu-divider" />
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); saveJSON(); }}>
-              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><SaveIcon /> Save JSON</span>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><SaveIcon /> {tr("Save")}</span>
               <span className="menu-shortcut">Ctrl+S</span>
             </button>
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); fileRef.current?.click(); }}>
-              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><LoadIcon /> Open JSON…</span>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><LoadIcon /> {tr("LoadJSON")}</span>
               <span className="menu-shortcut">Ctrl+O</span>
             </button>
             <div className="menu-divider" />
