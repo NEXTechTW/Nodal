@@ -92,7 +92,10 @@ export function PropertiesPanel() {
   const setSnap45 = useEditor((s) => s.setSnap45);
   const cornerRadius = useEditor((s) => s.cornerRadius);
   const setCornerRadius = useEditor((s) => s.setCornerRadius);
+  const setLabelLanguage = useEditor((s) => s.setLabelLanguage);
+  const avoidLabelOverlaps = useEditor((s) => s.avoidLabelOverlaps);
   const [draftName, setDraftName] = useState<string | null>(null);
+  const [draftZh, setDraftZh] = useState<string | null>(null);
 
   const station = selectedStationId ? map.stations[selectedStationId] : undefined;
   const line = selectedLineId ? map.lines[selectedLineId] : undefined;
@@ -113,6 +116,20 @@ export function PropertiesPanel() {
           <input id="corner" type="number" min={0} max={60} step={1} value={cornerRadius}
             onChange={(e) => setCornerRadius(Math.max(0, Math.min(60, Number(e.target.value) || 0)))} />
         </div>
+        <div className="field">
+          <label htmlFor="label-lang">Label language</label>
+          <select id="label-lang" value={map.style.labelLanguage} onChange={(e) => setLabelLanguage(e.target.value)}>
+            <option value="en">English</option>
+            <option value="zh-TW">繁體中文</option>
+            <option value="ja">Japanese</option>
+          </select>
+        </div>
+        <button type="button" className="btn" onClick={avoidLabelOverlaps} style={{ width: "100%" }}>
+          Arrange labels to avoid overlap
+        </button>
+        <p style={{ margin: "var(--space-2) 0 0", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
+          Shared tracks are offset automatically. This only moves labels; you can still override each one by hand.
+        </p>
       </div>
 
       {station && (
@@ -130,6 +147,23 @@ export function PropertiesPanel() {
                   renameStation(station.id, draftName.trim() || "Untitled station");
                 }
                 setDraftName(null);
+              }}
+              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="st-name-zh">Name (繁體中文, optional)</label>
+            <input
+              id="st-name-zh"
+              type="text"
+              value={draftZh ?? station.name["zh-TW"] ?? ""}
+              placeholder="中央"
+              onChange={(e) => setDraftZh(e.target.value)}
+              onBlur={() => {
+                if (draftZh !== null && (draftZh.trim() || "") !== (station.name["zh-TW"] ?? "")) {
+                  renameStation(station.id, draftZh.trim(), "zh-TW");
+                }
+                setDraftZh(null);
               }}
               onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
             />

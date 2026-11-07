@@ -97,7 +97,8 @@ export function emptyMap(title = "Untitled map"): MetroMap {
 export function displayName(
   name: Record<string, string>,
   fallback = "Untitled",
+  lang?: string,
 ): string {
-  const pick = name.en ?? name["zh-TW"] ?? Object.values(name)[0];
+  const pick = (lang ? name[lang] : undefined) ?? name.en ?? name["zh-TW"] ?? Object.values(name)[0];
   return pick && pick.trim() ? pick : fallback;
 }

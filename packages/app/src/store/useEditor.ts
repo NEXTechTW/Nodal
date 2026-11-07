@@ -10,6 +10,7 @@ import {
   addLineCommand,
   addSegmentCommand,
   addStationCommand,
+  avoidLabelOverlaps as avoidLabels,
   createId,
   displayName,
   emptyMap,
@@ -69,6 +70,8 @@ interface EditorState {
   setError(msg: string | null): void;
   clearToast(): void;
   setToast(msg: string): void;
+  setLabelLanguage(lang: string): void;
+  avoidLabelOverlaps(): void;
 }
 
 const initialMap = emptyMap("Untitled map");
@@ -247,6 +250,23 @@ export const useEditor = create<EditorState>((set, get) => {
         error: null,
         toast: "Map loaded",
       });
+    },
+    setLabelLanguage: (lang) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, labelLanguage: lang } },
+      }));
+    },
+    avoidLabelOverlaps: () => {
+      const before = get().map;
+      const after = avoidLabels(before);
+      const cmd: import("@linewright/core").Command = {
+        name: "SetTitle",
+        label: "Arrange labels",
+        apply: () => after,
+        revert: () => before,
+      };
+      const map = get().stack.dispatch(cmd);
+      set({ map, lastActionLabel: cmd.label, toast: "Labels arranged" });
     },
   };
 });

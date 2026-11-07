@@ -3,7 +3,7 @@
  * can be swapped for Canvas later; the map model never changes).
  * Produces a standalone SVG string for export (PROJECT.md §5, §6 v0.1).
  */
-import { anchorBaseline, anchorOffset, anchorTextAnchor, displayName, roundedPolyline, svgPath, type MetroMap, type Vec2 } from "@linewright/core";
+import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, offsetPolyline, roundedPolyline, svgPath, type MetroMap, type Vec2 } from "@linewright/core";
 
 export interface RenderOptions {
   width?: number;
@@ -17,7 +17,12 @@ function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-export function linePathPoints(map: MetroMap, lineId: string, segIdx: number): Vec2[] {
+export function linePathPoints(
+  map: MetroMap,
+  lineId: string,
+  segIdx: number,
+  offsets?: Map<string, Map<number, number>>,
+): Vec2[] {
   const line = map.lines[lineId];
   if (!line) return [];
   const seg = line.segments[segIdx];
@@ -25,7 +30,9 @@ export function linePathPoints(map: MetroMap, lineId: string, segIdx: number): V
   const a = map.stations[seg.from];
   const b = map.stations[seg.to];
   if (!a || !b) return [];
-  const pts = [a.position, ...(seg.waypoints ?? []), b.position];
+  let pts = [a.position, ...(seg.waypoints ?? []), b.position];
+  const offset = offsets?.get(lineId)?.get(segIdx) ?? 0;
+  if (offset) pts = offsetPolyline(pts, offset);
   return roundedPolyline(pts, map.style.cornerRadius);
 }
 
@@ -81,10 +88,13 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
     parts.push(grid);
   }
 
+  // Parallel offsets: shared tracks are nudged apart (PROJECT.md §5).
+  const offsets = computeParallelOffsets(map).bySegment;
+
   // Lines (casing first for double style, then main stroke)
   for (const line of Object.values(map.lines)) {
     line.segments.forEach((_seg, i) => {
-      const pts = linePathPoints(map, line.id, i);
+      const pts = linePathPoints(map, line.id, i, offsets);
       if (pts.length < 2) return;
       const d = svgPath(pts);
       const w = line.width ?? 8;
@@ -107,7 +117,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
     const a = map.stations[seg.from]; const b = map.stations[seg.to];
     if (!a || !b) continue;
     const mid = { x: (a.position.x + b.position.x) / 2, y: (a.position.y + b.position.y) / 2 };
-    parts.push(`<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dy="-0.5em" font-family="Noto Sans, sans-serif" font-size="${map.style.fontSize}" font-weight="600" fill="#111" stroke="${esc(map.style.background)}" stroke-width="4" paint-order="stroke">${esc(displayName(line.name, "Line"))}</text>`);
+    parts.push(`<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dy="-0.5em" font-family="Noto Sans, sans-serif" font-size="${map.style.fontSize}" font-weight="600" fill="#111" stroke="${esc(map.style.background)}" stroke-width="4" paint-order="stroke">${esc(displayName(line.name, "Line", map.style.labelLanguage))}</text>`);
   }
 
   // Stations
@@ -123,7 +133,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
       parts.push(`<g data-station="${esc(s.id)}"><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/></g>`);
     }
     const lp = stationLabelPos(map, s.id);
-    const name = displayName(s.name, "Untitled station");
+    const name = displayName(s.name, "Untitled station", map.style.labelLanguage);
     parts.push(`<text x="${lp.x}" y="${lp.y}" text-anchor="${anchorTextAnchor(s.labelAnchor)}" dominant-baseline="${anchorBaseline(s.labelAnchor)}" font-family="Noto Sans, sans-serif" font-size="${map.style.fontSize}" fill="#111">${esc(name)}</text>`);
   }
 
@@ -142,4 +152,71 @@ export function downloadSVG(svg: string, filename: string): void {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+/** Rasterize an SVG string to PNG at the given scale (browser only). */
+export function svgToPNG(svg: string, scale = 2): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+    img.onload = () => {
+      const w = Math.round((img.naturalWidth || img.width) * scale) || 800;
+      const h = Math.round((img.naturalHeight || img.height) * scale) || 600;
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      URL.revokeObjectURL(url);
+      if (!ctx) {
+        reject(new Error("Canvas is not available in this browser"));
+        return;
+      }
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Unable to encode PNG. Try exporting SVG instead."));
+      }, "image/png");
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Unable to read SVG. Try exporting SVG instead."));
+    };
+    img.src = url;
+  });
+}
+
+export async function downloadPNG(map: MetroMap, filename: string): Promise<void> {
+  const svg = toSVGString(map, { showGrid: false });
+  const blob = await svgToPNG(svg, 2);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename.endsWith(".png") ? filename : `${filename}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * PDF via the browser print path: open a clean page with the SVG and invoke
+ * print (the user picks “Save as PDF”). No Rust/print-js dependency (MIT-safe).
+ */
+export function printPDF(map: MetroMap): void {
+  const svg = toSVGString(map, { showGrid: false });
+  const title = map.meta.title || "Map";
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{margin:24px}svg{max-width:100%;height:auto}</style></head><body>${svg}</body></html>`;
+  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  const w = window.open(url, "_blank", "noopener");
+  if (!w) {
+    URL.revokeObjectURL(url);
+    throw new Error("Unable to open print view. Allow popups for Nodal, then export PDF again.");
+  }
+  w.addEventListener("load", () => {
+    w.focus();
+    w.print();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  });
 }

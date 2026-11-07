@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { anchorBaseline, anchorOffset, anchorTextAnchor, displayName, roundedPolyline, snap45, svgPath, type Vec2 } from "@linewright/core";
+import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, roundedPolyline, snap45, svgPath, type Vec2 } from "@linewright/core";
 import { useEditor } from "../store/useEditor.js";
 import { linePathPoints } from "@linewright/renderer";
 import { PlusIcon } from "./Icons.js";
@@ -44,6 +44,7 @@ export function Canvas() {
   const [hoverStation, setHoverStation] = useState<string | null>(null);
 
   const stationCount = Object.keys(map.stations).length;
+  const parallel = computeParallelOffsets(map).bySegment;
 
   // Keyboard: V/A/C/H tools, Delete removes selected, arrows nudge, Esc clears.
   useEffect(() => {
@@ -233,7 +234,7 @@ export function Canvas() {
           {Object.values(map.lines).map((line) => (
             <g key={line.id} data-line={line.id}>
               {line.segments.map((_s, i) => {
-                const pts = linePathPoints({ ...map, style: { ...map.style, cornerRadius } }, line.id, i);
+                const pts = linePathPoints({ ...map, style: { ...map.style, cornerRadius } }, line.id, i, parallel);
                 if (pts.length < 2) return null;
                 const d = svgPath(pts);
                 const w = line.width ?? 8;
@@ -310,7 +311,7 @@ export function Canvas() {
                       fill="#111"
                       style={{ pointerEvents: "none" }}
                     >
-                      {displayName(s.name, "Untitled station")}
+                      {displayName(s.name, "Untitled station", map.style.labelLanguage)}
                     </text>
                   );
                 })()}
@@ -341,7 +342,7 @@ export function Canvas() {
                 paintOrder="stroke"
                 style={{ pointerEvents: "none" }}
               >
-                {displayName(line.name, "Line")}
+                {displayName(line.name, "Line", map.style.labelLanguage)}
               </text>
             );
           })}

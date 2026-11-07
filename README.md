@@ -7,13 +7,16 @@ PROJECT.md). Free, MIT-licensed, runs in the browser, saves as open JSON.
 
 ![Nodal banner — schematic metro map on paper](docs/banner.svg)
 
-## What it does (v0.1)
+## What it does (v0.3)
 
 - Add, move, and delete stations on an SVG canvas
 - Draw lines by dragging between stations, with 45° snap
 - Rounded corners, interchange / terminus symbols, line labels
+- Shared tracks offset automatically (parallel lines)
+- One-click label arrange to avoid overlap
+- Multi-locale station names (English + 繁體中文) with a display-language switch
 - Undo / redo, rename stations and lines, change line color
-- Save and load JSON (schema v1), export clean SVG
+- Save and load JSON (schema v1), export SVG / PNG / PDF
 - Fictional-city example so you can try everything safely
 
 Try it: `pnpm install && pnpm dev` → http://localhost:5173
@@ -39,7 +42,7 @@ examples/
   lumen-city.json   # fictional city (trademark-safe)
 ```
 
-See `docs/ARCHITECTURE.md` and `docs/brand-guidelines.md`.
+See `docs/ARCHITECTURE.md`, `docs/brand-guidelines.md`, and `docs/TUTORIAL.md`.
 
 ## Contributing
 
@@ -49,8 +52,8 @@ See `CONTRIBUTING.md`. Short version: `pnpm install` → `pnpm dev`, run
 ## Roadmap
 
 - v0.1 — prototype: pan/zoom, stations, connect, 45° snap, SVG export, JSON save/load ✓
-- v0.2 — undo/redo UI polish, property panels, rounded corners, interchanges ✓ (this build)
-- v0.3 — parallel-line offsets, label anti-overlap, multi-locale names, PNG/PDF export
+- v0.2 — undo/redo UI polish, property panels, rounded corners, interchanges ✓
+- v0.3 — parallel-line offsets, label anti-overlap, multi-locale names, PNG/PDF export ✓
 - v0.4 — Tauri desktop builds, published format spec, tutorials
 - v1.0 — stable format, full docs, plugin API evaluation
 

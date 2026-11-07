@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { parseMapFile } from "@linewright/core";
-import { downloadSVG, toSVGString } from "@linewright/renderer";
+import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { useEditor, type Tool } from "../store/useEditor.js";
 import { AddStationIcon, ConnectIcon, ExportIcon, LoadIcon, PanIcon, RedoIcon, SaveIcon, SelectIcon, UndoIcon } from "./Icons.js";
 import { exampleMap } from "../example.js";
@@ -67,6 +67,24 @@ export function Toolbar() {
     }
   };
 
+  const exportPNG = async () => {
+    try {
+      await downloadPNG(map, map.meta.title || "map");
+      setToast("PNG exported (2×)");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to export PNG. Try exporting SVG instead.");
+    }
+  };
+
+  const exportPDF = () => {
+    try {
+      printPDF(map);
+      setToast("PDF print view opened — choose Save as PDF");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to open PDF view. Try SVG export instead.");
+    }
+  };
+
   const openFile = () => fileRef.current?.click();
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,6 +133,8 @@ export function Toolbar() {
       <button type="button" className="btn" onClick={saveJSON}><SaveIcon /> Save</button>
       <button type="button" className="btn" onClick={openFile}><LoadIcon /> Load</button>
       <button type="button" className="btn btn-primary" onClick={exportSVG}><ExportIcon /> Export SVG</button>
+      <button type="button" className="btn" onClick={exportPNG} title="Export a 2× PNG image">PNG</button>
+      <button type="button" className="btn" onClick={exportPDF} title="Open a print view — save as PDF">PDF</button>
       <button type="button" className="btn" onClick={loadExample}>Example</button>
 
       <input ref={fileRef} type="file" accept="application/json,.json" aria-label="Load map JSON file" hidden onChange={onFile} />
