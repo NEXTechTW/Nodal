@@ -65,6 +65,7 @@ export interface MapStyle {
   labelLanguage: string;
   fontSize: number;
   stationRadius: number;
+  fontFamily?: string;
 }
 
 export interface MetroMap {
@@ -92,6 +93,7 @@ export function emptyMap(title = "Untitled map"): MetroMap {
       labelLanguage: "en",
       fontSize: 14,
       stationRadius: 6,
+      fontFamily: "Noto Sans, sans-serif",
     },
   };
 }

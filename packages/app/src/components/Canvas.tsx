@@ -1,7 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, roundedPolyline, svgPath, type Vec2 } from "@linewright/core";
+import {
+  anchorBaseline,
+  anchorOffset,
+  anchorTextAnchor,
+  computeParallelOffsets,
+  displayName,
+  roundedPolyline,
+  svgPath,
+  type Vec2,
+} from "@linewright/core";
 import { useEditor } from "../store/useEditor.js";
 import { linePathPoints } from "@linewright/renderer";
+import {
+  CloseIcon,
+  CompassIcon,
+  ConnectIcon,
+  DuplicateIcon,
+  SparklesIcon,
+  TrashIcon,
+} from "./Icons.js";
 
 interface DragState {
   kind: "pan" | "move" | "connect" | "none";
@@ -17,6 +34,233 @@ function toMapCoords(client: Vec2, rect: DOMRect, vp: { x: number; y: number; k:
   return { x: (client.x - rect.left - vp.x) / vp.k, y: (client.y - rect.top - vp.y) / vp.k };
 }
 
+/** Mini-Map / Navigator (Photoshop Navigator panel style) */
+function MiniMap({
+  stations,
+  lines,
+  viewport,
+  setViewport,
+  containerRect,
+}: {
+  stations: ReturnType<typeof useEditor.getState>["map"]["stations"];
+  lines: ReturnType<typeof useEditor.getState>["map"]["lines"];
+  viewport: { x: number; y: number; k: number };
+  setViewport: (v: Partial<{ x: number; y: number; k: number }>) => void;
+  containerRect: DOMRect | null;
+}) {
+  const toggleMiniMap = useEditor((s) => s.toggleMiniMap);
+  const stationList = Object.values(stations);
+
+  // Derive bounding box
+  let minX = -400, minY = -300, maxX = 400, maxY = 300;
+  if (stationList.length > 0) {
+    minX = Math.min(...stationList.map((s) => s.position.x)) - 100;
+    minY = Math.min(...stationList.map((s) => s.position.y)) - 100;
+    maxX = Math.max(...stationList.map((s) => s.position.x)) + 100;
+    maxY = Math.max(...stationList.map((s) => s.position.y)) + 100;
+  }
+  const mapW = Math.max(200, maxX - minX);
+  const mapH = Math.max(140, maxY - minY);
+
+  // Viewport rect in map coordinates
+  const vw = containerRect ? containerRect.width : 800;
+  const vh = containerRect ? containerRect.height : 600;
+  const vpMapX = -viewport.x / viewport.k;
+  const vpMapY = -viewport.y / viewport.k;
+  const vpMapW = vw / viewport.k;
+  const vpMapH = vh / viewport.k;
+
+  const onMiniMapClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width;
+    const ny = (e.clientY - rect.top) / rect.height;
+    const targetMapX = minX + nx * mapW;
+    const targetMapY = minY + ny * mapH;
+    setViewport({
+      x: vw / 2 - targetMapX * viewport.k,
+      y: vh / 2 - targetMapY * viewport.k,
+    });
+  };
+
+  return (
+    <div className="mini-map" role="region" aria-label="Navigator Overview">
+      <div className="mini-map-header">
+        <span>Navigator</span>
+        <button
+          type="button"
+          className="btn btn-tool"
+          style={{ width: 16, height: 16, padding: 0 }}
+          onClick={toggleMiniMap}
+          aria-label="Close Navigator"
+        >
+          <CloseIcon />
+        </button>
+      </div>
+      <svg
+        className="mini-map-svg"
+        viewBox={`${minX} ${minY} ${mapW} ${mapH}`}
+        onClick={onMiniMapClick}
+      >
+        {/* Simplified lines */}
+        {Object.values(lines).map((l) =>
+          l.segments.map((s, idx) => {
+            const a = stations[s.from];
+            const b = stations[s.to];
+            if (!a || !b) return null;
+            return (
+              <line
+                key={`${l.id}-${idx}`}
+                x1={a.position.x}
+                y1={a.position.y}
+                x2={b.position.x}
+                y2={b.position.y}
+                stroke={l.color}
+                strokeWidth={5}
+                strokeLinecap="round"
+              />
+            );
+          })
+        )}
+        {/* Simplified station dots */}
+        {stationList.map((s) => (
+          <circle
+            key={s.id}
+            cx={s.position.x}
+            cy={s.position.y}
+            r={5}
+            fill="#ffffff"
+            stroke="#1e1e1e"
+            strokeWidth={1.5}
+          />
+        ))}
+        {/* Viewport frame box */}
+        <rect
+          x={vpMapX}
+          y={vpMapY}
+          width={vpMapW}
+          height={vpMapH}
+          fill="rgba(55, 138, 221, 0.15)"
+          stroke="var(--color-accent)"
+          strokeWidth={Math.max(2, mapW / 80)}
+        />
+      </svg>
+    </div>
+  );
+}
+
+/** RMP-style floating canvas navigation & action D-Pad controller */
+function DPadController({
+  panBy,
+  zoomFit,
+  selectedStationId,
+  deleteSelectedStation,
+  duplicateStation,
+}: {
+  panBy: (dx: number, dy: number) => void;
+  zoomFit: () => void;
+  selectedStationId: string | null;
+  deleteSelectedStation: () => void;
+  duplicateStation: (id: string) => void;
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+  const step = 80;
+
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        className="dpad-toggle-btn"
+        onClick={() => setCollapsed(false)}
+        title="Show Canvas Controller"
+        aria-label="Show Canvas Controller"
+      >
+        <CompassIcon />
+      </button>
+    );
+  }
+
+  return (
+    <div className="dpad-wrap" role="region" aria-label="Canvas Controller">
+      <div className="dpad-cross">
+        <button
+          type="button"
+          className="dpad-btn dpad-up"
+          onClick={() => panBy(0, step)}
+          title="Pan Up"
+          aria-label="Pan Up"
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          className="dpad-btn dpad-left"
+          onClick={() => panBy(step, 0)}
+          title="Pan Left"
+          aria-label="Pan Left"
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          className="dpad-btn dpad-center"
+          onClick={zoomFit}
+          title="Fit Canvas View (F)"
+          aria-label="Fit Canvas View"
+        >
+          •
+        </button>
+        <button
+          type="button"
+          className="dpad-btn dpad-right"
+          onClick={() => panBy(-step, 0)}
+          title="Pan Right"
+          aria-label="Pan Right"
+        >
+          ▶
+        </button>
+        <button
+          type="button"
+          className="dpad-btn dpad-down"
+          onClick={() => panBy(0, -step)}
+          title="Pan Down"
+          aria-label="Pan Down"
+        >
+          ▼
+        </button>
+      </div>
+
+      <div className="dpad-actions">
+        <button
+          type="button"
+          className="dpad-action-btn"
+          disabled={!selectedStationId}
+          onClick={() => selectedStationId && duplicateStation(selectedStationId)}
+          title="Duplicate Station (Ctrl+D)"
+        >
+          <DuplicateIcon />
+        </button>
+        <button
+          type="button"
+          className="dpad-action-btn dpad-delete"
+          disabled={!selectedStationId}
+          onClick={deleteSelectedStation}
+          title="Delete Station"
+        >
+          <TrashIcon />
+        </button>
+        <button
+          type="button"
+          className="dpad-action-btn"
+          onClick={() => setCollapsed(true)}
+          title="Minimize Controller"
+        >
+          −
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Canvas() {
   const map = useEditor((s) => s.map);
   const tool = useEditor((s) => s.tool);
@@ -26,34 +270,129 @@ export function Canvas() {
   const activeLineId = useEditor((s) => s.activeLineId);
   const cornerRadius = useEditor((s) => s.cornerRadius);
   const addStation = useEditor((s) => s.addStation);
+  const duplicateStation = useEditor((s) => s.duplicateStation);
   const moveStation = useEditor((s) => s.moveStation);
   const selectStation = useEditor((s) => s.selectStation);
   const connectStations = useEditor((s) => s.connectStations);
   const setTool = useEditor((s) => s.setTool);
   const setToast = useEditor((s) => s.setToast);
+  const showGrid = useEditor((s) => s.showGrid);
+  const snapToGrid = useEditor((s) => s.snapToGrid);
+  const showRulers = useEditor((s) => s.showRulers);
+  const showMiniMap = useEditor((s) => s.showMiniMap);
+  const toggleGrid = useEditor((s) => s.toggleGrid);
+  const toggleSnap = useEditor((s) => s.toggleSnap);
+  const toggleRulers = useEditor((s) => s.toggleRulers);
+  const setShortcutsOpen = useEditor((s) => s.setShortcutsOpen);
+  const zoomFit = useEditor((s) => s.zoomFit);
+  const zoomIn = useEditor((s) => s.zoomIn);
+  const zoomOut = useEditor((s) => s.zoomOut);
+  const undo = useEditor((s) => s.undo);
+  const redo = useEditor((s) => s.redo);
+  const setCursorPos = useEditor((s) => s.setCursorPos);
+  const hiddenLineIds = useEditor((s) => s.hiddenLineIds);
+  const bilingualLabels = useEditor((s) => s.bilingualLabels);
+  const showTransferBadges = useEditor((s) => s.showTransferBadges);
+  const showDPad = useEditor((s) => s.showDPad);
+  const panBy = useEditor((s) => s.panBy);
+  const copyStationAttrs = useEditor((s) => s.copyStationAttrs);
+  const pasteStationAttrs = useEditor((s) => s.pasteStationAttrs);
+  const autoEnglishName = useEditor((s) => s.autoEnglishName);
+  const copiedStationAttrs = useEditor((s) => s.copiedStationAttrs);
+  const deleteSelectedStation = useEditor((s) => s.deleteSelectedStation);
 
   const svgRef = useRef<SVGSVGElement>(null);
-  const dragRef = useRef<DragState>({ kind: "none", startClient: { x: 0, y: 0 }, startViewport: { x: 0, y: 0 }, stationId: null, startStationPos: null, currentMap: null, moved: false });
+  const dragRef = useRef<DragState>({
+    kind: "none",
+    startClient: { x: 0, y: 0 },
+    startViewport: { x: 0, y: 0 },
+    stationId: null,
+    startStationPos: null,
+    currentMap: null,
+    moved: false,
+  });
+
   const [connectPreview, setConnectPreview] = useState<Vec2 | null>(null);
   const [connectFrom, setConnectFrom] = useState<string | null>(null);
   const [dragStationPos, setDragStationPos] = useState<Record<string, Vec2>>({});
   const [spaceDown, setSpaceDown] = useState(false);
+  const [shiftDown, setShiftDown] = useState(false);
   const [hoverStation, setHoverStation] = useState<string | null>(null);
+  const [cursorScreen, setCursorScreen] = useState<Vec2>({ x: 0, y: 0 });
 
   const stationCount = Object.keys(map.stations).length;
   const parallel = computeParallelOffsets(map).bySegment;
 
-  // Keyboard: V/A/C/H tools, Delete removes selected, arrows nudge, Esc clears.
+  // Global Keyboard Shortcuts (Adobe Standards: V, A, C, H, F, Ctrl+Z, Ctrl+D, Ctrl+', Ctrl+;, etc.)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "SELECT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "SELECT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
       const k = e.key.toLowerCase();
+      const ctrlOrCmd = e.ctrlKey || e.metaKey;
+
+      if (ctrlOrCmd) {
+        if (k === "z") {
+          e.preventDefault();
+          if (e.shiftKey) redo();
+          else undo();
+          return;
+        }
+        if (k === "y") {
+          e.preventDefault();
+          redo();
+          return;
+        }
+        if (k === "d") {
+          e.preventDefault();
+          const sel = useEditor.getState().selectedStationId;
+          if (sel) duplicateStation(sel);
+          return;
+        }
+        if (k === "'") {
+          e.preventDefault();
+          toggleGrid();
+          return;
+        }
+        if (k === ";") {
+          e.preventDefault();
+          toggleSnap();
+          return;
+        }
+        if (k === "r") {
+          e.preventDefault();
+          toggleRulers();
+          return;
+        }
+        if (k === "=" || k === "+") {
+          e.preventDefault();
+          zoomIn();
+          return;
+        }
+        if (k === "-") {
+          e.preventDefault();
+          zoomOut();
+          return;
+        }
+      }
+
       if (k === "v") setTool("select");
       else if (k === "a") setTool("add-station");
       else if (k === "c") setTool("connect");
       else if (k === "h") setTool("pan");
-      else if (k === "delete" || k === "backspace") {
+      else if (k === "f") zoomFit();
+      else if (k === "?" || e.key === "F1") {
+        e.preventDefault();
+        setShortcutsOpen(true);
+      } else if (k === "delete" || k === "backspace") {
         const s = useEditor.getState();
         if (s.selectedStationId) s.deleteSelectedStation();
       } else if (k === "escape") {
@@ -62,13 +401,23 @@ export function Canvas() {
       } else if (e.key === " ") {
         setSpaceDown(true);
         e.preventDefault();
+      } else if (e.key === "Shift") {
+        setShiftDown(true);
       }
     };
-    const onUp = (e: KeyboardEvent) => { if (e.key === " ") setSpaceDown(false); };
+
+    const onUp = (e: KeyboardEvent) => {
+      if (e.key === " ") setSpaceDown(false);
+      if (e.key === "Shift") setShiftDown(false);
+    };
+
     window.addEventListener("keydown", onKey);
     window.addEventListener("keyup", onUp);
-    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("keyup", onUp); };
-  }, [setTool, selectStation]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onUp);
+    };
+  }, [setTool, selectStation, duplicateStation, undo, redo, toggleGrid, toggleSnap, toggleRulers, zoomFit, zoomIn, zoomOut, setShortcutsOpen]);
 
   const getRectMap = useCallback((client: Vec2): Vec2 => {
     const svg = svgRef.current;
@@ -83,27 +432,49 @@ export function Canvas() {
 
     // Station hit test
     const hit = hitStation(mapPt, map.stations, 16 / viewport.k);
-    const effectivePan = tool === "pan" || spaceDown;
+    const effectivePan = tool === "pan" || spaceDown || e.button === 1;
 
     if (!effectivePan && hit) {
       if (tool === "connect") {
-        if (!activeLineId) { setToast("Create a line first, then drag between stations"); return; }
-        if (!connectFrom) { setConnectFrom(hit.id); dragRef.current = { kind: "connect", startClient: client, startViewport: { x: viewport.x, y: viewport.y }, stationId: hit.id, startStationPos: null, currentMap: mapPt, moved: true }; return; }
+        if (!activeLineId) {
+          setToast("Select or create a transit line first, then drag between stations");
+          return;
+        }
+        if (!connectFrom) {
+          setConnectFrom(hit.id);
+          dragRef.current = {
+            kind: "connect",
+            startClient: client,
+            startViewport: { x: viewport.x, y: viewport.y },
+            stationId: hit.id,
+            startStationPos: null,
+            currentMap: mapPt,
+            moved: true,
+          };
+          return;
+        }
       }
       selectStation(hit.id);
-      dragRef.current = { kind: "move", startClient: client, startViewport: { x: viewport.x, y: viewport.y }, stationId: hit.id, startStationPos: { ...map.stations[hit.id]!.position }, currentMap: mapPt, moved: false };
+      dragRef.current = {
+        kind: "move",
+        startClient: client,
+        startViewport: { x: viewport.x, y: viewport.y },
+        stationId: hit.id,
+        startStationPos: { ...map.stations[hit.id]!.position },
+        currentMap: mapPt,
+        moved: false,
+      };
       return;
     }
 
     if (tool === "add-station" && !effectivePan) {
-      const pos = gridSnap(mapPt, map.style.gridStep);
+      const pos = snapToGrid ? gridSnap(mapPt, map.style.gridStep) : mapPt;
       addStation(pos);
       selectStation(null);
       return;
     }
 
     if (tool === "connect" && connectFrom) {
-      // Click-to-complete: if clicking another station, connect.
       if (hit && hit.id !== connectFrom && activeLineId) {
         connectStations(activeLineId, connectFrom, hit.id);
         setConnectFrom(null);
@@ -111,13 +482,28 @@ export function Canvas() {
       }
     }
 
-    // Pan (middle-drag, left-drag on empty with pan tool / space)
-    dragRef.current = { kind: "pan", startClient: client, startViewport: { x: viewport.x, y: viewport.y }, stationId: null, startStationPos: null, currentMap: mapPt, moved: false };
+    // Pan
+    dragRef.current = {
+      kind: "pan",
+      startClient: client,
+      startViewport: { x: viewport.x, y: viewport.y },
+      stationId: null,
+      startStationPos: null,
+      currentMap: mapPt,
+      moved: false,
+    };
   };
 
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
     const client = { x: e.clientX, y: e.clientY };
     const mapPt = getRectMap(client);
+    setCursorPos({ x: Math.round(mapPt.x), y: Math.round(mapPt.y) });
+
+    if (svgRef.current) {
+      const rect = svgRef.current.getBoundingClientRect();
+      setCursorScreen({ x: client.x - rect.left, y: client.y - rect.top });
+    }
+
     const hit = hitStation(mapPt, map.stations, 16 / viewport.k);
     setHoverStation(hit?.id ?? null);
 
@@ -130,15 +516,30 @@ export function Canvas() {
         d.moved = true;
       }
     } else if (d.kind === "move" && d.stationId && d.startStationPos) {
-      const dxMap = (client.x - d.startClient.x) / viewport.k;
-      const dyMap = (client.y - d.startClient.y) / viewport.k;
-      const pos = { x: d.startStationPos.x + dxMap, y: d.startStationPos.y + dyMap };
+      let dxMap = (client.x - d.startClient.x) / viewport.k;
+      let dyMap = (client.y - d.startClient.y) / viewport.k;
+
+      // Shift constraint: 0, 45, 90 degree axis lock
+      if (shiftDown) {
+        const absX = Math.abs(dxMap);
+        const absY = Math.abs(dyMap);
+        if (absX > absY * 2) dyMap = 0;
+        else if (absY > absX * 2) dxMap = 0;
+        else {
+          const avg = (absX + absY) / 2;
+          dxMap = Math.sign(dxMap) * avg;
+          dyMap = Math.sign(dyMap) * avg;
+        }
+      }
+
+      let pos = { x: d.startStationPos.x + dxMap, y: d.startStationPos.y + dyMap };
+      if (snapToGrid) {
+        pos = gridSnap(pos, map.style.gridStep / 2);
+      }
       setDragStationPos({ [d.stationId]: pos });
       d.currentMap = pos;
       d.moved = true;
-    } else if (d.kind === "connect") {
-      setConnectPreview(mapPt);
-    } else if (connectFrom && tool === "connect") {
+    } else if (d.kind === "connect" || (connectFrom && tool === "connect")) {
       setConnectPreview(mapPt);
     }
   };
@@ -147,189 +548,347 @@ export function Canvas() {
     const d = dragRef.current;
     const client = { x: e.clientX, y: e.clientY };
     const mapPt = getRectMap(client);
+
     if (d.kind === "move" && d.stationId && d.currentMap) {
       if (d.moved) {
-        const final = gridSnap(d.currentMap, map.style.gridStep / 2);
+        const final = snapToGrid ? gridSnap(d.currentMap, map.style.gridStep / 2) : d.currentMap;
         moveStation(d.stationId, final);
       }
       setDragStationPos({});
       selectStation(d.stationId);
     } else if (d.kind === "connect" && d.stationId && activeLineId) {
       const hit = hitStation(mapPt, map.stations, 16 / viewport.k);
-      if (hit && hit.id !== d.stationId) connectStations(activeLineId, d.stationId, hit.id);
+      if (hit && hit.id !== d.stationId) {
+        connectStations(activeLineId, d.stationId, hit.id);
+      }
       setConnectPreview(null);
       setConnectFrom(null);
     } else if (d.kind === "pan" && !d.moved) {
-      // Plain click on empty = deselect (select tool only).
       if (tool === "select") selectStation(null);
     }
-    dragRef.current = { kind: "none", startClient: { x: 0, y: 0 }, startViewport: { x: 0, y: 0 }, stationId: null, startStationPos: null, currentMap: null, moved: false };
+
+    dragRef.current = {
+      kind: "none",
+      startClient: { x: 0, y: 0 },
+      startViewport: { x: 0, y: 0 },
+      stationId: null,
+      startStationPos: null,
+      currentMap: null,
+      moved: false,
+    };
     setConnectPreview(null);
-    // Keep connectFrom for click-to-connect only when preview drag ends without hit? Reset.
-    if (tool === "connect" && !activeLineId) setConnectFrom(null);
   };
 
   const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
     e.preventDefault();
     const factor = Math.exp(-e.deltaY * 0.0012);
-    const k = Math.min(4, Math.max(0.2, viewport.k * factor));
+    const k = Math.min(5, Math.max(0.15, viewport.k * factor));
     const svg = svgRef.current;
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
-    // Zoom to cursor.
     const mapX = (cx - viewport.x) / viewport.k;
     const mapY = (cy - viewport.y) / viewport.k;
     setViewport({ k, x: cx - mapX * k, y: cy - mapY * k });
   };
 
   const fromPos = connectFrom ? map.stations[connectFrom]?.position : null;
-
-  const hint = tool === "add-station"
-    ? "Click the canvas to add a station"
-    : tool === "connect"
-      ? activeLineId
-        ? connectFrom
-          ? "Click another station to connect"
-          : "Drag from a station to another to connect"
-        : "Create a line first, then drag between stations"
-      : tool === "pan"
-        ? "Drag to pan. Scroll to zoom. Hold Space + drag also pans."
-        : stationCount === 0 ? "" : "Click a station to select it. Drag to move. Scroll to zoom.";
+  const selectedStation = selectedStationId ? map.stations[selectedStationId] : null;
 
   return (
     <main className="canvas-wrap" aria-label="Map canvas">
+      {/* Canvas Rulers (Top & Left) */}
+      {showRulers && (
+        <>
+          <div className="canvas-ruler-corner" />
+          <svg className="canvas-ruler-top" aria-hidden="true">
+            <line x1={cursorScreen.x} y1={0} x2={cursorScreen.x} y2={18} stroke="var(--color-accent)" strokeWidth={1.5} />
+            {Array.from({ length: 40 }).map((_, i) => (
+              <line key={i} x1={i * 50} y1={10} x2={i * 50} y2={18} stroke="var(--color-border-strong)" strokeWidth={1} />
+            ))}
+          </svg>
+          <svg className="canvas-ruler-left" aria-hidden="true">
+            <line x1={0} y1={cursorScreen.y} x2={18} y2={cursorScreen.y} stroke="var(--color-accent)" strokeWidth={1.5} />
+            {Array.from({ length: 30 }).map((_, i) => (
+              <line key={i} x1={10} y1={i * 50} x2={18} y2={i * 50} stroke="var(--color-border-strong)" strokeWidth={1} />
+            ))}
+          </svg>
+        </>
+      )}
+
       <svg
         ref={svgRef}
         className="canvas-svg"
         data-tool={spaceDown ? "pan" : tool}
         role="application"
-        aria-label="Transit map canvas. Use the tools to add stations, connect them, and edit the map."
+        aria-label="Transit map canvas"
         tabIndex={0}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onWheel={onWheel}
-        onPointerLeave={() => { setConnectPreview(null); }}
+        onPointerLeave={() => {
+          setConnectPreview(null);
+          setCursorPos(null);
+        }}
       >
-        {/* Grid */}
+        {/* Background Grid Pattern */}
         <defs>
-          <pattern id="grid" width={map.style.gridStep} height={map.style.gridStep} patternUnits="userSpaceOnUse">
-            <path d={`M ${map.style.gridStep} 0 L 0 0 0 ${map.style.gridStep}`} fill="none" stroke="var(--canvas-grid, #E2E8F0)" strokeWidth="1" />
+          <pattern
+            id="canvas-grid"
+            width={map.style.gridStep}
+            height={map.style.gridStep}
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d={`M ${map.style.gridStep} 0 L 0 0 0 ${map.style.gridStep}`}
+              fill="none"
+              stroke="var(--canvas-grid)"
+              strokeWidth="1"
+            />
           </pattern>
         </defs>
+
         <g transform={`translate(${viewport.x} ${viewport.y}) scale(${viewport.k})`}>
-          <rect x={-2000} y={-2000} width={4000} height={4000} fill="url(#grid)" pointerEvents="none" />
+          {/* Background surface & Grid */}
+          <rect
+            x={-6000}
+            y={-6000}
+            width={12000}
+            height={12000}
+            fill={map.style.background}
+          />
+          {showGrid && (
+            <rect
+              x={-6000}
+              y={-6000}
+              width={12000}
+              height={12000}
+              fill="url(#canvas-grid)"
+              pointerEvents="none"
+            />
+          )}
 
-          {/* Lines */}
-          {Object.values(map.lines).map((line) => (
-            <g key={line.id} data-line={line.id}>
-              {line.segments.map((_s, i) => {
-                const pts = linePathPoints({ ...map, style: { ...map.style, cornerRadius } }, line.id, i, parallel);
-                if (pts.length < 2) return null;
-                const d = svgPath(pts);
-                const w = line.width ?? 8;
-                if (line.style === "double") {
-                  return (
-                    <g key={i}>
-                      <path d={d} fill="none" stroke={line.color} strokeWidth={w + 6} strokeLinecap="round" strokeLinejoin="round" />
-                      <path d={d} fill="none" stroke="#fff" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
-                      <path d={d} fill="none" stroke={line.color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
-                    </g>
+          {/* Transit Lines */}
+          {Object.values(map.lines).map((line) => {
+            if (hiddenLineIds[line.id]) return null;
+            return (
+              <g key={line.id} data-line={line.id}>
+                {line.segments.map((_s, i) => {
+                  const pts = linePathPoints(
+                    { ...map, style: { ...map.style, cornerRadius } },
+                    line.id,
+                    i,
+                    parallel
                   );
-                }
-                return (
-                  <path
-                    key={i}
-                    d={d}
-                    fill="none"
-                    stroke={line.color}
-                    strokeWidth={w}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeDasharray={line.style === "dashed" ? "12 8" : undefined}
-                  />
-                );
-              })}
-            </g>
-          ))}
+                  if (pts.length < 2) return null;
+                  const d = svgPath(pts);
+                  const w = line.width ?? 8;
+                  if (line.style === "double") {
+                    return (
+                      <g key={i}>
+                        <path d={d} fill="none" stroke={line.color} strokeWidth={w + 6} strokeLinecap="round" strokeLinejoin="round" />
+                        <path d={d} fill="none" stroke="#ffffff" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
+                        <path d={d} fill="none" stroke={line.color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
+                      </g>
+                    );
+                  }
+                  return (
+                    <path
+                      key={i}
+                      d={d}
+                      fill="none"
+                      stroke={line.color}
+                      strokeWidth={w}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray={line.style === "dashed" ? "12 8" : undefined}
+                    />
+                  );
+                })}
+              </g>
+            );
+          })}
 
-          {/* Connect preview */}
+          {/* Live Connect Preview Drag Line */}
           {fromPos && connectPreview && (
             <path
               d={`M ${fromPos.x} ${fromPos.y} L ${connectPreview.x} ${connectPreview.y}`}
-              stroke="var(--color-accent, #0B5FFF)"
-              strokeWidth={3}
+              stroke="var(--color-accent)"
+              strokeWidth={3.5}
               strokeDasharray="6 6"
               strokeLinecap="round"
               pointerEvents="none"
             />
           )}
 
-          {/* Stations */}
+          {/* Transit Stations */}
           {Object.values(map.stations).map((s) => {
             const pos = dragStationPos[s.id] ?? s.position;
             const isSel = s.id === selectedStationId;
             const isHover = s.id === hoverStation;
             const r = map.style.stationRadius;
-            const stroke = isSel ? "#0B5FFF" : "#111";
-            const sw = isSel ? 4 : 2.5;
-            const ring = isSel ? 3 : isHover ? 2 : 0;
+            const stroke = isSel ? "var(--color-accent)" : "#1e1e1e";
+            const sw = isSel ? 3.5 : 2.5;
+
             return (
-              <g key={s.id} transform={`translate(${pos.x} ${pos.y}) rotate(${s.rotation ?? 0})`} data-station={s.id} style={{ cursor: tool === "connect" ? "crosshair" : "pointer" }}>
-                {ring > 0 && <circle r={r + 6} fill="none" stroke="#0B5FFF" strokeWidth={1.5} opacity={0.6} />}
+              <g
+                key={s.id}
+                transform={`translate(${pos.x} ${pos.y}) rotate(${s.rotation ?? 0})`}
+                data-station={s.id}
+                style={{ cursor: tool === "connect" ? "crosshair" : "pointer" }}
+              >
+                {/* Adobe Selection Halo Indicator */}
+                {(isSel || isHover) && (
+                  <circle
+                    r={r + 6}
+                    fill="none"
+                    stroke="var(--color-accent)"
+                    strokeWidth={isSel ? 2 : 1}
+                    opacity={isSel ? 0.9 : 0.5}
+                  />
+                )}
+
                 {s.kind === "interchange" ? (
                   <>
-                    <circle r={r + 7} fill="none" stroke={stroke} strokeWidth={2} />
-                    <circle r={r} fill="#fff" stroke={stroke} strokeWidth={sw} />
+                    <circle r={r + 6} fill="none" stroke={stroke} strokeWidth={2} />
+                    <circle r={r} fill="#ffffff" stroke={stroke} strokeWidth={sw} />
                   </>
                 ) : s.kind === "terminus" ? (
-                  <rect x={-r} y={-r} width={r * 2} height={r * 2} rx={3} fill="#fff" stroke={stroke} strokeWidth={sw} />
+                  <rect
+                    x={-r}
+                    y={-r}
+                    width={r * 2}
+                    height={r * 2}
+                    rx={2}
+                    fill="#ffffff"
+                    stroke={stroke}
+                    strokeWidth={sw}
+                  />
                 ) : (
-                  <circle r={r} fill="#fff" stroke={stroke} strokeWidth={sw} />
+                  <circle r={r} fill="#ffffff" stroke={stroke} strokeWidth={sw} />
                 )}
-                {/* Label */}
+
+                {/* Station Label & Bilingual Support (RMP Style) */}
                 {(() => {
                   const off = anchorOffset(s.labelAnchor, r + 8);
+                  const lx = off.x + (s.labelOffset?.x ?? 0);
+                  const ly = off.y + (s.labelOffset?.y ?? 0);
+                  const zhName = s.name["zh-TW"] || s.name["zh"];
+                  const enName = s.name["en"];
+                  const isBilingual = bilingualLabels && zhName && enName;
+
                   return (
                     <text
-                      x={off.x + (s.labelOffset?.x ?? 0)}
-                      y={off.y + (s.labelOffset?.y ?? 0)}
+                      x={lx}
+                      y={ly}
                       textAnchor={anchorTextAnchor(s.labelAnchor)}
                       dominantBaseline={anchorBaseline(s.labelAnchor)}
-                      fontFamily="Noto Sans, sans-serif"
+                      fontFamily={map.style.fontFamily ?? "Noto Sans, sans-serif"}
                       fontSize={map.style.fontSize}
+                      fontWeight={isSel ? 600 : 500}
                       style={{ pointerEvents: "none", fill: "var(--color-text)" }}
                     >
-                      {displayName(s.name, "Untitled station", map.style.labelLanguage)}
+                      {isBilingual ? (
+                        <>
+                          <tspan x={lx} dy={s.labelAnchor.includes("S") ? "0" : "-0.3em"}>
+                            {zhName}
+                          </tspan>
+                          <tspan
+                            x={lx}
+                            dy="1.2em"
+                            fontSize={Math.max(8, Math.round(map.style.fontSize * 0.78))}
+                            fontWeight={400}
+                            fill="var(--color-text-secondary)"
+                          >
+                            {enName}
+                          </tspan>
+                        </>
+                      ) : (
+                        displayName(s.name, "Untitled station", map.style.labelLanguage)
+                      )}
                     </text>
+                  );
+                })()}
+
+                {/* Transfer Line Bullet Badges (RMP / Real Metro Style) */}
+                {showTransferBadges && (() => {
+                  const stationLines = Object.values(map.lines).filter(
+                    (l) => !hiddenLineIds[l.id] && l.segments.some((seg) => seg.from === s.id || seg.to === s.id)
+                  );
+                  if (stationLines.length < 2 && s.kind !== "interchange") return null;
+                  if (stationLines.length === 0) return null;
+
+                  const badgeY = r + 10 + (s.labelAnchor.includes("S") ? 18 : 0);
+                  const badgeW = 16;
+                  const totalW = stationLines.length * (badgeW + 3) - 3;
+                  const startX = -totalW / 2;
+
+                  return (
+                    <g transform={`translate(0, ${badgeY})`} style={{ pointerEvents: "none" }}>
+                      {stationLines.map((l, lIdx) => {
+                        const bx = startX + lIdx * (badgeW + 3);
+                        const code = (displayName(l.name, "L")).slice(0, 2).toUpperCase();
+                        return (
+                          <g key={l.id} transform={`translate(${bx}, 0)`}>
+                            <rect
+                              x={0}
+                              y={0}
+                              width={badgeW}
+                              height={11}
+                              rx={3}
+                              fill={l.color}
+                            />
+                            <text
+                              x={badgeW / 2}
+                              y={8.5}
+                              textAnchor="middle"
+                              fill="#ffffff"
+                              fontSize={7.5}
+                              fontFamily="var(--font-mono)"
+                              fontWeight={700}
+                            >
+                              {code}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </g>
                   );
                 })()}
               </g>
             );
           })}
 
-          {/* Line labels */}
+          {/* Line Labels */}
           {Object.values(map.lines).map((line) => {
+            if (hiddenLineIds[line.id]) return null;
             const seg = line.segments[0];
             if (!seg) return null;
             const a = map.stations[seg.from];
             const b = map.stations[seg.to];
             if (!a || !b) return null;
-            const mid = { x: (a.position.x + b.position.x) / 2, y: (a.position.y + b.position.y) / 2 - 10 };
+            const mid = {
+              x: (a.position.x + b.position.x) / 2,
+              y: (a.position.y + b.position.y) / 2 - 10,
+            };
             return (
               <text
                 key={`lbl-${line.id}`}
                 x={mid.x}
                 y={mid.y}
                 textAnchor="middle"
-                fontFamily="Noto Sans, sans-serif"
+                fontFamily={map.style.fontFamily ?? "Noto Sans, sans-serif"}
                 fontSize={map.style.fontSize - 1}
                 fontWeight={600}
-                strokeWidth={4}
+                strokeWidth={3}
                 paintOrder="stroke"
-                style={{ pointerEvents: "none", fill: "var(--color-text)", stroke: "var(--color-bg-canvas)" }}
+                style={{
+                  pointerEvents: "none",
+                  fill: "var(--color-text)",
+                  stroke: map.style.background,
+                }}
               >
                 {displayName(line.name, "Line", map.style.labelLanguage)}
               </text>
@@ -338,11 +897,107 @@ export function Canvas() {
         </g>
       </svg>
 
-      {hint && stationCount > 0 && <div className="canvas-hint" role="status">{hint}</div>}
+      {/* Floating Contextual Taskbar (Adobe Photoshop 2026 style) */}
+      {selectedStation && (
+        <div className="ctx-toolbar" role="toolbar" aria-label="Selected Station Actions">
+          <span className="ctx-label">
+            {displayName(selectedStation.name, "Station")}
+          </span>
+          <div className="ctx-sep" />
+          <button
+            type="button"
+            className="ctx-btn"
+            onClick={() => duplicateStation(selectedStation.id)}
+            title="Duplicate Station (Ctrl+D)"
+            aria-label="Duplicate"
+          >
+            <DuplicateIcon />
+          </button>
+          <button
+            type="button"
+            className="ctx-btn"
+            onClick={() => {
+              setTool("connect");
+              setConnectFrom(selectedStation.id);
+            }}
+            title="Connect Line (C)"
+            aria-label="Connect"
+          >
+            <ConnectIcon />
+          </button>
+          <div className="ctx-sep" />
+          <button
+            type="button"
+            className="ctx-btn"
+            onClick={() => copyStationAttrs(selectedStation.id)}
+            title="Copy Station Style"
+            aria-label="Copy Style"
+          >
+            Copy
+          </button>
+          {copiedStationAttrs && (
+            <button
+              type="button"
+              className="ctx-btn"
+              onClick={() => pasteStationAttrs(selectedStation.id)}
+              title="Paste Station Style"
+              aria-label="Paste Style"
+            >
+              Paste
+            </button>
+          )}
+          {(selectedStation.name["zh-TW"] || selectedStation.name["zh"]) && (
+            <button
+              type="button"
+              className="ctx-btn"
+              onClick={() => autoEnglishName(selectedStation.id)}
+              title="Auto Translate to English"
+              aria-label="Auto English"
+            >
+              <SparklesIcon />
+            </button>
+          )}
+          <div className="ctx-sep" />
+          <button
+            type="button"
+            className="ctx-btn ctx-btn-danger"
+            onClick={deleteSelectedStation}
+            title="Delete Station (Del)"
+            aria-label="Delete"
+          >
+            <TrashIcon />
+          </button>
+        </div>
+      )}
 
-      <div className="sr-only" role="status" aria-live="polite">
-        {useEditor((s) => s.lastActionLabel ?? "")}
-      </div>
+      {/* RMP-Style On-Canvas Navigation D-Pad */}
+      {showDPad && (
+        <DPadController
+          panBy={panBy}
+          zoomFit={zoomFit}
+          selectedStationId={selectedStationId}
+          deleteSelectedStation={deleteSelectedStation}
+          duplicateStation={duplicateStation}
+        />
+      )}
+
+      {/* Mini-Map / Navigator */}
+      {showMiniMap && (
+        <MiniMap
+          stations={map.stations}
+          lines={map.lines}
+          viewport={viewport}
+          setViewport={setViewport}
+          containerRect={svgRef.current?.getBoundingClientRect() ?? null}
+        />
+      )}
+
+      {/* Help Tip Overlay */}
+      {stationCount === 0 && (
+        <div className="canvas-hint" role="status">
+          Click anywhere with the Add Station tool (A) to place your first transit hub
+        </div>
+      )}
     </main>
   );
 }
@@ -352,14 +1007,19 @@ function gridSnap(p: Vec2, step: number): Vec2 {
   return { x: Math.round(p.x / step) * step, y: Math.round(p.y / step) * step };
 }
 
-function hitStation(p: Vec2, stations: Record<string, { id: string; position: Vec2 }>, tol: number): { id: string; position: Vec2 } | null {
+function hitStation(
+  p: Vec2,
+  stations: Record<string, { id: string; position: Vec2 }>,
+  tol: number
+): { id: string; position: Vec2 } | null {
   let best: { id: string; position: Vec2; d: number } | null = null;
   for (const s of Object.values(stations)) {
     const d = Math.hypot(p.x - s.position.x, p.y - s.position.y);
-    if (d <= Math.max(tol, 14) && (!best || d < best.d)) best = { id: s.id, position: s.position, d };
+    if (d <= Math.max(tol, 14) && (!best || d < best.d)) {
+      best = { id: s.id, position: s.position, d };
+    }
   }
   return best;
 }
 
-// Keep roundedPolyline referenced for future waypoint editing (tree-shaking safe).
 export { roundedPolyline };

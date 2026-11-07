@@ -1,7 +1,7 @@
 /**
  * Zustand store — UI state (viewport, selection, tool) + domain state (MetroMap).
  * Undo/redo via CommandStack from @linewright/core (PROJECT.md §3).
- * `tool` is one of select | add-station | connect | pan.
+ * Modeled after Adobe Creative Cloud workbench state management.
  */
 import { create } from "zustand";
 import {
@@ -53,6 +53,17 @@ function initialTheme(): Theme {
   return "dark";
 }
 
+function getStoredBool(key: string, def: boolean): boolean {
+  try {
+    const v = localStorage.getItem(key);
+    if (v === "true") return true;
+    if (v === "false") return false;
+  } catch {
+    /* ignore */
+  }
+  return def;
+}
+
 interface EditorState {
   map: MetroMap;
   stack: CommandStack;
@@ -68,6 +79,24 @@ interface EditorState {
   lastActionLabel: string | null;
   startupOpen: boolean;
 
+  // Adobe & RMP transit cartography features
+  showGrid: boolean;
+  snapToGrid: boolean;
+  showRulers: boolean;
+  showMiniMap: boolean;
+  shortcutsOpen: boolean;
+  cursorPos: Vec2 | null;
+  hiddenLineIds: Record<string, boolean>;
+  bilingualLabels: boolean;
+  showTransferBadges: boolean;
+  showDPad: boolean;
+  copiedStationAttrs: {
+    kind: StationKind;
+    labelAnchor: Anchor;
+    rotation?: number;
+    labelOffset?: Vec2;
+  } | null;
+
   // actions
   setStartupOpen(open: boolean): void;
   setTool(t: Tool): void;
@@ -78,6 +107,7 @@ interface EditorState {
   selectStation(id: string | null): void;
   selectLine(id: string | null): void;
   addStation(pos: Vec2): string;
+  duplicateStation(id: string): string | null;
   moveStation(id: string, pos: Vec2): void;
   deleteSelectedStation(): void;
   renameStation(id: string, name: string, lang?: string): void;
@@ -90,11 +120,13 @@ interface EditorState {
   setLineStyle(id: string, style: LineStyle): void;
   setLineWidth(id: string, width: number): void;
   deleteLine(id: string): void;
+  toggleLineVisibility(id: string): void;
   setMapBackground(color: string): void;
   setStationPosition(id: string, pos: Vec2): void;
   setStationRotation(id: string, deg: number): void;
   setStationLabelOffset(id: string, offset: Vec2): void;
   setFontSize(n: number): void;
+  setFontFamily(f: string): void;
   setStationRadius(n: number): void;
   setGridStep(n: number): void;
   connectStations(lineId: string, from: string, to: string): void;
@@ -102,11 +134,30 @@ interface EditorState {
   undo(): void;
   redo(): void;
   loadMap(map: MetroMap): void;
+  newMap(): void;
   setError(msg: string | null): void;
   clearToast(): void;
   setToast(msg: string): void;
   setLabelLanguage(lang: string): void;
   avoidLabelOverlaps(): void;
+
+  // Toggles & RMP features
+  toggleGrid(): void;
+  toggleSnap(): void;
+  toggleRulers(): void;
+  toggleMiniMap(): void;
+  toggleBilingual(): void;
+  toggleTransferBadges(): void;
+  toggleDPad(): void;
+  setShortcutsOpen(open: boolean): void;
+  setCursorPos(pos: Vec2 | null): void;
+  zoomIn(): void;
+  zoomOut(): void;
+  zoomFit(): void;
+  panBy(dx: number, dy: number): void;
+  copyStationAttrs(id: string): void;
+  pasteStationAttrs(id: string): void;
+  autoEnglishName(id: string): void;
 }
 
 const initialMap = emptyMap("Untitled map");
@@ -134,6 +185,18 @@ export const useEditor = create<EditorState>((set, get) => {
       }
     })(),
 
+    showGrid: getStoredBool("nodal:show_grid", true),
+    snapToGrid: getStoredBool("nodal:snap_to_grid", true),
+    showRulers: getStoredBool("nodal:show_rulers", false),
+    showMiniMap: getStoredBool("nodal:show_minimap", false),
+    shortcutsOpen: false,
+    cursorPos: null,
+    hiddenLineIds: {},
+    bilingualLabels: getStoredBool("nodal:bilingual", true),
+    showTransferBadges: getStoredBool("nodal:transfer_badges", true),
+    showDPad: getStoredBool("nodal:show_dpad", false),
+    copiedStationAttrs: null,
+
     setStartupOpen: (open) => set({ startupOpen: open }),
     setTool: (t) => set({ tool: t }),
     setViewport: (v) => set((s) => ({ viewport: { ...s.viewport, ...v } })),
@@ -154,6 +217,140 @@ export const useEditor = create<EditorState>((set, get) => {
     setToast: (msg) => set({ toast: msg, lastActionLabel: msg }),
     clearToast: () => set({ toast: null }),
 
+    toggleGrid: () => {
+      const next = !get().showGrid;
+      try { localStorage.setItem("nodal:show_grid", String(next)); } catch { /* ignore */ }
+      set({ showGrid: next });
+    },
+    toggleSnap: () => {
+      const next = !get().snapToGrid;
+      try { localStorage.setItem("nodal:snap_to_grid", String(next)); } catch { /* ignore */ }
+      set({ snapToGrid: next, toast: next ? "Snap to grid: Enabled" : "Snap to grid: Disabled" });
+    },
+    toggleRulers: () => {
+      const next = !get().showRulers;
+      try { localStorage.setItem("nodal:show_rulers", String(next)); } catch { /* ignore */ }
+      set({ showRulers: next });
+    },
+    toggleMiniMap: () => {
+      const next = !get().showMiniMap;
+      try { localStorage.setItem("nodal:show_minimap", String(next)); } catch { /* ignore */ }
+      set({ showMiniMap: next });
+    },
+    setShortcutsOpen: (open) => set({ shortcutsOpen: open }),
+    setCursorPos: (pos) => set({ cursorPos: pos }),
+    toggleLineVisibility: (id) => {
+      set((s) => ({
+        hiddenLineIds: {
+          ...s.hiddenLineIds,
+          [id]: !s.hiddenLineIds[id],
+        },
+      }));
+    },
+    toggleBilingual: () => {
+      const next = !get().bilingualLabels;
+      try { localStorage.setItem("nodal:bilingual", String(next)); } catch { /* ignore */ }
+      set({ bilingualLabels: next, toast: next ? "Bilingual labels: ON" : "Bilingual labels: OFF" });
+    },
+    toggleTransferBadges: () => {
+      const next = !get().showTransferBadges;
+      try { localStorage.setItem("nodal:transfer_badges", String(next)); } catch { /* ignore */ }
+      set({ showTransferBadges: next, toast: next ? "Transfer line badges: ON" : "Transfer line badges: OFF" });
+    },
+    toggleDPad: () => {
+      const next = !get().showDPad;
+      try { localStorage.setItem("nodal:show_dpad", String(next)); } catch { /* ignore */ }
+      set({ showDPad: next });
+    },
+    panBy: (dx, dy) => {
+      const vp = get().viewport;
+      set({ viewport: { ...vp, x: vp.x + dx, y: vp.y + dy } });
+    },
+    copyStationAttrs: (id) => {
+      const s = get().map.stations[id];
+      if (!s) return;
+      const attrs = {
+        kind: s.kind,
+        labelAnchor: s.labelAnchor,
+        ...(s.rotation !== undefined ? { rotation: s.rotation } : {}),
+        ...(s.labelOffset ? { labelOffset: structuredClone(s.labelOffset) } : {}),
+      };
+      set({ copiedStationAttrs: attrs, toast: "Station style copied" });
+    },
+    pasteStationAttrs: (id) => {
+      const { copiedStationAttrs, map } = get();
+      if (!copiedStationAttrs) {
+        set({ toast: "No copied station style to paste" });
+        return;
+      }
+      const s = map.stations[id];
+      if (!s) return;
+      set((st) => ({
+        map: {
+          ...st.map,
+          stations: {
+            ...st.map.stations,
+            [id]: {
+              ...st.map.stations[id]!,
+              kind: copiedStationAttrs.kind,
+              labelAnchor: copiedStationAttrs.labelAnchor,
+              ...(copiedStationAttrs.rotation !== undefined ? { rotation: copiedStationAttrs.rotation } : {}),
+              ...(copiedStationAttrs.labelOffset ? { labelOffset: structuredClone(copiedStationAttrs.labelOffset) } : {}),
+            },
+          },
+        },
+        toast: "Station style applied",
+      }));
+    },
+    autoEnglishName: (id) => {
+      const s = get().map.stations[id];
+      if (!s) return;
+      const zh = s.name["zh-TW"] || s.name["zh"] || "";
+      if (!zh) return;
+      const translated = translateTransitName(zh);
+      get().renameStation(id, translated, "en");
+      set({ toast: `Generated English: "${translated}"` });
+    },
+
+    zoomIn: () => {
+      const vp = get().viewport;
+      set({ viewport: { ...vp, k: Math.min(5, Math.round(vp.k * 1.25 * 100) / 100) } });
+    },
+    zoomOut: () => {
+      const vp = get().viewport;
+      set({ viewport: { ...vp, k: Math.max(0.15, Math.round(vp.k * 0.8 * 100) / 100) } });
+    },
+    zoomFit: () => {
+      const { map } = get();
+      const stations = Object.values(map.stations);
+      if (stations.length === 0) {
+        set({ viewport: { x: 0, y: 0, k: 1 } });
+        return;
+      }
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const s of stations) {
+        if (s.position.x < minX) minX = s.position.x;
+        if (s.position.y < minY) minY = s.position.y;
+        if (s.position.x > maxX) maxX = s.position.x;
+        if (s.position.y > maxY) maxY = s.position.y;
+      }
+      const pad = 120;
+      const w = Math.max(300, maxX - minX + pad * 2);
+      const h = Math.max(300, maxY - minY + pad * 2);
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      const vw = window.innerWidth - 560; // account for dock & panels
+      const vh = window.innerHeight - 100;
+      const k = Math.min(2, Math.max(0.25, Math.min(vw / w, vh / h)));
+      set({
+        viewport: {
+          k,
+          x: (vw / 2) - cx * k + 40,
+          y: (vh / 2) - cy * k,
+        },
+      });
+    },
+
     addStation: (pos) => {
       const id = createId();
       const station = {
@@ -168,6 +365,26 @@ export const useEditor = create<EditorState>((set, get) => {
       set({ map, selectedStationId: id, lastActionLabel: cmd.label });
       return id;
     },
+
+    duplicateStation: (id) => {
+      const s = get().map.stations[id];
+      if (!s) return null;
+      const newId = createId();
+      const clone: import("@linewright/core").Station = {
+        id: newId,
+        name: structuredClone(s.name),
+        position: { x: s.position.x + 40, y: s.position.y + 40 },
+        kind: s.kind,
+        labelAnchor: s.labelAnchor,
+        ...(s.labelOffset ? { labelOffset: structuredClone(s.labelOffset) } : {}),
+        ...(s.rotation !== undefined ? { rotation: s.rotation } : {}),
+      };
+      const cmd = addStationCommand(newId, clone);
+      const map = get().stack.dispatch(cmd);
+      set({ map, selectedStationId: newId, lastActionLabel: "Duplicate station", toast: "Station duplicated" });
+      return newId;
+    },
+
     moveStation: (id, pos) => {
       const s = get().map.stations[id];
       if (!s) return;
@@ -240,7 +457,6 @@ export const useEditor = create<EditorState>((set, get) => {
     setStationAnchor: (id, anchor) => {
       const s = get().map.stations[id];
       if (!s) return;
-      // Anchor change is local (not undoable in v0.1) — direct update.
       set((st) => ({
         map: { ...st.map, stations: { ...st.map.stations, [id]: { ...st.map.stations[id]!, labelAnchor: anchor } } },
         lastActionLabel: "Change label position",
@@ -248,7 +464,7 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     addLine: (name) => {
       const id = createId();
-      const PALETTE = ["#E00034", "#0067C0", "#009444", "#FF8A00", "#6A1B9A", "#00A9A5", "#E55934", "#0B5FFF"];
+      const PALETTE = ["#0067C0", "#E00034", "#009444", "#FF8A00", "#6A1B9A", "#00A9A5", "#E55934", "#FFC800"];
       const color = PALETTE[Object.keys(get().map.lines).length % PALETTE.length]!;
       const line = { id, name: { en: name || "New line" }, color, segments: [], style: "solid" as const, width: 8 };
       const cmd = addLineCommand(id, line);
@@ -336,6 +552,12 @@ export const useEditor = create<EditorState>((set, get) => {
         lastActionLabel: "Change label size",
       }));
     },
+    setFontFamily: (f) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, fontFamily: f } },
+        lastActionLabel: "Change font",
+      }));
+    },
     setStationRadius: (n) => {
       set((s) => ({
         map: { ...s.map, style: { ...s.map.style, stationRadius: Math.min(16, Math.max(3, n)) } },
@@ -353,7 +575,6 @@ export const useEditor = create<EditorState>((set, get) => {
       const cmd = addSegmentCommand(lineId, from, to);
       const before = JSON.stringify(get().map.lines[lineId]);
       const map = get().stack.dispatch(cmd);
-      // addSegmentCommand no-ops on duplicate; detect and toast.
       if (JSON.stringify(map.lines[lineId]) === before) {
         set({ toast: "These stations are already connected on this line" });
         return;
@@ -387,6 +608,19 @@ export const useEditor = create<EditorState>((set, get) => {
         toast: "Map loaded",
       });
     },
+    newMap: () => {
+      const brandNew = emptyMap("Untitled map");
+      get().stack.reset(brandNew);
+      set({
+        map: brandNew,
+        selectedStationId: null,
+        selectedLineId: null,
+        activeLineId: null,
+        viewport: { x: 0, y: 0, k: 1 },
+        error: null,
+        toast: "New map created",
+      });
+    },
     setLabelLanguage: (lang) => {
       set((s) => ({
         map: { ...s.map, style: { ...s.map.style, labelLanguage: lang } },
@@ -410,4 +644,63 @@ export const useEditor = create<EditorState>((set, get) => {
 export function stationDisplayName(map: MetroMap, id: string): string {
   const s = map.stations[id];
   return s ? displayName(s.name, "Untitled station") : id;
+}
+
+function translateTransitName(zh: string): string {
+  const dictionary: [string, string][] = [
+    ["台北車站", "Taipei Main Station"],
+    ["人民廣場", "People's Square"],
+    ["中山公園", "Zhongshan Park"],
+    ["中央公園", "Central Park"],
+    ["國際機場", "International Airport"],
+    ["機場", "Airport"],
+    ["火車站", "Railway Station"],
+    ["高鐵站", "High-Speed Rail Station"],
+    ["高鐵", "HSR"],
+    ["市政府", "City Hall"],
+    ["市中心", "City Center"],
+    ["體育館", "Stadium"],
+    ["體育中心", "Sports Center"],
+    ["博物館", "Museum"],
+    ["美術館", "Fine Arts Museum"],
+    ["動物園", "Zoo"],
+    ["醫院", "Hospital"],
+    ["大學", "University"],
+    ["科技園區", "Science Park"],
+    ["軟體園區", "Software Park"],
+    ["工業區", "Industrial Park"],
+    ["轉運站", "Transfer Station"],
+    ["車站", "Station"],
+    ["廣場", "Square"],
+    ["公園", "Park"],
+    ["碼頭", "Pier"],
+    ["港", "Port"],
+    ["大橋", "Bridge"],
+    ["橋", "Bridge"],
+    ["東路", "East Road"],
+    ["西路", "West Road"],
+    ["南路", "South Road"],
+    ["北路", "North Road"],
+    ["中路", "Middle Road"],
+    ["東街", "East Street"],
+    ["西街", "West Street"],
+    ["南街", "South Street"],
+    ["北街", "North Street"],
+    ["東站", "East Station"],
+    ["西站", "West Station"],
+    ["南站", "South Station"],
+    ["北站", "North Station"],
+    ["中央", "Central"],
+    ["中心", "Center"],
+  ];
+  for (const [key, val] of dictionary) {
+    if (zh === key) return val;
+  }
+  let res = zh;
+  for (const [key, val] of dictionary) {
+    if (res.includes(key)) {
+      res = res.replace(key, " " + val + " ");
+    }
+  }
+  return res.replace(/\s+/g, " ").trim() || zh;
 }

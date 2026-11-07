@@ -1,301 +1,885 @@
 import { useState } from "react";
 import { displayName, type Anchor, type StationKind } from "@linewright/core";
 import { useEditor } from "../store/useEditor.js";
-import { PlusIcon, TrashIcon } from "./Icons.js";
+import {
+  AlignCenterIcon,
+  AlignLeftIcon,
+  AlignRightIcon,
+  AlignTopIcon,
+  AlignBottomIcon,
+  ChevronDownIcon,
+  DuplicateIcon,
+  EyeIcon,
+  EyeOffIcon,
+  HistoryIcon,
+  LayersIcon,
+  MapIcon,
+  PlusIcon,
+  SlidersIcon,
+  SparklesIcon,
+  TrashIcon,
+} from "./Icons.js";
 
+/* Preset iconic transit palettes */
+const TRANSIT_PALETTE = [
+  { name: "London Bakerloo", color: "#B36305" },
+  { name: "London Central", color: "#E32017" },
+  { name: "London District", color: "#00782A" },
+  { name: "London Jubilee", color: "#A0A5A9" },
+  { name: "London Northern", color: "#000000" },
+  { name: "London Piccadilly", color: "#003688" },
+  { name: "London Victoria", color: "#0098D4" },
+  { name: "NYC Express", color: "#EE352E" },
+  { name: "NYC 8th Ave", color: "#0039A6" },
+  { name: "Tokyo Marunouchi", color: "#F62E36" },
+  { name: "Tokyo Ginza", color: "#FF9500" },
+  { name: "Tokyo Tozai", color: "#009BBF" },
+  { name: "Paris M1", color: "#FFCE00" },
+  { name: "Paris M4", color: "#BF0A30" },
+  { name: "Taipei Bannan", color: "#0070BD" },
+  { name: "Taipei Tamsui", color: "#CB2C30" },
+];
+
+/** Collapsible Accordion Section (Photoshop/Illustrator palette style) */
+function CollapsibleSection({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={`panel-section${open ? "" : " collapsed"}`}>
+      <button
+        type="button"
+        className="panel-section-header"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span>{title}</span>
+        <ChevronDownIcon className="chevron" />
+      </button>
+      {open && <div className="panel-section-body">{children}</div>}
+    </div>
+  );
+}
+
+/** Compact Property Row (Adobe CC standard: label left, control right) */
+function PropRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="prop-row">
+      <span className="prop-label" title={label}>{label}</span>
+      <div className="prop-value">{children}</div>
+    </div>
+  );
+}
+
+/** Left Docked Panel: Lines & History Tabs */
 export function LinesPanel() {
+  const [tab, setTab] = useState<"lines" | "history">("lines");
   const map = useEditor((s) => s.map);
+  const stack = useEditor((s) => s.stack);
   const activeLineId = useEditor((s) => s.activeLineId);
   const setActiveLine = useEditor((s) => s.setActiveLine);
   const selectLine = useEditor((s) => s.selectLine);
   const addLine = useEditor((s) => s.addLine);
-  const [name, setName] = useState("");
+  const hiddenLineIds = useEditor((s) => s.hiddenLineIds);
+  const toggleLineVisibility = useEditor((s) => s.toggleLineVisibility);
 
+  const [name, setName] = useState("");
   const lines = Object.values(map.lines);
-  const stations = Object.keys(map.stations).length;
+  const historyList = stack.history();
 
   return (
-    <aside className="left-panel" aria-label="Lines">
-      <div className="panel-section">
-        <h2 className="panel-heading">Lines</h2>
-        {lines.length === 0 ? (
-          <p style={{ margin: 0, fontSize: "var(--text-13)", color: "var(--color-text-secondary)" }}>
-            No lines yet. Add a line, then drag between stations to connect them.
-          </p>
-        ) : (
-          <div role="list" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {lines.map((l) => (
-              <button
-                key={l.id}
-                type="button"
-                className="line-item"
-                aria-current={l.id === activeLineId ? "true" : "false"}
-                onClick={() => { setActiveLine(l.id); selectLine(l.id); }}
-              >
-                <span className="swatch" style={{ background: l.color }} aria-hidden="true" />
-                <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {displayName(l.name, "Line")}
-                </span>
-                <span style={{ marginLeft: "auto", fontSize: "var(--text-12)", color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
-                  {l.segments.length}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        <form
-          style={{ display: "flex", gap: 6, marginTop: "var(--space-3)" }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            const id = addLine(name.trim());
-            if (id) setName("");
-          }}
+    <aside className="left-panel" aria-label="Lines and History">
+      {/* Panel Tab Header */}
+      <div className="panel-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          className="panel-tab"
+          aria-selected={tab === "lines"}
+          onClick={() => setTab("lines")}
         >
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Line name, e.g. Harbor Line"
-            aria-label="New line name"
-            style={{ flex: 1, minWidth: 0, minHeight: "var(--input-h)", paddingInline: 8, border: "1px solid var(--color-border)", borderRadius: "var(--radius-3)", fontSize: "var(--text-14)" }}
-          />
-          <button type="submit" className="btn btn-primary" aria-label="Add line">
-            <PlusIcon /> Add
-          </button>
-        </form>
-        <p style={{ margin: "var(--space-2) 0 0", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
-          {stations === 0 ? "Add a station on the canvas first." : `${stations} station${stations === 1 ? "" : "s"} on the map.`}
-        </p>
+          <LayersIcon /> Lines
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className="panel-tab"
+          aria-selected={tab === "history"}
+          onClick={() => setTab("history")}
+        >
+          <HistoryIcon /> History
+        </button>
+      </div>
+
+      <div className="panel-content">
+        {tab === "lines" ? (
+          <>
+            <CollapsibleSection title="Transit Lines" defaultOpen={true}>
+              {lines.length === 0 ? (
+                <p style={{ margin: "4px 0", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
+                  No transit lines yet. Create a line below to start connecting stations.
+                </p>
+              ) : (
+                <div role="list" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  {lines.map((l) => {
+                    const isHidden = !!hiddenLineIds[l.id];
+                    const isActive = l.id === activeLineId;
+                    return (
+                      <div
+                        key={l.id}
+                        className="line-item"
+                        aria-current={isActive ? "true" : "false"}
+                        style={{ opacity: isHidden ? 0.5 : 1 }}
+                      >
+                        <button
+                          type="button"
+                          className="btn btn-tool icon-btn"
+                          style={{ width: 20, height: 20, padding: 0 }}
+                          aria-label={isHidden ? "Show line" : "Hide line"}
+                          title={isHidden ? "Show line" : "Hide line"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLineVisibility(l.id);
+                          }}
+                        >
+                          {isHidden ? <EyeOffIcon /> : <EyeIcon />}
+                        </button>
+                        <span
+                          className="line-swatch"
+                          style={{ background: l.color }}
+                          aria-hidden="true"
+                        />
+                        <span
+                          className="line-name"
+                          onClick={() => {
+                            setActiveLine(l.id);
+                            selectLine(l.id);
+                          }}
+                        >
+                          {displayName(l.name, "Line")}
+                        </span>
+                        <span className="line-badge" title="Number of connected segments">
+                          {l.segments.length}s
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Add Line Form */}
+              <form
+                style={{ display: "flex", gap: 4, marginTop: 8 }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (name.trim()) {
+                    addLine(name.trim());
+                    setName("");
+                  }
+                }}
+              >
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="New line name..."
+                  className="prop-input"
+                  aria-label="New line name"
+                />
+                <button type="submit" className="btn btn-primary btn-sm" aria-label="Add line">
+                  <PlusIcon /> Add
+                </button>
+              </form>
+            </CollapsibleSection>
+
+            {/* Transit Swatch Presets */}
+            <CollapsibleSection title="Quick Swatches" defaultOpen={true}>
+              <div style={{ fontSize: "var(--text-11)", color: "var(--color-text-secondary)", marginBottom: 4 }}>
+                Global transit palette standards:
+              </div>
+              <div className="swatch-palette">
+                {TRANSIT_PALETTE.map((p) => (
+                  <button
+                    key={p.name}
+                    type="button"
+                    className="swatch-chip"
+                    style={{ background: p.color }}
+                    title={`${p.name} (${p.color})`}
+                    onClick={() => {
+                      if (activeLineId) {
+                        useEditor.getState().setLineColor(activeLineId, p.color);
+                      } else {
+                        addLine(p.name);
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            </CollapsibleSection>
+          </>
+        ) : (
+          <CollapsibleSection title="Action Stack" defaultOpen={true}>
+            <div className="history-list">
+              {historyList.length === 0 ? (
+                <div style={{ padding: "8px", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
+                  Initial document state
+                </div>
+              ) : (
+                historyList.map((action, idx) => (
+                  <div
+                    key={idx}
+                    className={`history-item ${idx === 0 ? "active" : ""}`}
+                  >
+                    <span className="history-dot" />
+                    <span>{action}</span>
+                    {idx === 0 && (
+                      <span style={{ marginLeft: "auto", fontSize: "var(--text-10)", color: "var(--color-accent)" }}>
+                        CURRENT
+                      </span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+            <div style={{ marginTop: 12, display: "flex", gap: 6 }}>
+              <button
+                type="button"
+                className="btn btn-sm"
+                style={{ flex: 1 }}
+                disabled={!stack.canUndo}
+                onClick={() => useEditor.getState().undo()}
+              >
+                Undo (Ctrl+Z)
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                style={{ flex: 1 }}
+                disabled={!stack.canRedo}
+                onClick={() => useEditor.getState().redo()}
+              >
+                Redo (Ctrl+Shift+Z)
+              </button>
+            </div>
+          </CollapsibleSection>
+        )}
       </div>
     </aside>
   );
 }
 
-const ANCHORS: Anchor[] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-const KINDS: { value: StationKind; label: string }[] = [
-  { value: "normal", label: "Normal" },
-  { value: "interchange", label: "Interchange (ring)" },
-  { value: "terminus", label: "Terminus (square)" },
+const ANCHOR_MATRIX: (Anchor | null)[][] = [
+  ["NW", "N", "NE"],
+  ["W", null, "E"],
+  ["SW", "S", "SE"],
 ];
 
+const STATION_KINDS: { value: StationKind; label: string }[] = [
+  { value: "normal", label: "Normal Stop" },
+  { value: "interchange", label: "Interchange Ring" },
+  { value: "terminus", label: "Terminus Square" },
+];
+
+/** Right Docked Panel: Properties, Map Appearance, Alignment */
 export function PropertiesPanel() {
+  const [tab, setTab] = useState<"props" | "map" | "align">("props");
   const map = useEditor((s) => s.map);
   const selectedStationId = useEditor((s) => s.selectedStationId);
   const selectedLineId = useEditor((s) => s.selectedLineId);
   const renameStation = useEditor((s) => s.renameStation);
   const setStationKind = useEditor((s) => s.setStationKind);
   const setStationAnchor = useEditor((s) => s.setStationAnchor);
-  const deleteSelectedStation = useEditor((s) => s.deleteSelectedStation);
-  const setLineColor = useEditor((s) => s.setLineColor);
-  const renameLine = useEditor((s) => s.renameLine);
-  const setLineStyle = useEditor((s) => s.setLineStyle);
-  const setLineWidth = useEditor((s) => s.setLineWidth);
-  const deleteLine = useEditor((s) => s.deleteLine);
-  const setMapBackground = useEditor((s) => s.setMapBackground);
   const setStationPosition = useEditor((s) => s.setStationPosition);
   const setStationRotation = useEditor((s) => s.setStationRotation);
   const setStationLabelOffset = useEditor((s) => s.setStationLabelOffset);
+  const deleteSelectedStation = useEditor((s) => s.deleteSelectedStation);
+  const duplicateStation = useEditor((s) => s.duplicateStation);
+
+  const renameLine = useEditor((s) => s.renameLine);
+  const setLineColor = useEditor((s) => s.setLineColor);
+  const setLineStyle = useEditor((s) => s.setLineStyle);
+  const setLineWidth = useEditor((s) => s.setLineWidth);
+  const deleteLine = useEditor((s) => s.deleteLine);
+
+  const setMapBackground = useEditor((s) => s.setMapBackground);
   const setFontSize = useEditor((s) => s.setFontSize);
+  const setFontFamily = useEditor((s) => s.setFontFamily);
   const setStationRadius = useEditor((s) => s.setStationRadius);
   const setGridStep = useEditor((s) => s.setGridStep);
   const cornerRadius = useEditor((s) => s.cornerRadius);
   const setCornerRadius = useEditor((s) => s.setCornerRadius);
   const setLabelLanguage = useEditor((s) => s.setLabelLanguage);
   const avoidLabelOverlaps = useEditor((s) => s.avoidLabelOverlaps);
-  const [draftName, setDraftName] = useState<string | null>(null);
-  const [draftZh, setDraftZh] = useState<string | null>(null);
-  const [draftLineName, setDraftLineName] = useState<string | null>(null);
+
+  const bilingualLabels = useEditor((s) => s.bilingualLabels);
+  const toggleBilingual = useEditor((s) => s.toggleBilingual);
+  const showTransferBadges = useEditor((s) => s.showTransferBadges);
+  const toggleTransferBadges = useEditor((s) => s.toggleTransferBadges);
+  const showDPad = useEditor((s) => s.showDPad);
+  const toggleDPad = useEditor((s) => s.toggleDPad);
+  const copyStationAttrs = useEditor((s) => s.copyStationAttrs);
+  const pasteStationAttrs = useEditor((s) => s.pasteStationAttrs);
+  const autoEnglishName = useEditor((s) => s.autoEnglishName);
+  const copiedStationAttrs = useEditor((s) => s.copiedStationAttrs);
 
   const station = selectedStationId ? map.stations[selectedStationId] : undefined;
   const line = selectedLineId ? map.lines[selectedLineId] : undefined;
 
   return (
-    <aside className="right-panel" aria-label="Properties">
-      <div className="panel-section">
-        <h2 className="panel-heading">Map</h2>
-        <p style={{ margin: "0 0 var(--space-3)", fontSize: "var(--text-13)", color: "var(--color-text-secondary)" }}>
-          {Object.keys(map.stations).length} stations · {Object.keys(map.lines).length} lines
-        </p>
-        <div className="field" style={{ marginTop: 8 }}>
-          <label htmlFor="corner">Corner radius</label>
-          <input id="corner" type="number" min={0} max={60} step={1} value={cornerRadius}
-            onChange={(e) => setCornerRadius(Math.max(0, Math.min(60, Number(e.target.value) || 0)))} />
-        </div>
-        <div className="field">
-          <label htmlFor="label-lang">Label language</label>
-          <select id="label-lang" value={map.style.labelLanguage} onChange={(e) => setLabelLanguage(e.target.value)}>
-            <option value="en">English</option>
-            <option value="zh-TW">繁體中文</option>
-            <option value="ja">Japanese</option>
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="map-bg">Background</label>
-          <input id="map-bg" type="color" value={map.style.background} onChange={(e) => setMapBackground(e.target.value)} />
-        </div>
-        <div className="field">
-          <label htmlFor="map-font">Label size</label>
-          <input id="map-font" type="number" min={8} max={32} step={1} value={map.style.fontSize}
-            onChange={(e) => setFontSize(Number(e.target.value) || map.style.fontSize)} />
-        </div>
-        <div className="field">
-          <label htmlFor="map-station">Station size</label>
-          <input id="map-station" type="number" min={3} max={16} step={1} value={map.style.stationRadius}
-            onChange={(e) => setStationRadius(Number(e.target.value) || map.style.stationRadius)} />
-        </div>
-        <div className="field">
-          <label htmlFor="map-grid">Grid step</label>
-          <input id="map-grid" type="number" min={10} max={120} step={5} value={map.style.gridStep}
-            onChange={(e) => setGridStep(Number(e.target.value) || map.style.gridStep)} />
-        </div>
-        <button type="button" className="btn" onClick={avoidLabelOverlaps} style={{ width: "100%" }}>
-          Arrange labels to avoid overlap
+    <aside className="right-panel" aria-label="Properties and Appearance">
+      {/* Panel Tabs */}
+      <div className="panel-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          className="panel-tab"
+          aria-selected={tab === "props"}
+          onClick={() => setTab("props")}
+        >
+          <SlidersIcon /> Properties
         </button>
-        <p style={{ margin: "var(--space-2) 0 0", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
-          Shared tracks are offset automatically. This only moves labels; you can still override each one by hand.
-        </p>
+        <button
+          type="button"
+          role="tab"
+          className="panel-tab"
+          aria-selected={tab === "map"}
+          onClick={() => setTab("map")}
+        >
+          <MapIcon /> Appearance
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className="panel-tab"
+          aria-selected={tab === "align"}
+          onClick={() => setTab("align")}
+        >
+          <AlignCenterIcon /> Align
+        </button>
       </div>
 
-      {station && (
-        <div className="panel-section">
-          <h2 className="panel-heading">Station</h2>
-          <div className="field">
-            <label htmlFor="st-name">Name (English)</label>
-            <input
-              id="st-name"
-              type="text"
-              value={draftName ?? displayName(station.name, "")}
-              onChange={(e) => setDraftName(e.target.value)}
-              onBlur={() => {
-                if (draftName !== null && draftName !== displayName(station.name, "")) {
-                  renameStation(station.id, draftName.trim() || "Untitled station");
-                }
-                setDraftName(null);
-              }}
-              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="st-name-zh">Name (繁體中文, optional)</label>
-            <input
-              id="st-name-zh"
-              type="text"
-              value={draftZh ?? station.name["zh-TW"] ?? ""}
-              placeholder="中央"
-              onChange={(e) => setDraftZh(e.target.value)}
-              onBlur={() => {
-                if (draftZh !== null && (draftZh.trim() || "") !== (station.name["zh-TW"] ?? "")) {
-                  renameStation(station.id, draftZh.trim(), "zh-TW");
-                }
-                setDraftZh(null);
-              }}
-              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="st-kind">Type</label>
-            <select id="st-kind" value={station.kind} onChange={(e) => setStationKind(station.id, e.target.value as StationKind)}>
-              {KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="st-anchor">Label position</label>
-            <select id="st-anchor" value={station.labelAnchor} onChange={(e) => setStationAnchor(station.id, e.target.value as Anchor)}>
-              {ANCHORS.map((a) => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <div className="field">
-              <label htmlFor="st-x">X</label>
-              <input id="st-x" type="number" step={10} value={Math.round(station.position.x)} onChange={(e) => setStationPosition(station.id, { x: Number(e.target.value) || 0, y: station.position.y })} />
-            </div>
-            <div className="field">
-              <label htmlFor="st-y">Y</label>
-              <input id="st-y" type="number" step={10} value={Math.round(station.position.y)} onChange={(e) => setStationPosition(station.id, { x: station.position.x, y: Number(e.target.value) || 0 })} />
-            </div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <div className="field">
-              <label htmlFor="st-lx">Label X</label>
-              <input id="st-lx" type="number" step={2} value={station.labelOffset?.x ?? 0} onChange={(e) => setStationLabelOffset(station.id, { x: Number(e.target.value) || 0, y: station.labelOffset?.y ?? 0 })} />
-            </div>
-            <div className="field">
-              <label htmlFor="st-ly">Label Y</label>
-              <input id="st-ly" type="number" step={2} value={station.labelOffset?.y ?? 0} onChange={(e) => setStationLabelOffset(station.id, { x: station.labelOffset?.x ?? 0, y: Number(e.target.value) || 0 })} />
-            </div>
-          </div>
-          <div className="field">
-            <label htmlFor="st-rot">Rotation (°)</label>
-            <input id="st-rot" type="number" min={0} max={359} step={15} value={station.rotation ?? 0} onChange={(e) => setStationRotation(station.id, Number(e.target.value) || 0)} />
-          </div>
-          <p style={{ margin: "0 0 var(--space-3)", fontSize: "var(--text-12)", color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
-            Position {station.position.x.toFixed(0)}, {station.position.y.toFixed(0)} · {station.rotation ?? 0}°
-          </p>
-          <button type="button" className="btn btn-danger" onClick={deleteSelectedStation}>
-            <TrashIcon /> Delete station
-          </button>
-        </div>
-      )}
+      <div className="panel-content">
+        {tab === "props" && (
+          <>
+            {station && (
+              <>
+                <CollapsibleSection title="Station Identity" defaultOpen={true}>
+                  <PropRow label="Name (EN)">
+                    <input
+                      type="text"
+                      className="prop-input"
+                      value={station.name["en"] ?? ""}
+                      onChange={(e) => renameStation(station.id, e.target.value, "en")}
+                    />
+                  </PropRow>
+                  <PropRow label="Name (中文)">
+                    <input
+                      type="text"
+                      className="prop-input"
+                      placeholder="Optional station name"
+                      value={station.name["zh-TW"] ?? ""}
+                      onChange={(e) => renameStation(station.id, e.target.value, "zh-TW")}
+                    />
+                    {(station.name["zh-TW"] || station.name["zh"]) && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-tool"
+                        title="Auto-translate / romanize Chinese to English (RMP style)"
+                        onClick={() => autoEnglishName(station.id)}
+                      >
+                        <SparklesIcon />
+                      </button>
+                    )}
+                  </PropRow>
+                  <PropRow label="Symbol">
+                    <select
+                      className="prop-input"
+                      value={station.kind}
+                      onChange={(e) => setStationKind(station.id, e.target.value as StationKind)}
+                    >
+                      {STATION_KINDS.map((k) => (
+                        <option key={k.value} value={k.value}>{k.label}</option>
+                      ))}
+                    </select>
+                  </PropRow>
+                </CollapsibleSection>
 
-      {line && (
-        <div className="panel-section">
-          <h2 className="panel-heading">Line</h2>
-          <div className="field">
-            <label htmlFor="line-name">Name (English)</label>
-            <input
-              id="line-name"
-              type="text"
-              value={draftLineName ?? displayName(line.name, "")}
-              onChange={(e) => setDraftLineName(e.target.value)}
-              onBlur={() => {
-                if (draftLineName !== null && draftLineName !== displayName(line.name, "")) {
-                  renameLine(line.id, draftLineName.trim() || "Untitled line");
-                }
-                setDraftLineName(null);
-              }}
-              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="line-color">Color</label>
-            <input id="line-color" type="color" value={line.color} onChange={(e) => setLineColor(line.id, e.target.value)} />
-          </div>
-          <div className="field">
-            <label htmlFor="line-style">Style</label>
-            <select id="line-style" value={line.style} onChange={(e) => setLineStyle(line.id, e.target.value as "solid" | "dashed" | "double")}>
-              <option value="solid">Solid</option>
-              <option value="dashed">Dashed</option>
-              <option value="double">Double</option>
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="line-width">Width</label>
-            <input id="line-width" type="number" min={3} max={24} step={1} value={line.width ?? 8}
-              onChange={(e) => setLineWidth(line.id, Math.min(24, Math.max(3, Number(e.target.value) || 8)))} />
-          </div>
-          <p style={{ margin: "0 0 var(--space-3)", fontSize: "var(--text-12)", color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
-            {line.segments.length} segment{line.segments.length === 1 ? "" : "s"}
-          </p>
-          <button type="button" className="btn btn-danger" onClick={() => deleteLine(line.id)}>
-            <TrashIcon /> Delete line
-          </button>
-        </div>
-      )}
+                <CollapsibleSection title="Transform & Position" defaultOpen={true}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 4 }}>
+                    <PropRow label="X">
+                      <input
+                        type="number"
+                        className="prop-input"
+                        step={10}
+                        value={Math.round(station.position.x)}
+                        onChange={(e) => setStationPosition(station.id, { x: Number(e.target.value) || 0, y: station.position.y })}
+                      />
+                    </PropRow>
+                    <PropRow label="Y">
+                      <input
+                        type="number"
+                        className="prop-input"
+                        step={10}
+                        value={Math.round(station.position.y)}
+                        onChange={(e) => setStationPosition(station.id, { x: station.position.x, y: Number(e.target.value) || 0 })}
+                      />
+                    </PropRow>
+                  </div>
 
-      {!station && !line && (
-        <div className="panel-section">
-          <h2 className="panel-heading">Selection</h2>
-          <p style={{ margin: 0, fontSize: "var(--text-13)", color: "var(--color-text-secondary)" }}>
-            Select a station or line on the canvas to edit its properties.
-          </p>
-          <ul style={{ margin: "var(--space-3) 0 0", paddingLeft: 18, fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
-            <li>Shortcuts: V select · A add · C connect · H pan</li>
-            <li>Delete removes the selected station</li>
-            <li>Scroll zooms to the cursor</li>
-          </ul>
-        </div>
-      )}
+                  <PropRow label="Rotate">
+                    <input
+                      type="range"
+                      min={0}
+                      max={345}
+                      step={15}
+                      className="prop-slider"
+                      value={station.rotation ?? 0}
+                      onChange={(e) => setStationRotation(station.id, Number(e.target.value))}
+                    />
+                    <span style={{ fontSize: "var(--text-11)", fontFamily: "var(--font-mono)", width: 34, textAlign: "right" }}>
+                      {station.rotation ?? 0}°
+                    </span>
+                  </PropRow>
+
+                  <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      style={{ flex: 1 }}
+                      onClick={() => duplicateStation(station.id)}
+                    >
+                      <DuplicateIcon /> Duplicate (Ctrl+D)
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={deleteSelectedStation}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
+
+                  <div style={{ marginTop: 4, display: "flex", gap: 6 }}>
+                    <button
+                      type="button"
+                      className="btn btn-tool btn-sm"
+                      style={{ flex: 1 }}
+                      onClick={() => copyStationAttrs(station.id)}
+                      title="Copy style attributes from this station"
+                    >
+                      Copy Style
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-tool btn-sm"
+                      style={{ flex: 1 }}
+                      disabled={!copiedStationAttrs}
+                      onClick={() => pasteStationAttrs(station.id)}
+                      title="Paste copied station style"
+                    >
+                      Paste Style
+                    </button>
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection title="Label Placement" defaultOpen={true}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                    <span className="prop-label">Anchor</span>
+                    <div className="anchor-grid">
+                      {ANCHOR_MATRIX.map((row, rIdx) =>
+                        row.map((cell, cIdx) => (
+                          <button
+                            key={`${rIdx}-${cIdx}`}
+                            type="button"
+                            className="anchor-btn"
+                            disabled={!cell}
+                            aria-pressed={cell === station.labelAnchor}
+                            onClick={() => cell && setStationAnchor(station.id, cell)}
+                            title={cell ? `Anchor ${cell}` : undefined}
+                          >
+                            {cell ?? "•"}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                    <PropRow label="Nudge X">
+                      <input
+                        type="number"
+                        className="prop-input"
+                        value={station.labelOffset?.x ?? 0}
+                        onChange={(e) => setStationLabelOffset(station.id, { x: Number(e.target.value) || 0, y: station.labelOffset?.y ?? 0 })}
+                      />
+                    </PropRow>
+                    <PropRow label="Nudge Y">
+                      <input
+                        type="number"
+                        className="prop-input"
+                        value={station.labelOffset?.y ?? 0}
+                        onChange={(e) => setStationLabelOffset(station.id, { x: station.labelOffset?.x ?? 0, y: Number(e.target.value) || 0 })}
+                      />
+                    </PropRow>
+                  </div>
+                </CollapsibleSection>
+              </>
+            )}
+
+            {line && (
+              <>
+                <CollapsibleSection title="Line Properties" defaultOpen={true}>
+                  <PropRow label="Name">
+                    <input
+                      type="text"
+                      className="prop-input"
+                      value={line.name["en"] ?? ""}
+                      onChange={(e) => renameLine(line.id, e.target.value, "en")}
+                    />
+                  </PropRow>
+                  <PropRow label="Color">
+                    <input
+                      type="color"
+                      value={line.color}
+                      onChange={(e) => setLineColor(line.id, e.target.value)}
+                      style={{ width: 28, height: 22, border: "none", cursor: "pointer", background: "none" }}
+                    />
+                    <input
+                      type="text"
+                      className="prop-input"
+                      value={line.color.toUpperCase()}
+                      onChange={(e) => setLineColor(line.id, e.target.value)}
+                      style={{ fontFamily: "var(--font-mono)" }}
+                    />
+                  </PropRow>
+
+                  <div className="swatch-palette">
+                    {TRANSIT_PALETTE.slice(0, 8).map((p) => (
+                      <button
+                        key={p.name}
+                        type="button"
+                        className="swatch-chip"
+                        style={{ background: p.color }}
+                        title={p.name}
+                        onClick={() => setLineColor(line.id, p.color)}
+                      />
+                    ))}
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection title="Stroke & Styling" defaultOpen={true}>
+                  <PropRow label="Style">
+                    <select
+                      className="prop-input"
+                      value={line.style}
+                      onChange={(e) => setLineStyle(line.id, e.target.value as "solid" | "dashed" | "double")}
+                    >
+                      <option value="solid">Solid Track</option>
+                      <option value="dashed">Under Construction / Dashed</option>
+                      <option value="double">High Speed / Double</option>
+                    </select>
+                  </PropRow>
+
+                  <PropRow label="Width">
+                    <input
+                      type="range"
+                      min={3}
+                      max={24}
+                      step={1}
+                      className="prop-slider"
+                      value={line.width ?? 8}
+                      onChange={(e) => setLineWidth(line.id, Number(e.target.value) || 8)}
+                    />
+                    <span style={{ fontSize: "var(--text-11)", fontFamily: "var(--font-mono)", width: 28, textAlign: "right" }}>
+                      {line.width ?? 8}px
+                    </span>
+                  </PropRow>
+
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      style={{ width: "100%" }}
+                      onClick={() => deleteLine(line.id)}
+                    >
+                      <TrashIcon /> Delete Line
+                    </button>
+                  </div>
+                </CollapsibleSection>
+              </>
+            )}
+
+            {!station && !line && (
+              <div style={{ padding: "16px 12px", textAlign: "center" }}>
+                <p style={{ margin: "0 0 8px", fontSize: "var(--text-13)", fontWeight: 600 }}>
+                  No Selection
+                </p>
+                <p style={{ margin: 0, fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
+                  Click a station or select a transit line on the canvas to inspect and edit its properties.
+                </p>
+                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 4, textAlign: "left", fontSize: "var(--text-11)", color: "var(--color-text-secondary)" }}>
+                  <div><kbd>V</kbd> Select tool</div>
+                  <div><kbd>A</kbd> Add new station</div>
+                  <div><kbd>C</kbd> Connect stations into line</div>
+                  <div><kbd>H</kbd> Hand tool for panning</div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === "map" && (
+          <>
+            <CollapsibleSection title="Map & Canvas" defaultOpen={true}>
+              <PropRow label="Background">
+                <input
+                  type="color"
+                  value={map.style.background}
+                  onChange={(e) => setMapBackground(e.target.value)}
+                  style={{ width: 28, height: 22, border: "none", cursor: "pointer", background: "none" }}
+                />
+                <input
+                  type="text"
+                  className="prop-input"
+                  value={map.style.background.toUpperCase()}
+                  onChange={(e) => setMapBackground(e.target.value)}
+                  style={{ fontFamily: "var(--font-mono)" }}
+                />
+              </PropRow>
+
+              <PropRow label="Grid Step">
+                <input
+                  type="range"
+                  min={10}
+                  max={80}
+                  step={5}
+                  className="prop-slider"
+                  value={map.style.gridStep}
+                  onChange={(e) => setGridStep(Number(e.target.value) || 20)}
+                />
+                <span style={{ fontSize: "var(--text-11)", fontFamily: "var(--font-mono)", width: 28, textAlign: "right" }}>
+                  {map.style.gridStep}
+                </span>
+              </PropRow>
+
+              <PropRow label="Corner Rad">
+                <input
+                  type="range"
+                  min={0}
+                  max={45}
+                  step={1}
+                  className="prop-slider"
+                  value={cornerRadius}
+                  onChange={(e) => setCornerRadius(Number(e.target.value) || 0)}
+                />
+                <span style={{ fontSize: "var(--text-11)", fontFamily: "var(--font-mono)", width: 28, textAlign: "right" }}>
+                  {cornerRadius}px
+                </span>
+              </PropRow>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Typography & Dimensions" defaultOpen={true}>
+              <PropRow label="Station Size">
+                <input
+                  type="range"
+                  min={3}
+                  max={16}
+                  step={1}
+                  className="prop-slider"
+                  value={map.style.stationRadius}
+                  onChange={(e) => setStationRadius(Number(e.target.value) || 6)}
+                />
+                <span style={{ fontSize: "var(--text-11)", fontFamily: "var(--font-mono)", width: 28, textAlign: "right" }}>
+                  {map.style.stationRadius}px
+                </span>
+              </PropRow>
+
+              <PropRow label="Font Size">
+                <input
+                  type="range"
+                  min={8}
+                  max={24}
+                  step={1}
+                  className="prop-slider"
+                  value={map.style.fontSize}
+                  onChange={(e) => setFontSize(Number(e.target.value) || 12)}
+                />
+                <span style={{ fontSize: "var(--text-11)", fontFamily: "var(--font-mono)", width: 28, textAlign: "right" }}>
+                  {map.style.fontSize}pt
+                </span>
+              </PropRow>
+
+              <PropRow label="Language">
+                <select
+                  className="prop-input"
+                  value={map.style.labelLanguage ?? "en"}
+                  onChange={(e) => setLabelLanguage(e.target.value)}
+                >
+                  <option value="en">English Primary</option>
+                  <option value="zh-TW">繁體中文 Primary</option>
+                  <option value="ja">日本語 Primary</option>
+                </select>
+              </PropRow>
+
+              <PropRow label="Font">
+                <select
+                  className="prop-input"
+                  value={map.style.fontFamily ?? "Noto Sans, sans-serif"}
+                  onChange={(e) => setFontFamily(e.target.value)}
+                >
+                  <option value="Noto Sans, sans-serif">Noto Sans</option>
+                  <option value="'Noto Sans TC', 'Noto Sans', sans-serif">Noto Sans TC</option>
+                  <option value="Inter, system-ui, sans-serif">Inter</option>
+                  <option value="system-ui, sans-serif">System</option>
+                  <option value="Georgia, serif">Georgia (serif)</option>
+                  <option value="'JetBrains Mono', monospace">Mono</option>
+                </select>
+              </PropRow>
+
+              <div style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  style={{ width: "100%" }}
+                  onClick={avoidLabelOverlaps}
+                >
+                  <SparklesIcon /> Auto-Resolve Label Overlaps
+                </button>
+              </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Transit Diagram Features" defaultOpen={true}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-12)", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={bilingualLabels}
+                    onChange={toggleBilingual}
+                  />
+                  <span>Bilingual Dual Labels (中文 + EN)</span>
+                </label>
+
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-12)", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={showTransferBadges}
+                    onChange={toggleTransferBadges}
+                  />
+                  <span>Transfer Line Route Badges</span>
+                </label>
+
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-12)", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={showDPad}
+                    onChange={toggleDPad}
+                  />
+                  <span>Canvas D-Pad Controller</span>
+                </label>
+              </div>
+            </CollapsibleSection>
+          </>
+        )}
+
+        {tab === "align" && (
+          <CollapsibleSection title="Alignment Tools" defaultOpen={true}>
+            <div style={{ fontSize: "var(--text-11)", color: "var(--color-text-secondary)", marginBottom: 10 }}>
+              Align and distribute stations to schematic transit grid lines:
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginBottom: 12 }}>
+              <button
+                type="button"
+                className="btn btn-tool"
+                title="Align to Left 45°"
+                onClick={() => {
+                  if (station) {
+                    const snapX = Math.round(station.position.x / 40) * 40;
+                    setStationPosition(station.id, { x: snapX, y: station.position.y });
+                  }
+                }}
+              >
+                <AlignLeftIcon /> Left
+              </button>
+              <button
+                type="button"
+                className="btn btn-tool"
+                title="Align to Center Column"
+                onClick={() => {
+                  if (station) {
+                    const snapX = Math.round(station.position.x / 20) * 20;
+                    setStationPosition(station.id, { x: snapX, y: station.position.y });
+                  }
+                }}
+              >
+                <AlignCenterIcon /> Center
+              </button>
+              <button
+                type="button"
+                className="btn btn-tool"
+                title="Align to Right"
+                onClick={() => {
+                  if (station) {
+                    const snapX = Math.ceil(station.position.x / 40) * 40;
+                    setStationPosition(station.id, { x: snapX, y: station.position.y });
+                  }
+                }}
+              >
+                <AlignRightIcon /> Right
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-tool"
+                title="Align to Top Row"
+                onClick={() => {
+                  if (station) {
+                    const snapY = Math.round(station.position.y / 40) * 40;
+                    setStationPosition(station.id, { x: station.position.x, y: snapY });
+                  }
+                }}
+              >
+                <AlignTopIcon /> Top
+              </button>
+              <button
+                type="button"
+                className="btn btn-tool"
+                title="Align to Middle"
+                onClick={() => {
+                  if (station) {
+                    const snapY = Math.round(station.position.y / 20) * 20;
+                    setStationPosition(station.id, { x: station.position.x, y: snapY });
+                  }
+                }}
+              >
+                <AlignCenterIcon /> Middle
+              </button>
+              <button
+                type="button"
+                className="btn btn-tool"
+                title="Align to Bottom"
+                onClick={() => {
+                  if (station) {
+                    const snapY = Math.ceil(station.position.y / 40) * 40;
+                    setStationPosition(station.id, { x: station.position.x, y: snapY });
+                  }
+                }}
+              >
+                <AlignBottomIcon /> Bottom
+              </button>
+            </div>
+
+            <div style={{ padding: "8px", background: "var(--color-bg-inset)", borderRadius: "var(--radius-1)", fontSize: "var(--text-11)", color: "var(--color-text-secondary)" }}>
+              Tip: Press <kbd>Shift</kbd> while dragging any station to restrict motion to 0°, 45°, or 90° angles.
+            </div>
+          </CollapsibleSection>
+        )}
+      </div>
     </aside>
   );
 }

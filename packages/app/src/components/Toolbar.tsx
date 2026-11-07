@@ -2,12 +2,26 @@ import { useEffect, useRef, useState } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { useEditor } from "../store/useEditor.js";
-import { ExportIcon, GitHubIcon, LoadIcon, MoonIcon, RedoIcon, SaveIcon, SunIcon, UndoIcon } from "./Icons.js";
-import { LogoImage } from "./LogoImage.js";
+import {
+  AddStationIcon,
+  ConnectIcon,
+  ExportIcon,
+  GitHubIcon,
+  LoadIcon,
+  MoonIcon,
+  PanIcon,
+  RedoIcon,
+  SaveIcon,
+  SelectIcon,
+  SunIcon,
+  UndoIcon,
+} from "./Icons.js";
 import { exampleMap } from "../example.js";
 
+/** Clean Adobe-style options / control bar. */
 export function Toolbar() {
   const map = useEditor((s) => s.map);
+  const tool = useEditor((s) => s.tool);
   const canUndo = useEditor((s) => s.stack.canUndo);
   const canRedo = useEditor((s) => s.stack.canRedo);
   const undo = useEditor((s) => s.undo);
@@ -18,15 +32,23 @@ export function Toolbar() {
   const setToast = useEditor((s) => s.setToast);
   const theme = useEditor((s) => s.theme);
   const toggleTheme = useEditor((s) => s.toggleTheme);
+  const selectedStationId = useEditor((s) => s.selectedStationId);
+  const selectedLineId = useEditor((s) => s.selectedLineId);
+  const activeLineId = useEditor((s) => s.activeLineId);
+
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileOpen, setFileOpen] = useState(false);
   const fileWrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
-      if (fileWrapRef.current && !fileWrapRef.current.contains(e.target as Node)) setFileOpen(false);
+      if (fileWrapRef.current && !fileWrapRef.current.contains(e.target as Node)) {
+        setFileOpen(false);
+      }
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFileOpen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFileOpen(false);
+    };
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
     return () => {
@@ -53,7 +75,7 @@ export function Toolbar() {
       downloadSVG(toSVGString(map, { showGrid: false }), `${map.meta.title || "map"}.svg`);
       setToast("SVG exported");
     } catch {
-      setError("Unable to export SVG. Try exporting again after reloading the map.");
+      setError("Unable to export SVG. Try exporting again.");
     }
   };
 
@@ -62,20 +84,18 @@ export function Toolbar() {
       await downloadPNG(map, map.meta.title || "map");
       setToast("PNG exported (2×)");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to export PNG. Try exporting SVG instead.");
+      setError(err instanceof Error ? err.message : "Unable to export PNG.");
     }
   };
 
   const exportPDF = () => {
     try {
       printPDF(map);
-      setToast("PDF print view opened — choose Save as PDF");
+      setToast("PDF print view opened");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to open PDF view. Try SVG export instead.");
+      setError(err instanceof Error ? err.message : "Unable to open PDF view.");
     }
   };
-
-  const openFile = () => fileRef.current?.click();
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -85,87 +105,171 @@ export function Toolbar() {
       const text = await file.text();
       loadMap(parseMapFile(text));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load map file. Choose a .json file exported from Nodal and try again.");
+      setError(err instanceof Error ? err.message : "Unable to load map file.");
     }
   };
 
-  const loadExample = () => {
-    loadMap(exampleMap());
-    setToast("Example map loaded");
+  const toolIcons: Record<string, React.ReactNode> = {
+    select: <SelectIcon />,
+    "add-station": <AddStationIcon />,
+    connect: <ConnectIcon />,
+    pan: <PanIcon />,
   };
 
-  const fileActions: { label: string; icon?: React.ReactNode; action: () => void; primary?: boolean }[] = [
-    { label: "Save", icon: <SaveIcon />, action: saveJSON },
-    { label: "Load", icon: <LoadIcon />, action: openFile },
-    { label: "Export SVG", icon: <ExportIcon />, action: exportSVG, primary: true },
-    { label: "PNG", action: exportPNG },
-    { label: "PDF", action: exportPDF },
-    { label: "Example", action: loadExample },
-  ];
+  const toolLabels: Record<string, string> = {
+    select: "Select",
+    "add-station": "Add Station",
+    connect: "Connect",
+    pan: "Hand",
+  };
+
+  const activeLine = activeLineId ? map.lines[activeLineId] : null;
 
   return (
-    <header className="toolbar" aria-label="Editor toolbar">
-      <LogoImage height={20} />
-      <input
-        className="map-title-input"
-        aria-label="Map title"
-        value={map.meta.title}
-        onChange={(e) => renameMap(e.target.value)}
-        onBlur={(e) => { if (!e.target.value.trim()) renameMap("Untitled map"); }}
-      />
+    <header className="toolbar" aria-label="Control bar">
+      {/* Tool Badge */}
+      <div className="toolbar-tool-badge" title={`Active Tool: ${toolLabels[tool]}`}>
+        <span style={{ color: "var(--color-accent)", display: "flex" }}>{toolIcons[tool]}</span>
+        <span>{toolLabels[tool]}</span>
+      </div>
+
       <div className="toolbar-sep" aria-hidden="true" />
 
-      <button type="button" className="btn btn-tool icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!canUndo} onClick={undo}><UndoIcon /></button>
-      <button type="button" className="btn btn-tool icon-btn" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled={!canRedo} onClick={redo}><RedoIcon /></button>
+      {/* Document Map Name Input */}
+      <input
+        className="map-title-input"
+        aria-label="Map document title"
+        value={map.meta.title}
+        onChange={(e) => renameMap(e.target.value)}
+        onBlur={(e) => {
+          if (!e.target.value.trim()) renameMap("Untitled map");
+        }}
+        placeholder="Untitled map"
+      />
+
+      <div className="toolbar-sep" aria-hidden="true" />
+
+      {/* History Controls */}
+      <div className="toolbar-group">
+        <button
+          type="button"
+          className="btn btn-tool icon-btn"
+          aria-label="Undo"
+          title="Undo (Ctrl+Z)"
+          disabled={!canUndo}
+          onClick={undo}
+        >
+          <UndoIcon />
+        </button>
+        <button
+          type="button"
+          className="btn btn-tool icon-btn"
+          aria-label="Redo"
+          title="Redo (Ctrl+Shift+Z)"
+          disabled={!canRedo}
+          onClick={redo}
+        >
+          <RedoIcon />
+        </button>
+      </div>
+
+      <div className="toolbar-sep" aria-hidden="true" />
+
+      {/* Tool Contextual Hint */}
+      <div className="toolbar-context-info">
+        {tool === "connect" ? (
+          activeLine ? (
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span>Drawing line:</span>
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: activeLine.color,
+                }}
+              />
+              <span style={{ fontWeight: 600, color: "var(--color-text)" }}>
+                {activeLine.name.en || activeLineId}
+              </span>
+            </span>
+          ) : (
+            <span>Select or add a line to connect stations</span>
+          )
+        ) : selectedStationId ? (
+          <span>Station selected</span>
+        ) : selectedLineId ? (
+          <span>Line selected</span>
+        ) : (
+          <span style={{ color: "var(--color-text-tertiary)" }}>No selection</span>
+        )}
+      </div>
+
+      <div style={{ flex: 1 }} />
+
+      {/* File & Export Dropdown */}
+      <div ref={fileWrapRef} style={{ position: "relative" }}>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          aria-haspopup="menu"
+          aria-expanded={fileOpen}
+          onClick={() => setFileOpen((v) => !v)}
+        >
+          <ExportIcon /> Export
+        </button>
+        {fileOpen && (
+          <div className="menu-pop" role="menu" aria-label="Export menu" style={{ right: 0, left: "auto", minWidth: 200 }}>
+            <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportSVG(); }}>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> Export SVG</span>
+              <span className="menu-shortcut">Vector</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportPNG(); }}>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> Export PNG</span>
+              <span className="menu-shortcut">Image</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportPDF(); }}>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> Print PDF…</span>
+              <span className="menu-shortcut">Doc</span>
+            </button>
+            <div className="menu-divider" />
+            <button type="button" className="menu-item" onClick={() => { setFileOpen(false); saveJSON(); }}>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><SaveIcon /> Save JSON</span>
+              <span className="menu-shortcut">Ctrl+S</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => { setFileOpen(false); fileRef.current?.click(); }}>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}><LoadIcon /> Open JSON…</span>
+              <span className="menu-shortcut">Ctrl+O</span>
+            </button>
+            <div className="menu-divider" />
+            <button type="button" className="menu-item" onClick={() => { setFileOpen(false); loadMap(exampleMap()); setToast("Lumen City example loaded"); }}>
+              <span>Load Lumen City Demo</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="toolbar-sep" aria-hidden="true" />
+
+      {/* Theme Toggle */}
       <button
         type="button"
         className="btn btn-tool icon-btn"
-        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        title={theme === "dark" ? "Light mode" : "Dark mode"}
-        aria-pressed={theme === "dark"}
+        aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+        title={theme === "dark" ? "Light Theme" : "Dark Theme"}
         onClick={toggleTheme}
       >
         {theme === "dark" ? <SunIcon /> : <MoonIcon />}
       </button>
 
-      <div className="toolbar-sep" aria-hidden="true" />
-
-      <div ref={fileWrapRef} style={{ position: "relative" }}>
-        <button
-          type="button"
-          className="btn btn-primary"
-          aria-haspopup="menu"
-          aria-expanded={fileOpen}
-          onClick={() => setFileOpen((v) => !v)}
-        >
-          <ExportIcon /> File
-        </button>
-        {fileOpen && (
-          <div className="menu-pop" role="menu" aria-label="File actions" style={{ top: "calc(100% + 6px)", minWidth: 220 }}>
-            {fileActions.map((a) => (
-              <button
-                key={a.label}
-                type="button"
-                role="menuitem"
-                className="menu-item"
-                onClick={() => { setFileOpen(false); a.action(); }}
-              >
-                <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-                  {a.icon}
-                  {a.label}
-                </span>
-                {a.primary && <span className="menu-shortcut" aria-hidden="true">★</span>}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* GitHub Repository */}
       <a
         className="btn btn-tool icon-btn"
         href="https://github.com/NEXTechTW/Nodal"
         target="_blank"
         rel="noreferrer noopener"
-        aria-label="Open the Nodal repository on GitHub"
+        aria-label="GitHub Repository"
         title="GitHub — NEXTechTW/Nodal"
         style={{ textDecoration: "none" }}
       >

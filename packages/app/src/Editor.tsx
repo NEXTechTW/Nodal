@@ -7,6 +7,7 @@ import { StartupWindow } from "./components/StartupWindow.js";
 import { Canvas } from "./components/Canvas.js";
 import { LinesPanel, PropertiesPanel } from "./components/Panels.js";
 import { StatusBar } from "./components/StatusBar.js";
+import { KeyboardShortcuts } from "./components/KeyboardShortcuts.js";
 import { useEditor } from "./store/useEditor.js";
 
 export function Editor() {
@@ -36,11 +37,21 @@ export function Editor() {
       {error && (
         <div
           role="alert"
-          style={{ position: "absolute", top: "calc(var(--toolbar-h) + 8px)", left: "50%", transform: "translateX(-50%)", right: 16, maxWidth: 640 }}
+          style={{
+            position: "absolute",
+            top: "calc(var(--toolbar-h) + var(--menubar-h) + 8px)",
+            left: "50%",
+            transform: "translateX(-50%)",
+            right: 16,
+            maxWidth: 640,
+            zIndex: 100,
+          }}
         >
           <div className="error-banner">
             <span style={{ flex: 1 }}>{error}</span>
-            <button type="button" className="btn btn-sm" onClick={() => setError(null)}>Dismiss</button>
+            <button type="button" className="btn btn-sm" onClick={() => setError(null)}>
+              Dismiss
+            </button>
           </div>
         </div>
       )}
@@ -48,12 +59,23 @@ export function Editor() {
       {toast && (
         <div className="toast" role="status">
           <span>{toast}</span>
-          <button type="button" onClick={() => { undo(); clearToast(); }}>Undo</button>
-          <button type="button" onClick={clearToast}>Close</button>
+          <button
+            type="button"
+            onClick={() => {
+              undo();
+              clearToast();
+            }}
+          >
+            Undo
+          </button>
+          <button type="button" onClick={clearToast}>
+            Close
+          </button>
         </div>
       )}
 
       {startupOpen && <StartupWindow onClose={() => setStartupOpen(false)} />}
+      <KeyboardShortcuts />
     </div>
   );
 }

@@ -3,10 +3,13 @@ import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { useEditor } from "../store/useEditor.js";
 import { exampleMap } from "../example.js";
+import { LogoImage } from "./LogoImage.js";
 
-type Item = { label: string; action: () => void; disabled?: boolean; shortcut?: string };
+type Item =
+  | { label: string; action: () => void; disabled?: boolean; shortcut?: string }
+  | { divider: true };
 
-/** Main menu. Five menus only; everything else lives in the dock and panels. */
+/** Adobe Native Main Menu Bar */
 export function MenuBar() {
   const map = useEditor((s) => s.map);
   const canUndo = useEditor((s) => s.stack.canUndo);
@@ -15,11 +18,26 @@ export function MenuBar() {
   const redo = useEditor((s) => s.redo);
   const setError = useEditor((s) => s.setError);
   const loadMap = useEditor((s) => s.loadMap);
+  const newMap = useEditor((s) => s.newMap);
   const setToast = useEditor((s) => s.setToast);
   const theme = useEditor((s) => s.theme);
   const toggleTheme = useEditor((s) => s.toggleTheme);
-  const setViewport = useEditor((s) => s.setViewport);
   const avoidLabels = useEditor((s) => s.avoidLabelOverlaps);
+  const toggleGrid = useEditor((s) => s.toggleGrid);
+  const toggleSnap = useEditor((s) => s.toggleSnap);
+  const toggleRulers = useEditor((s) => s.toggleRulers);
+  const toggleMiniMap = useEditor((s) => s.toggleMiniMap);
+  const toggleBilingual = useEditor((s) => s.toggleBilingual);
+  const toggleTransferBadges = useEditor((s) => s.toggleTransferBadges);
+  const toggleDPad = useEditor((s) => s.toggleDPad);
+  const zoomIn = useEditor((s) => s.zoomIn);
+  const zoomOut = useEditor((s) => s.zoomOut);
+  const zoomFit = useEditor((s) => s.zoomFit);
+  const setShortcutsOpen = useEditor((s) => s.setShortcutsOpen);
+  const selectedStationId = useEditor((s) => s.selectedStationId);
+  const duplicateStation = useEditor((s) => s.duplicateStation);
+  const deleteSelectedStation = useEditor((s) => s.deleteSelectedStation);
+
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState<string | null>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -50,15 +68,38 @@ export function MenuBar() {
     setToast("Map saved as JSON");
   };
 
+  const exportSVG = () => {
+    downloadSVG(toSVGString(map), `${map.meta.title || "map"}.svg`);
+    setToast("SVG exported");
+  };
+
+  const exportPNG = () => {
+    downloadPNG(map, map.meta.title || "map")
+      .then(() => setToast("PNG exported"))
+      .catch((e) => setError(e instanceof Error ? e.message : "PNG export failed"));
+  };
+
+  const exportPDF = () => {
+    try {
+      printPDF(map);
+      setToast("PDF print view opened");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "PDF export failed");
+    }
+  };
+
   const menus: { label: string; items: Item[] }[] = [
     {
       label: "File",
       items: [
-        { label: "Save JSON", action: saveJSON },
-        { label: "Load JSON…", action: () => fileRef.current?.click() },
-        { label: "Export SVG", action: () => { downloadSVG(toSVGString(map), `${map.meta.title || "map"}.svg`); setToast("SVG exported"); } },
-        { label: "Export PNG", action: () => { downloadPNG(map, map.meta.title || "map").then(() => setToast("PNG exported")).catch((e) => setError(e instanceof Error ? e.message : "PNG export failed")); } },
-        { label: "Export PDF…", action: () => { try { printPDF(map); setToast("PDF print view opened"); } catch (e) { setError(e instanceof Error ? e.message : "PDF export failed"); } } },
+        { label: "New Map", action: newMap, shortcut: "Ctrl+N" },
+        { divider: true },
+        { label: "Save JSON…", action: saveJSON, shortcut: "Ctrl+S" },
+        { label: "Open JSON…", action: () => fileRef.current?.click(), shortcut: "Ctrl+O" },
+        { divider: true },
+        { label: "Export Vector SVG", action: exportSVG },
+        { label: "Export Image PNG", action: exportPNG },
+        { label: "Export Document PDF…", action: exportPDF },
       ],
     },
     {
@@ -66,28 +107,81 @@ export function MenuBar() {
       items: [
         { label: "Undo", action: undo, disabled: !canUndo, shortcut: "Ctrl+Z" },
         { label: "Redo", action: redo, disabled: !canRedo, shortcut: "Ctrl+Shift+Z" },
+        { divider: true },
+        {
+          label: "Duplicate Station",
+          action: () => selectedStationId && duplicateStation(selectedStationId),
+          disabled: !selectedStationId,
+          shortcut: "Ctrl+D",
+        },
+        {
+          label: "Delete Selected",
+          action: deleteSelectedStation,
+          disabled: !selectedStationId,
+          shortcut: "Del",
+        },
       ],
     },
     {
       label: "Map",
       items: [
-        { label: "Arrange labels (avoid overlap)", action: avoidLabels },
-        { label: "Open example (Lumen City)", action: () => { loadMap(exampleMap()); setToast("Example map loaded"); } },
+        { label: "Auto-Resolve Label Overlaps", action: avoidLabels },
+        { divider: true },
+        {
+          label: "Load Lumen City Demo",
+          action: () => {
+            loadMap(exampleMap());
+            setToast("Example map loaded");
+          },
+        },
       ],
     },
     {
       label: "View",
       items: [
-        { label: theme === "dark" ? "Switch to light mode" : "Switch to dark mode", action: toggleTheme },
-        { label: "Reset zoom (100%)", action: () => setViewport({ x: 0, y: 0, k: 1 }) },
+        { label: "Toggle Grid", action: toggleGrid, shortcut: "Ctrl+'" },
+        { label: "Toggle Snap to Grid", action: toggleSnap, shortcut: "Ctrl+;" },
+        { label: "Toggle Canvas Rulers", action: toggleRulers, shortcut: "Ctrl+R" },
+        { label: "Toggle Navigator Mini-Map", action: toggleMiniMap },
+        { label: "Toggle Bilingual Labels", action: toggleBilingual },
+        { label: "Toggle Transfer Badges", action: toggleTransferBadges },
+        { label: "Toggle Canvas D-Pad", action: toggleDPad },
+        { divider: true },
+        { label: "Zoom In", action: zoomIn, shortcut: "Ctrl++" },
+        { label: "Zoom Out", action: zoomOut, shortcut: "Ctrl+-" },
+        { label: "Fit All in View", action: zoomFit, shortcut: "F" },
+      ],
+    },
+    {
+      label: "Window",
+      items: [
+        {
+          label: theme === "dark" ? "Theme: Switch to Light" : "Theme: Switch to Adobe Dark",
+          action: toggleTheme,
+        },
+        {
+          label: "Reset Startup Welcome Screen",
+          action: () => useEditor.getState().setStartupOpen(true),
+        },
       ],
     },
     {
       label: "Help",
       items: [
-        { label: "Open GitHub repository", action: () => window.open("https://github.com/NEXTechTW/Nodal", "_blank", "noopener") },
-        { label: "Read the tutorial", action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/TUTORIAL.md", "_blank", "noopener") },
-        { label: "Read the format spec", action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/FORMAT.md", "_blank", "noopener") },
+        { label: "Keyboard Shortcuts…", action: () => setShortcutsOpen(true), shortcut: "F1 / ?" },
+        { divider: true },
+        {
+          label: "Online Documentation & Tutorial",
+          action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/TUTORIAL.md", "_blank", "noopener"),
+        },
+        {
+          label: "Nodal JSON Format Specification",
+          action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/FORMAT.md", "_blank", "noopener"),
+        },
+        {
+          label: "GitHub Project Repository",
+          action: () => window.open("https://github.com/NEXTechTW/Nodal", "_blank", "noopener"),
+        },
       ],
     },
   ];
@@ -100,12 +194,17 @@ export function MenuBar() {
       const text = await f.text();
       loadMap(parseMapFile(text));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load map file. Choose a .json file exported from Nodal and try again.");
+      setError(err instanceof Error ? err.message : "Unable to load map file.");
     }
   };
 
   return (
     <nav ref={barRef} className="menubar" aria-label="Menu bar">
+      {/* Brand logo */}
+      <div className="menu-logo">
+        <LogoImage height={14} />
+      </div>
+
       {menus.map((m) => (
         <div key={m.label} className="menu-wrap">
           <button
@@ -119,25 +218,32 @@ export function MenuBar() {
           </button>
           {open === m.label && (
             <div className="menu-pop" role="menu" aria-label={`${m.label} menu`}>
-              {m.items.map((it) => (
-                <button
-                  key={it.label}
-                  type="button"
-                  role="menuitem"
-                  className="menu-item"
-                  disabled={it.disabled}
-                  onClick={() => { setOpen(null); it.action(); }}
-                >
-                  <span>{it.label}</span>
-                  {it.shortcut && <span className="menu-shortcut">{it.shortcut}</span>}
-                </button>
-              ))}
+              {m.items.map((it, idx) => {
+                if ("divider" in it) {
+                  return <div key={`div-${idx}`} className="menu-divider" />;
+                }
+                return (
+                  <button
+                    key={it.label}
+                    type="button"
+                    role="menuitem"
+                    className="menu-item"
+                    disabled={it.disabled}
+                    onClick={() => {
+                      setOpen(null);
+                      it.action();
+                    }}
+                  >
+                    <span>{it.label}</span>
+                    {it.shortcut && <span className="menu-shortcut">{it.shortcut}</span>}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
       ))}
       <span style={{ flex: 1 }} aria-hidden="true" />
-      <span className="menu-note" aria-hidden="true">Nodal</span>
       <input ref={fileRef} type="file" accept="application/json,.json" aria-label="Load map JSON file" hidden onChange={onFile} />
     </nav>
   );
