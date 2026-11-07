@@ -96,15 +96,15 @@
   --dur-base: 200ms;
 }
 
-/* Dark theme — remap semantic roles only; primitives unchanged. */
-[data-theme="dark"] {
+/* Dark theme — remap semantic roles only; primitives unchanged. Applied to <html>. */
+:root[data-theme="dark"] {
   --color-bg: oklch(0.18 0.02 260);
   --color-bg-surface: oklch(0.22 0.02 260);
   --color-bg-canvas: oklch(0.16 0.015 260);
   --color-bg-inset: oklch(0.26 0.02 260);
-  --color-text: oklch(0.94 0.01 260);
-  --color-text-secondary: oklch(0.72 0.02 260);
-  --color-text-tertiary: oklch(0.64 0.02 260);
+  --color-text: oklch(1 0 0);
+  --color-text-secondary: oklch(0.84 0.015 260);
+  --color-text-tertiary: oklch(0.72 0.02 260);
   --color-border: oklch(0.32 0.02 260);
   --color-border-strong: oklch(0.42 0.02 260);
   --color-accent: oklch(0.68 0.16 258);

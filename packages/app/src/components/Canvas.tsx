@@ -302,8 +302,7 @@ export function Canvas() {
                       dominantBaseline={anchorBaseline(s.labelAnchor)}
                       fontFamily="Noto Sans, sans-serif"
                       fontSize={map.style.fontSize}
-                      fill="var(--color-text)"
-                      style={{ pointerEvents: "none" }}
+                      style={{ pointerEvents: "none", fill: "var(--color-text)" }}
                     >
                       {displayName(s.name, "Untitled station", map.style.labelLanguage)}
                     </text>
@@ -330,11 +329,9 @@ export function Canvas() {
                 fontFamily="Noto Sans, sans-serif"
                 fontSize={map.style.fontSize - 1}
                 fontWeight={600}
-                fill="var(--color-text)"
-                stroke="var(--color-bg-canvas)"
                 strokeWidth={4}
                 paintOrder="stroke"
-                style={{ pointerEvents: "none" }}
+                style={{ pointerEvents: "none", fill: "var(--color-text)", stroke: "var(--color-bg-canvas)" }}
               >
                 {displayName(line.name, "Line", map.style.labelLanguage)}
               </text>

@@ -38,6 +38,8 @@ button, input, select { font: inherit; color: inherit; }
     "status status status";
   height: 100dvh;
   min-height: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .toolbar {

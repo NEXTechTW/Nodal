@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import "./styles/editor.css";
 import { Toolbar } from "./components/Toolbar.js";
 import { Canvas } from "./components/Canvas.js";
@@ -13,8 +14,12 @@ export function Editor() {
   const undo = useEditor((s) => s.undo);
   const theme = useEditor((s) => s.theme);
 
+  useEffect(() => {
+    document.documentElement.dataset["theme"] = theme;
+  }, [theme]);
+
   return (
-    <div className="app-shell" data-theme={theme}>
+    <div className="app-shell">
       <Toolbar />
       <LinesPanel />
       <Canvas />
