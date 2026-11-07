@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" width="1280" height="320" role="img" aria-label="Nodal — Transit map editor">
+  <rect width="1280" height="320" fill="#FFFFFF"/>
+  <path d="M80 220 L420 220 L560 80 L820 80 L960 220 L1200 220" stroke="#E00034" stroke-width="18" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M560 80 L560 300" stroke="#0067C0" stroke-width="18" fill="none" stroke-linecap="round"/>
+  <path d="M820 80 L820 240" stroke="#009444" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="20 14"/>
+  <g fill="#fff" stroke="#111" stroke-width="5">
+    <circle cx="80" cy="220" r="16"/><circle cx="420" cy="220" r="16"/>
+    <circle cx="560" cy="80" r="16"/><circle cx="820" cy="80" r="16"/>
+    <circle cx="960" cy="220" r="16"/><circle cx="1200" cy="220" r="16"/>
+  </g>
+  <circle cx="560" cy="80" r="26" fill="none" stroke="#111" stroke-width="5"/>
+  <circle cx="820" cy="80" r="26" fill="none" stroke="#111" stroke-width="5"/>
+  <text x="640" y="300" text-anchor="middle" font-family="Noto Sans, Inter, sans-serif" font-size="28" font-weight="600" fill="#111">Nodal — draw schematic metro maps in your browser</text>
+</svg>

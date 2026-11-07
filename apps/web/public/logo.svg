@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Nodal">
+  <rect width="64" height="64" rx="14" fill="#FFFFFF"/>
+  <path d="M10 40 H28 L38 24 H54" stroke="#E00034" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 24 V52" stroke="#0067C0" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <g fill="#fff" stroke="#111" stroke-width="3">
+    <circle cx="10" cy="40" r="6"/><circle cx="28" cy="40" r="6"/><circle cx="54" cy="24" r="6"/>
+  </g>
+  <circle cx="38" cy="24" r="10" fill="none" stroke="#111" stroke-width="3"/>
+</svg>
