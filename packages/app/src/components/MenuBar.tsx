@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
+import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
 import { exampleMap } from "../example.js";
 import { LogoImage } from "./LogoImage.js";
@@ -90,25 +91,26 @@ export function MenuBar() {
     }
   };
 
+  const L = (k: string) => t(uiLang, k);
   const menus: { label: string; items: Item[] }[] = [
     {
-      label: "File",
+      label: L("File"),
       items: [
-        { label: "New Map", action: newMap, shortcut: "Ctrl+N" },
+        { label: L("NewMap"), action: newMap, shortcut: "Ctrl+N" },
         { divider: true },
-        { label: "Save JSON…", action: saveJSON, shortcut: "Ctrl+S" },
-        { label: "Open JSON…", action: () => fileRef.current?.click(), shortcut: "Ctrl+O" },
+        { label: L("Save"), action: saveJSON, shortcut: "Ctrl+S" },
+        { label: L("LoadJSON"), action: () => fileRef.current?.click(), shortcut: "Ctrl+O" },
         { divider: true },
-        { label: "Export Vector SVG", action: exportSVG },
-        { label: "Export Image PNG", action: exportPNG },
-        { label: "Export Document PDF…", action: exportPDF },
+        { label: L("ExportSVG"), action: exportSVG },
+        { label: L("PNG"), action: exportPNG },
+        { label: L("PDF"), action: exportPDF },
       ],
     },
     {
-      label: "Edit",
+      label: L("Edit"),
       items: [
-        { label: "Undo", action: undo, disabled: !canUndo, shortcut: "Ctrl+Z" },
-        { label: "Redo", action: redo, disabled: !canRedo, shortcut: "Ctrl+Shift+Z" },
+        { label: L("Undo"), action: undo, disabled: !canUndo, shortcut: "Ctrl+Z" },
+        { label: L("Redo"), action: redo, disabled: !canRedo, shortcut: "Ctrl+Shift+Z" },
         { divider: true },
         {
           label: "Duplicate Station",
@@ -125,7 +127,7 @@ export function MenuBar() {
       ],
     },
     {
-      label: "Map",
+      label: L("Map"),
       items: [
         { label: "Auto-Resolve Label Overlaps", action: avoidLabels },
         { divider: true },
@@ -139,7 +141,7 @@ export function MenuBar() {
       ],
     },
     {
-      label: "View",
+      label: L("View"),
       items: [
         { label: "Toggle Grid", action: toggleGrid, shortcut: "Ctrl+'" },
         { label: "Toggle Snap to Grid", action: toggleSnap, shortcut: "Ctrl+;" },
@@ -173,7 +175,7 @@ export function MenuBar() {
       ],
     },
     {
-      label: "Window",
+      label: L("Window"),
       items: [
         {
           label: theme === "dark" ? "Theme: Switch to Light" : "Theme: Switch to Adobe Dark",
@@ -199,7 +201,7 @@ export function MenuBar() {
       ],
     },
     {
-      label: "Help",
+      label: L("Help"),
       items: [
         { label: "Keyboard Shortcuts…", action: () => setShortcutsOpen(true), shortcut: "F1 / ?" },
         { divider: true },

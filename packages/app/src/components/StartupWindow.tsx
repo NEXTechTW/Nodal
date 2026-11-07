@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { parseMapFile } from "@linewright/core";
+import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
 import { exampleMap } from "../example.js";
 import { AddStationIcon, LoadIcon } from "./Icons.js";
@@ -12,6 +13,7 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
   const setError = useEditor((s) => s.setError);
   const setTool = useEditor((s) => s.setTool);
   const uiLang = useEditor((s) => s.uiLang);
+  const L = (k: string) => t(uiLang, k);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +50,7 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
           >
             <span className="startup-icon" aria-hidden="true"><AddStationIcon /></span>
             <span className="startup-item-text">
-              <span className="startup-item-title">New map</span>
+              <span className="startup-item-title">{L("NewMap")}</span>
               <span className="startup-item-desc">Blank canvas, ready to place stations</span>
             </span>
             <span className="startup-arrow" aria-hidden="true">→</span>
@@ -64,7 +66,7 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3z" /></svg>
             </span>
             <span className="startup-item-text">
-              <span className="startup-item-title">Open example</span>
+              <span className="startup-item-title">{L("OpenExample")}</span>
               <span className="startup-item-desc">Lumen City — the fictional city with three lines</span>
             </span>
             <span className="startup-arrow" aria-hidden="true">→</span>
@@ -78,7 +80,7 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
           >
             <span className="startup-icon" aria-hidden="true"><LoadIcon /></span>
             <span className="startup-item-text">
-              <span className="startup-item-title">Load JSON…</span>
+              <span className="startup-item-title">{L("LoadJSON")}</span>
               <span className="startup-item-desc">Open a Nodal map file (schema v1)</span>
             </span>
             <span className="startup-arrow" aria-hidden="true">→</span>
