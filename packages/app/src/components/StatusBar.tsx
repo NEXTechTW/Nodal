@@ -19,7 +19,7 @@ export function StatusBar() {
           x {station.position.x.toFixed(0)} · y {station.position.y.toFixed(0)}
         </span>
       )}
-      <span style={{ marginLeft: "auto" }}>Nodal v0.1 — JSON schema v1</span>
+      <span style={{ marginLeft: "auto" }}>Nodal v0.3 — JSON schema v1</span>
     </footer>
   );
 }

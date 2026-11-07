@@ -7,6 +7,8 @@ PROJECT.md). Free, MIT-licensed, runs in the browser, saves as open JSON.
 
 ![Nodal banner — schematic metro map on paper](docs/banner.svg)
 
+![Demo — Lumen City network grows line by line](docs/demo.gif)
+
 ## What it does (v0.3)
 
 - Add, move, and delete stations on an SVG canvas

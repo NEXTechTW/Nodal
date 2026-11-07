@@ -10,5 +10,6 @@ playwright-report/
 test-results/
 *.tsbuildinfo
 vite*.log
+target/
 # Local skill packs are build-time references, not part of the product.
 skills/
