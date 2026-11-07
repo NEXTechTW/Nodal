@@ -736,9 +736,11 @@ export function PropertiesPanel() {
                   <option value="Noto Sans, sans-serif">Noto Sans</option>
                   <option value="'Noto Sans TC', 'Noto Sans', sans-serif">Noto Sans TC</option>
                   <option value="Inter, system-ui, sans-serif">Inter</option>
+                  <option value="Roboto, sans-serif">Roboto</option>
+                  <option value="'Open Sans', sans-serif">Open Sans</option>
                   <option value="system-ui, sans-serif">System</option>
                   <option value="Georgia, serif">Georgia (serif)</option>
-                  <option value="'JetBrains Mono', monospace">Mono</option>
+                  <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
                 </select>
               </PropRow>
 
