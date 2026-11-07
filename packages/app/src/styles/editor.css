@@ -965,9 +965,12 @@ kbd {
 .crowdin-list { display: flex; flex-direction: column; gap: 2px; }
 .crowdin-row { display: flex; gap: 8px; align-items: center; font-size: var(--text-12); padding: 4px 6px; border-radius: var(--radius-3); }
 .crowdin-row[aria-current="true"] { background: var(--color-accent-soft); }
-.crowdin-native { min-width: 72px; font-weight: 600; }
-.crowdin-label { color: var(--color-text-secondary); }
-.crowdin-note { margin-left: auto; color: var(--color-text-tertiary); font-size: var(--text-11); }
+.crowdin-native { min-width: 24px; text-align: center; font-weight: 600; background: var(--color-bg-inset); border-radius: 4px; padding: 1px 4px; }
+.crowdin-label { min-width: 128px; }
+.crowdin-bar { flex: 1; height: 6px; border-radius: 999px; background: var(--color-bg-inset); overflow: hidden; }
+.crowdin-fill { display: block; height: 100%; background: var(--color-accent); }
+.crowdin-pct { min-width: 36px; text-align: right; color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
+.crowdin-note { color: var(--color-text-tertiary); font-size: var(--text-11); }
 .crowdin-foot { margin: 8px 0 0; font-size: var(--text-11); color: var(--color-text-tertiary); }
 
 .sr-only {
