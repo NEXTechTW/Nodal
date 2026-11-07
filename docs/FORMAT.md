@@ -1,15 +1,11 @@
-# Format specification — MetroMap v1
+# File format (v1)
 
-Every Nodal file is a `MetroMap` object with `schemaVersion: 1`.
-Machine-readable schema: `packages/schema/src/schema.ts` (JSON Schema).
-Example: `examples/lumen-city.json`.
-
-## Top level
+All maps are one object with `schemaVersion: 1`. The shape is in `packages/schema/src/schema.ts` and `examples/lumen-city.json` is a real file you can open.
 
 ```ts
 {
   schemaVersion: 1,
-  meta: { title: string, author?: string, createdAt: string /* ISO */ },
+  meta: { title, author?, createdAt },
   stations: Record<ID, Station>,
   lines: Record<ID, Line>,
   labels: Record<ID, Label>,
@@ -17,27 +13,12 @@ Example: `examples/lumen-city.json`.
 }
 ```
 
-IDs are opaque strings (UUID v4 today). Never assume ordering — iterate by key.
+IDs are strings. UUIDs today, but do not assume anything about their order. Look things up by key.
 
-## Station
+Station: `id`, `name` (a map from locale to string, like `{ en: "Central", "zh-TW": "中央" }`), `position {x, y}`, `kind` (`normal` / `interchange` / `terminus`), `labelAnchor` (`N`, `NE`, `E`, ...), optional `labelOffset`.
 
-`{ id, name: Record<locale, string>, position: {x, y}, kind, labelAnchor, labelOffset? }`
-- `kind`: `normal | interchange | terminus` (circle / ring / square)
-- `labelAnchor`: `N NE E SE S SW W NW`
+Line: `id`, `name`, `color` (hex), `style` (`solid` / `dashed` / `double`), optional `width`, plus `segments`. A segment is `from` / `to` station ids with optional `waypoints`. Both ends have to point at real stations or the file is invalid.
 
-## Line
+Style: map background, grid step, corner radius, which language labels show, font size, station size. Old files may still have a `snap45` field. It is ignored on load.
 
-`{ id, name, color: "#RRGGBB", style: "solid|dashed|double", width?, segments: Segment[] }`
-
-`Segment = { from: ID, to: ID, waypoints?: {x, y}[] }` — `from`/`to` must exist.
-
-## Style
-
-`{ background: "#RRGGBB", gridStep, cornerRadius, labelLanguage, fontSize, stationRadius }` — an older `snap45` field is accepted on load and ignored.
-
-## Compatibility
-
-- Unknown fields are rejected by `core.validateMap` only for typed fields; new
-  optional fields are ignored by older builds until a minor bump.
-- Bump `CURRENT_SCHEMA_VERSION` in `packages/core/src/types.ts` and add a pure
-  migration in `validate.ts` before v1.0 freezes the format.
+If we ever bump the version, put the migration in `packages/core/src/validate.ts` and bump `CURRENT_SCHEMA_VERSION` in `types.ts`. The validator only complains about fields it knows about, so extra fields pass through until then.

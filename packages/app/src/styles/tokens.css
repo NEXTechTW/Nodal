@@ -1,8 +1,7 @@
 /**
- * Nodal design tokens — three-layer architecture.
- * Primitive (raw) → Semantic (role) → Component (surface).
- * Skill: design-system + brand + better-colors.
- * No raw hex in components — always var(--…).
+ * Design tokens in three layers.
+ * Primitive (raw values) → semantic (roles) → component.
+ * Components reference the semantic layer; never hard-code hex.
  */
 :root {
   /* ---- Primitive: neutral ramp (oklch, holds hue) ---- */

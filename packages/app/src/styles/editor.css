@@ -1,6 +1,5 @@
-/* Nodal editor chrome — layout, typography, states.
-   Skills: better-layout, better-typography, better-ui, better-accessibility.
-   All spacing/colors/radius via tokens. No raw hex. */
+/* Editor chrome: layout, type, states. Spacing and colour come from
+   tokens.css; components do not hard-code hex. */
 
 @import "./tokens.css";
 

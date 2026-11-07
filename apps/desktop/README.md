@@ -1,41 +1,27 @@
-# Nodal desktop (Tauri 2)
+# Desktop app
 
-The desktop shell wraps the same `apps/web` editor. No editor code lives here.
+A thin Tauri 2 shell around the web editor. The editor code lives in `apps/web`, this folder only opens it in a window.
 
-## Prereqs
+You need Rust 1.77 or newer and the Tauri CLI:
 
-- Rust 1.77+ (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
-- `cargo install tauri-cli --version "^2"`
-- `pnpm install`
-
-## Dev
-
-```sh
-# Terminal 1: web editor
-pnpm --filter @linewright/web dev
-# Terminal 2: desktop shell
-cd apps/desktop && cargo tauri dev
+```
+cargo install tauri-cli --version "^2"
 ```
 
-## Build (Windows / macOS / Linux)
+Run the web editor in one terminal (`pnpm --filter @linewright/web dev`), then:
 
-```sh
-cd apps/desktop && cargo tauri build
 ```
-
-Outputs land in `apps/desktop/target/release/bundle/`.
-
-## Icons
-
-`tauri.conf.json` expects `apps/desktop/icons/` (32×32, 128×128, `.icns`, `.ico`).
-Generate them from the SVG mark:
-
-```sh
 cd apps/desktop
-cargo tauri icon ../web/public/logo.svg
+cargo tauri dev
 ```
 
-## Licensing
+To build an installer:
 
-- Shell: MIT (this repo) / Apache-2.0 (Tauri). No GPL deps.
-- Fonts: Noto Sans, SIL OFL — see PROJECT.md §2.
+```
+cd apps/desktop
+cargo tauri build
+```
+
+Bundles land in `apps/desktop/target/release/bundle/`. Icons are missing at the moment. Generate them from `../web/public/logo.svg` with `cargo tauri icon ../web/public/logo.svg` and drop them in `icons/`.
+
+Noto Sans (SIL OFL) will ship with the desktop build. The browser build just uses system fonts.

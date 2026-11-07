@@ -1,47 +1,25 @@
-# Contributing to Nodal
+# Contributing
 
-## Quick start
+Get started:
 
-```sh
+```
 pnpm install
-pnpm dev        # web editor at http://localhost:5173
-pnpm test       # all packages (Vitest)
-pnpm typecheck  # TS strict across the monorepo
-pnpm lint       # ESLint
-pnpm build      # production build
+pnpm dev
 ```
 
-## Branches and commits
+Tests and checks: `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`. Run them before you push.
 
-1. Fork, create a feature branch: `feat/…`, `fix/…`, `docs/…`
-2. Changes are small and scoped — one concern per PR
-3. Use [Conventional Commits](https://www.conventionalcommits.org/):
-   `feat(core): add 45° snap helper`
-4. Open a PR describing motivation. Large features: open an issue first.
+Branches: fork, make a small branch (`feat/…`, `fix/…`, `docs/…`), keep the change focused. Commit messages in Conventional Commits style, e.g. `feat(core): parse station names by locale`. Bigger ideas: open an issue first.
 
-## Architecture rules
+Code rules that matter:
 
-- `packages/core` must stay zero-UI-deps (no React, no DOM, no zustand).
-  If it needs the DOM, it belongs in `renderer` or `app`.
-- Edits go through `packages/core/src/commands.ts`. No direct mutation in components.
-- Colors, spacing, and radius come from tokens in
-  `packages/app/src/styles/tokens.css`. No raw hex in components.
-- Interface copy: verb-first buttons, errors state the fix, empty states
-  name the next action (see `docs/brand-guidelines.md`).
+- Leave `packages/core` alone as a plain-TS package. No React, no DOM, no state library. If it needs the browser, it goes in `renderer` or `app`.
+- Edits go through `packages/core/src/commands.ts` (commands with apply/revert). Do not mutate the map in components.
+- Colors, spacing, radii come from `packages/app/src/styles/tokens.css`. Do not hard-code hex in components.
+- Buttons start with a verb. Errors tell the user what to do next. Empty states offer one next step.
 
-## Format policy
+Files: every map has `schemaVersion`. If you change the format, bump `CURRENT_SCHEMA_VERSION` in `packages/core/src/types.ts`, add the migration in `validate.ts`, and update `packages/schema/src/schema.ts` and `examples/lumen-city.json`.
 
-- Every map file has `schemaVersion`. Bump `CURRENT_SCHEMA_VERSION` in
-  `packages/core/src/types.ts`, add a migration in `validate.ts`, update
-  `packages/schema/src/schema.ts` and `examples/lumen-city.json`.
+Licenses: MIT only. No GPL or source-available dependencies. Fonts must be SIL OFL (Noto Sans qualifies). The browser build uses system fonts for now; the desktop bundle will include Noto Sans.
 
-## Licenses
-
-- Code: MIT (see `LICENSE`). Do not add GPL / source-available dependencies.
-- Fonts: SIL OFL only (e.g. Noto Sans). Default stack loads system fonts;
-  bundling Noto Sans is planned for the desktop build.
-
-## Trademark note
-
-Examples use only fictional cities. Users are responsible for copyright in
-their own maps (real-city logos, type, and photography).
+Fictional names only in examples. Anyone who draws a real city is responsible for the logos and type they use.

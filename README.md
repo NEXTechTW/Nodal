@@ -1,62 +1,51 @@
 # Nodal
 
-> Open-source transit-map editor. Vector-editor intuition, built for lines, stations, and interchanges.
+A browser-based editor for drawing schematic transit maps. You place stations, drag to connect them, and export.
 
-**Nodal** is the product. **Linewright** is the monorepo (`linewright/` in
-PROJECT.md). Free, MIT-licensed, runs in the browser, saves as open JSON.
+Nodal is the app. The repo is called Linewright (that's just the monorepo name). MIT license. Maps save as JSON so you can put them in git.
 
-![Nodal banner — schematic metro map on paper](docs/banner.svg)
+![Nodal banner](docs/banner.svg)
 
-![Demo — Lumen City network grows line by line](docs/demo.gif)
+![Demo](docs/demo.gif)
 
-## What it does (v0.3)
+## Run it
 
-- Add, move, and delete stations on an SVG canvas
-- Draw lines by dragging between stations
-- Rounded corners, interchange / terminus symbols, line labels
-- Shared tracks offset automatically (parallel lines)
-- One-click label arrange to avoid overlap
-- Multi-locale station names (English + 繁體中文) with a display-language switch
-- Undo / redo, rename stations and lines, change line color
-- Save and load JSON (schema v1), export SVG / PNG / PDF
-- Fictional-city example so you can try everything safely
+```
+pnpm install
+pnpm dev
+```
 
-Try it: `pnpm install && pnpm dev` → http://localhost:5173
+Open http://localhost:5173
 
-## Design principles
+## What works right now
 
-1. **Data model first.** UI is a view over `MetroMap`. `core` has zero UI deps.
-2. **Every edit is a command.** Undo/redo works from day one.
-3. **Open format.** JSON with `schemaVersion`. Git-friendly, documented in `packages/schema`.
-4. **Transit-native.** Rounded corners, interchange glyphs, parallel offsets — not a generic vector tool.
+- Add, move, delete stations. Drag between them to draw lines.
+- Lines get rounded corners. Shared stretches sit side by side on their own.
+- Interchange stations show a ring, terminus a square.
+- Labels move themselves out of each other's way (you can still move one by hand).
+- Station names in English and Traditional Chinese, switchable from the panel.
+- Undo/redo. Save and load JSON. Export SVG, PNG, or PDF.
+- Comes with a made-up city (Lumen City) so you can play without breaking anything real.
 
-## Architecture
+## How it's put together
 
 ```
 packages/
-  core/       # types, geometry, commands, validation (pure TS, no UI)
-  renderer/   # MetroMap → SVG string (export) + path helpers
-  app/        # React editor (Zustand store, toolbar, canvas, panels)
-  schema/     # JSON Schema for MetroMap v1
-apps/
-  web/        # Vite entry — the browser editor
-examples/
-  lumen-city.json   # fictional city (trademark-safe)
+  core/       types, geometry, undoable commands, validation. No React in here.
+  renderer/   turns a map into an SVG file.
+  app/        the editor UI (React + Zustand)
+  schema/     the JSON schema for the file format
+apps/web/     the site you run locally
+examples/     lumen-city.json
 ```
 
-See `docs/ARCHITECTURE.md`, `docs/brand-guidelines.md`, and `docs/TUTORIAL.md`.
+Notes are in `docs/`. Start at `docs/ARCHITECTURE.md` if you want the picture, or `docs/TUTORIAL.md` if you just want to draw something.
 
 ## Contributing
 
-See `CONTRIBUTING.md`. Short version: `pnpm install` → `pnpm dev`, run
-`pnpm lint && pnpm test` before pushing, use Conventional Commits.
+`CONTRIBUTING.md` has the steps we use. In short: fork, branch, `pnpm lint` and `pnpm test` before you push, and use Conventional Commits.
 
-## Roadmap
+## Where this is headed
 
-- v0.1 — prototype: pan/zoom, stations, connect, 45° snap, SVG export, JSON save/load ✓
-- v0.2 — undo/redo UI polish, property panels, rounded corners, interchanges ✓
-- v0.3 — parallel-line offsets, label anti-overlap, multi-locale names, PNG/PDF export ✓
-- v0.4 — Tauri desktop builds, published format spec, tutorials
-- v1.0 — stable format, full docs, plugin API evaluation
-
-Full plan: `PROJECT.md`.
+- 0.1, 0.2, 0.3 are in: editing, undo, panels, offsets, labels, languages, exports.
+- Next up is the Tauri desktop build and polishing the docs. Full plan is in `PROJECT.md`.

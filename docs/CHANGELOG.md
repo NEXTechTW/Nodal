@@ -1,16 +1,9 @@
 # Changelog
 
-## v0.3
-- Parallel-line offsets for shared tracks; label auto-arrange; multi-locale names;
-  PNG/PDF export; `docs/FORMAT.md`, `docs/TUTORIAL.md`.
+0.3: parallel lines, label arrange, English + Traditional Chinese names, PNG/PDF export. Tutorial and format docs.
 
-## v0.2
-- Undo/redo command stack, property panels, rounded corners, interchange/terminus glyphs.
+0.2: undo/redo, property panels, rounded corners, interchange and terminus symbols.
 
-## v0.1
-- SVG canvas (pan/zoom), add/move/delete stations, drag-to-connect, 45° snap
-  (later removed), SVG export, JSON save/load.
+0.1: canvas with pan/zoom, stations, drag to connect, SVG export, JSON save/load.
 
-## Unreleased (main)
-- 45° snap removed; dark mode (pure-white dark text); desktop Tauri scaffold;
-  `docs/demo.gif`; perf baselines; format + plugin docs.
+Since then: removed the 45-degree snap, dark mode with white text, Adobe-style left dock and top menu bar, line rename/style/delete, background picker, zoom buttons, Playwright smoke tests, desktop (Tauri) scaffold, and a demo GIF.

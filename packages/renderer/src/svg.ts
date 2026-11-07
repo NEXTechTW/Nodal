@@ -1,7 +1,6 @@
 /**
- * Pure SVG exporter — zero UI deps (teardown skill: renderer is a layer that
- * can be swapped for Canvas later; the map model never changes).
- * Produces a standalone SVG string for export (PROJECT.md §5, §6 v0.1).
+ * Turns a MetroMap into a standalone SVG string for export.
+ * Kept free of DOM calls so it can run in Node.
  */
 import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, offsetPolyline, roundedPolyline, svgPath, type MetroMap, type Vec2 } from "@linewright/core";
 

@@ -1,37 +1,20 @@
-# Architecture (explain-interface)
+# Architecture
 
-How Nodal's frontend paints a transit map, in layers.
+A quick tour of how drawing works.
 
-| Layer | Technique | What you see |
-|---|---|---|
-| 1. Map | `MetroMap` JSON (`core`) | Stations, lines, labels, style. Serializable, versioned. |
-| 2. Canvas | React SVG, `translate(x,y) scale(k)` | Pan/zoom via pointer + wheel-to-cursor. Grid is an SVG `<pattern>`. |
-| 3. Lines | `roundedPolyline` → `<path d>` | Straight segments with interpolated quadratic arcs at corners. |
-| 4. Stations | `<g>` + circle/ring/rect | Normal = circle, interchange = ring, terminus = square. |
-| 5. Labels | `<text>` + anchor math | `anchorOffset` positions the label; `dominantBaseline` aligns it. |
-| 6. Export | `renderer.toSVGString` | Same geometry as the canvas, standalone file with `<title>` and `role="img"`. |
+The map itself is just a JSON object (a `MetroMap`) in `packages/core`. The screen is a view over that object. If you change the screen logic, the file format does not change, and vice versa.
 
-## State machine (state-machine skill)
+How a line gets on screen:
 
-Tool states: `select`, `add-station`, `connect`, `pan` (+ transient `spaceDown`).
-Data states: empty (0 stations, CTA), loaded (≥1 station), error (failed JSON),
-toast (undoable save/delete/duplicate-connect). Every state is reachable in the
-editor; the empty state offers “Add a station” and the fictional-city example.
+1. `core` holds stations, lines, labels, style.
+2. The canvas is plain SVG. Pan/zoom is a transform on the group, so panning just moves the group.
+3. Each line segment becomes a path. Corners are rounded by inserting a short quadratic curve at each vertex.
+4. Stations are circles (normal), two circles (interchange), or squares (terminus).
+5. Labels sit where `labelAnchor` says, using the same offset math as the export.
+6. Export calls `renderer.toSVGString`, which uses the same geometry as the canvas. One place to fix a drawing bug, not two.
 
-## Command stack
+Tools are a small state set: select, add station, connect, pan. That lives in the store. There is also an empty state (nothing on the map yet) and error toasts for bad files. You can hit every state in the editor.
 
-Every edit is a `Command { apply, revert }` over an immutable `MetroMap`.
-`CommandStack.dispatch` clears redo; `undo`/`redo` replay the opposite direction.
-Delete-station also strips touching segments (documented edge case in v0.1).
+Every edit is a command with an `apply` and a `revert`. The stack keeps undo/redo honest. Deleting a station also removes the segments that touched it, and undo puts those back.
 
-## Renderer (teardown skill framing)
-
-The renderer is a plate stack: `core` model → `linePathPoints` → `svgPath` →
-`toSVGString`. Swapping SVG for Canvas later touches only this layer; the
-model, commands, and schema do not change (PROJECT.md §9).
-
-## Zoom & hit tolerance
-
-Wheel zoom is exponential (`exp(-deltaY * 0.0012)`) and anchored to the cursor.
-Hit tolerance scales inversely with `k` (`16 / k`, min 14 map units) so stations
-stay grabbable at any zoom.
+Zoom is exponential so it feels even, and anchored to the cursor. Hit testing gets more forgiving when zoomed out so small stations are still clickable.

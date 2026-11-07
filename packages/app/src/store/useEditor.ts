@@ -1,8 +1,7 @@
 /**
  * Zustand store — UI state (viewport, selection, tool) + domain state (MetroMap).
  * Undo/redo via CommandStack from @linewright/core (PROJECT.md §3).
- * State shape: `tool` state-machine (skill: state-machine) enumerates
- * select | add-station | connect | pan.
+ * `tool` is one of select | add-station | connect | pan.
  */
 import { create } from "zustand";
 import {
