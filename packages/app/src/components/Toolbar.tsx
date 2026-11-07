@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { useEditor } from "../store/useEditor.js";
@@ -18,6 +18,21 @@ export function Toolbar() {
   const theme = useEditor((s) => s.theme);
   const toggleTheme = useEditor((s) => s.toggleTheme);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [fileOpen, setFileOpen] = useState(false);
+  const fileWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (fileWrapRef.current && !fileWrapRef.current.contains(e.target as Node)) setFileOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFileOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   const saveJSON = () => {
     const blob = new Blob([JSON.stringify(map, null, 2)], { type: "application/json" });
@@ -78,6 +93,15 @@ export function Toolbar() {
     setToast("Example map loaded");
   };
 
+  const fileActions: { label: string; icon?: React.ReactNode; action: () => void; primary?: boolean }[] = [
+    { label: "Save", icon: <SaveIcon />, action: saveJSON },
+    { label: "Load", icon: <LoadIcon />, action: openFile },
+    { label: "Export SVG", icon: <ExportIcon />, action: exportSVG, primary: true },
+    { label: "PNG", action: exportPNG },
+    { label: "PDF", action: exportPDF },
+    { label: "Example", action: loadExample },
+  ];
+
   return (
     <header className="toolbar" aria-label="Editor toolbar">
       <span className="toolbar-title">Nodal</span>
@@ -105,12 +129,36 @@ export function Toolbar() {
 
       <div className="toolbar-sep" aria-hidden="true" />
 
-      <button type="button" className="btn" onClick={saveJSON}><SaveIcon /> Save</button>
-      <button type="button" className="btn" onClick={openFile}><LoadIcon /> Load</button>
-      <button type="button" className="btn btn-primary" onClick={exportSVG}><ExportIcon /> Export SVG</button>
-      <button type="button" className="btn" onClick={exportPNG} title="Export a 2× PNG image">PNG</button>
-      <button type="button" className="btn" onClick={exportPDF} title="Open a print view — save as PDF">PDF</button>
-      <button type="button" className="btn" onClick={loadExample}>Example</button>
+      <div ref={fileWrapRef} style={{ position: "relative" }}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          aria-haspopup="menu"
+          aria-expanded={fileOpen}
+          onClick={() => setFileOpen((v) => !v)}
+        >
+          <ExportIcon /> File
+        </button>
+        {fileOpen && (
+          <div className="menu-pop" role="menu" aria-label="File actions" style={{ top: "calc(100% + 6px)", minWidth: 220 }}>
+            {fileActions.map((a) => (
+              <button
+                key={a.label}
+                type="button"
+                role="menuitem"
+                className="menu-item"
+                onClick={() => { setFileOpen(false); a.action(); }}
+              >
+                <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                  {a.icon}
+                  {a.label}
+                </span>
+                {a.primary && <span className="menu-shortcut" aria-hidden="true">★</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <a
         className="btn btn-tool icon-btn"
         href="https://github.com/NEXTechTW/Nodal"
