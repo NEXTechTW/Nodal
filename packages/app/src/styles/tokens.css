@@ -1,0 +1,97 @@
+/**
+ * Nodal design tokens — three-layer architecture.
+ * Primitive (raw) → Semantic (role) → Component (surface).
+ * Skill: design-system + brand + better-colors.
+ * No raw hex in components — always var(--…).
+ */
+:root {
+  /* ---- Primitive: neutral ramp (oklch, holds hue) ---- */
+  --primitive-black: oklch(0.13 0.02 260);
+  --primitive-gray-700: oklch(0.28 0.03 260);
+  --primitive-gray-500: oklch(0.48 0.03 260);
+  --primitive-gray-300: oklch(0.72 0.02 260);
+  --primitive-gray-200: oklch(0.86 0.015 260);
+  --primitive-gray-100: oklch(0.94 0.01 260);
+  --primitive-gray-50: oklch(0.98 0.005 260);
+  --primitive-white: oklch(1 0 0);
+
+  /* ---- Primitive: accent ramp (signal blue, single accent) ---- */
+  --primitive-blue-700: oklch(0.45 0.18 258);
+  --primitive-blue-600: oklch(0.53 0.19 258);
+  --primitive-blue-500: oklch(0.62 0.18 258);
+  --primitive-blue-100: oklch(0.93 0.05 258);
+  --primitive-blue-50: oklch(0.97 0.02 258);
+
+  /* ---- Primitive: status ---- */
+  --primitive-danger-600: oklch(0.52 0.22 25);
+  --primitive-danger-50: oklch(0.96 0.03 25);
+  --primitive-success-600: oklch(0.55 0.18 150);
+  --primitive-success-50: oklch(0.96 0.04 150);
+
+  /* ---- Primitive: spacing scale (4px base) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ---- Primitive: radius ---- */
+  --radius-2: 4px;
+  --radius-3: 6px;
+  --radius-4: 8px;
+  --radius-6: 12px;
+  --radius-full: 9999px;
+
+  /* ---- Primitive: type scale ---- */
+  --font-sans: "Noto Sans", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --text-11: 0.6875rem;
+  --text-12: 0.75rem;
+  --text-13: 0.8125rem;
+  --text-14: 0.875rem;
+  --text-16: 1rem;
+  --text-20: 1.25rem;
+  --leading-tight: 1.15;
+  --leading-body: 1.5;
+
+  /* ---- Semantic: roles ---- */
+  --color-bg: var(--primitive-gray-50);
+  --color-bg-surface: var(--primitive-white);
+  --color-bg-canvas: oklch(0.97 0.008 260);
+  --color-bg-inset: var(--primitive-gray-100);
+  --color-text: var(--primitive-black);
+  --color-text-secondary: var(--primitive-gray-500);
+  --color-text-tertiary: var(--primitive-gray-500);
+  --color-border: var(--primitive-gray-200);
+  --color-border-strong: var(--primitive-gray-300);
+  --color-accent: var(--primitive-blue-600);
+  --color-accent-hover: var(--primitive-blue-700);
+  --color-accent-soft: var(--primitive-blue-50);
+  --color-accent-contrast: var(--primitive-white);
+  --color-danger: var(--primitive-danger-600);
+  --color-danger-soft: var(--primitive-danger-50);
+  --color-success: var(--primitive-success-600);
+  --color-success-soft: var(--primitive-success-50);
+  --color-focus-ring: var(--primitive-blue-600);
+
+  /* ---- Component tokens ---- */
+  --toolbar-h: 52px;
+  --statusbar-h: 28px;
+  --panel-w: 260px;
+  --button-h: 32px;
+  --button-h-sm: 28px;
+  --input-h: 32px;
+  --hit-min: 36px;
+  --canvas-grid: var(--primitive-gray-200);
+
+  --shadow-sm: 0 1px 2px oklch(0.13 0.02 260 / 0.08), 0 1px 3px oklch(0.13 0.02 260 / 0.06);
+  --shadow-md: 0 4px 12px oklch(0.13 0.02 260 / 0.12), 0 2px 4px oklch(0.13 0.02 260 / 0.08);
+  --shadow-ring: 0 0 0 1px var(--primitive-gray-200);
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+}

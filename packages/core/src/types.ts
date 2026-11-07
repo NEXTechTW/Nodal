@@ -1,0 +1,103 @@
+/**
+ * Nodal / Linewright — core data model.
+ * Spec: PROJECT.md §4 (draft). This is the single source of truth.
+ * `core` has zero UI dependencies so it runs in Node for CLI / batch export.
+ */
+
+export type ID = string;
+
+export interface Vec2 {
+  x: number;
+  y: number;
+}
+
+export type Anchor = "N" | "NE" | "E" | "SE" | "S" | "SW" | "W" | "NW";
+
+export type StationKind = "normal" | "interchange" | "terminus";
+
+export type LineStyle = "solid" | "dashed" | "double";
+
+export interface Station {
+  id: ID;
+  /** Multi-locale names, e.g. { en: "Central", "zh-TW": "中央" } */
+  name: Record<string, string>;
+  position: Vec2;
+  kind: StationKind;
+  labelAnchor: Anchor;
+  /** Optional manual label offset in map units. */
+  labelOffset?: Vec2;
+}
+
+export interface Segment {
+  from: ID;
+  to: ID;
+  waypoints?: Vec2[];
+}
+
+export interface Line {
+  id: ID;
+  name: Record<string, string>;
+  color: string; // hex, e.g. "#E00034"
+  segments: Segment[];
+  style: LineStyle;
+  /** Width in map units (map units = pixels at zoom 1). Default 8. */
+  width?: number;
+}
+
+export interface Label {
+  id: ID;
+  /** Station or line the label belongs to. */
+  targetId: ID;
+  targetKind: "station" | "line";
+  text: Record<string, string>;
+  position: Vec2;
+  anchor: Anchor;
+}
+
+export interface MapStyle {
+  background: string;
+  gridStep: number;
+  cornerRadius: number;
+  snap45: boolean;
+  labelLanguage: string;
+  fontSize: number;
+  stationRadius: number;
+}
+
+export interface MetroMap {
+  schemaVersion: number;
+  meta: { title: string; author?: string; createdAt: string };
+  stations: Record<ID, Station>;
+  lines: Record<ID, Line>;
+  labels: Record<ID, Label>;
+  style: MapStyle;
+}
+
+export const CURRENT_SCHEMA_VERSION = 1;
+
+export function emptyMap(title = "Untitled map"): MetroMap {
+  return {
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    meta: { title, createdAt: new Date().toISOString() },
+    stations: {},
+    lines: {},
+    labels: {},
+    style: {
+      background: "#FFFFFF",
+      gridStep: 40,
+      cornerRadius: 18,
+      snap45: true,
+      labelLanguage: "en",
+      fontSize: 14,
+      stationRadius: 6,
+    },
+  };
+}
+
+export function displayName(
+  name: Record<string, string>,
+  fallback = "Untitled",
+): string {
+  const pick = name.en ?? name["zh-TW"] ?? Object.values(name)[0];
+  return pick && pick.trim() ? pick : fallback;
+}
