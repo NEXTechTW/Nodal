@@ -128,6 +128,10 @@ interface EditorState {
   setFontSize(n: number): void;
   setFontFamily(f: string): void;
   setLabelColor(c: string): void;
+  setFontWeight(w: number): void;
+  setFontStyle(s: string): void;
+  setTextTransform(t: string): void;
+  setLetterSpacing(n: number): void;
   setStationRadius(n: number): void;
   setGridStep(n: number): void;
   connectStations(lineId: string, from: string, to: string): void;
@@ -563,6 +567,30 @@ export const useEditor = create<EditorState>((set, get) => {
       set((s) => ({
         map: { ...s.map, style: { ...s.map.style, labelColor: c } },
         lastActionLabel: "Change text color",
+      }));
+    },
+    setFontWeight: (w) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, fontWeight: w } },
+        lastActionLabel: "Change text weight",
+      }));
+    },
+    setFontStyle: (v) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, fontStyle: v } },
+        lastActionLabel: "Change text style",
+      }));
+    },
+    setTextTransform: (t) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, textTransform: t } },
+        lastActionLabel: "Change text case",
+      }));
+    },
+    setLetterSpacing: (n) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, letterSpacing: Math.min(8, Math.max(-2, n)) } },
+        lastActionLabel: "Change letter spacing",
       }));
     },
     setStationRadius: (n) => {

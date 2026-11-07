@@ -133,9 +133,14 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
       parts.push(`<g data-station="${esc(s.id)}"${rot}><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/></g>`);
     }
     const lp = stationLabelPos(map, s.id);
-    const name = displayName(s.name, "Untitled station", map.style.labelLanguage);
+    let name = displayName(s.name, "Untitled station", map.style.labelLanguage);
+    if (map.style.textTransform === "uppercase") name = name.toUpperCase();
+    else if (map.style.textTransform === "lowercase") name = name.toLowerCase();
     const labelRot = s.rotation ? ` transform="rotate(${s.rotation} ${lp.x} ${lp.y})"` : "";
-    parts.push(`<text${labelRot} x="${lp.x}" y="${lp.y}" text-anchor="${anchorTextAnchor(s.labelAnchor)}" dominant-baseline="${anchorBaseline(s.labelAnchor)}" font-family="${esc(map.style.fontFamily ?? "Noto Sans, sans-serif")}" font-size="${map.style.fontSize}" fill="${esc(map.style.labelColor ?? "#000000")}">${esc(name)}</text>`);
+    const ls = map.style.letterSpacing ? ` letter-spacing="${map.style.letterSpacing}"` : "";
+    const fs = map.style.fontStyle && map.style.fontStyle !== "normal" ? ` font-style="${esc(map.style.fontStyle)}"` : "";
+    const fw = map.style.fontWeight ? ` font-weight="${map.style.fontWeight}"` : "";
+    parts.push(`<text${labelRot} x="${lp.x}" y="${lp.y}" text-anchor="${anchorTextAnchor(s.labelAnchor)}" dominant-baseline="${anchorBaseline(s.labelAnchor)}" font-family="${esc(map.style.fontFamily ?? "Noto Sans, sans-serif")}" font-size="${map.style.fontSize}" fill="${esc(map.style.labelColor ?? "#000000")}"${fs}${fw}${ls}>${esc(name)}</text>`);
   }
 
   parts.push(`</svg>`);

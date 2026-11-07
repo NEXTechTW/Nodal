@@ -787,13 +787,15 @@ export function Canvas() {
                       dominantBaseline={anchorBaseline(s.labelAnchor)}
                       fontFamily={map.style.fontFamily ?? "Noto Sans, sans-serif"}
                       fontSize={map.style.fontSize}
-                      fontWeight={isSel ? 600 : 500}
+                      fontWeight={isSel ? 600 : (map.style.fontWeight ?? 500)}
+                      fontStyle={(map.style.fontStyle as "normal" | "italic") ?? "normal"}
+                      letterSpacing={map.style.letterSpacing ?? 0}
                       style={{ pointerEvents: "none", fill: map.style.labelColor ?? "#000000" }}
                     >
                       {isBilingual ? (
                         <>
                           <tspan x={lx} dy={s.labelAnchor.includes("S") ? "0" : "-0.3em"}>
-                            {zhName}
+                            {map.style.textTransform === "uppercase" ? (zhName ?? "").toUpperCase() : map.style.textTransform === "lowercase" ? (zhName ?? "").toLowerCase() : zhName}
                           </tspan>
                           <tspan
                             x={lx}
@@ -802,11 +804,14 @@ export function Canvas() {
                             fontWeight={400}
                             fill="var(--color-text-secondary)"
                           >
-                            {enName}
+                            {map.style.textTransform === "uppercase" ? (enName ?? "").toUpperCase() : map.style.textTransform === "lowercase" ? (enName ?? "").toLowerCase() : enName}
                           </tspan>
                         </>
                       ) : (
-                        displayName(s.name, "Untitled station", map.style.labelLanguage)
+                        (() => {
+                          const raw = displayName(s.name, "Untitled station", map.style.labelLanguage);
+                          return map.style.textTransform === "uppercase" ? raw.toUpperCase() : map.style.textTransform === "lowercase" ? raw.toLowerCase() : raw;
+                        })()
                       )}
                     </text>
                   );

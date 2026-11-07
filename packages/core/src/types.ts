@@ -68,6 +68,14 @@ export interface MapStyle {
   fontFamily?: string;
   /** Label text colour (hex). Defaults to black. */
   labelColor?: string;
+  /** Label weight (400/500/600/700). */
+  fontWeight?: number;
+  /** Label style: normal | italic. */
+  fontStyle?: string;
+  /** Label case: none | uppercase | lowercase. */
+  textTransform?: string;
+  /** Label letter spacing (px). */
+  letterSpacing?: number;
 }
 
 export interface MetroMap {
@@ -97,6 +105,10 @@ export function emptyMap(title = "Untitled map"): MetroMap {
       stationRadius: 6,
       fontFamily: "Noto Sans, sans-serif",
       labelColor: "#000000",
+      fontWeight: 500,
+      fontStyle: "normal",
+      textTransform: "none",
+      letterSpacing: 0,
     },
   };
 }

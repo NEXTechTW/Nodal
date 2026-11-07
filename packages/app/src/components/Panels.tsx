@@ -311,6 +311,10 @@ export function PropertiesPanel() {
   const setFontSize = useEditor((s) => s.setFontSize);
   const setFontFamily = useEditor((s) => s.setFontFamily);
   const setLabelColor = useEditor((s) => s.setLabelColor);
+  const setFontWeight = useEditor((s) => s.setFontWeight);
+  const setFontStyle = useEditor((s) => s.setFontStyle);
+  const setTextTransform = useEditor((s) => s.setTextTransform);
+  const setLetterSpacing = useEditor((s) => s.setLetterSpacing);
   const setStationRadius = useEditor((s) => s.setStationRadius);
   const setGridStep = useEditor((s) => s.setGridStep);
   const cornerRadius = useEditor((s) => s.cornerRadius);
@@ -781,6 +785,39 @@ export function PropertiesPanel() {
                   onChange={(e) => setLabelColor(e.target.value)}
                   aria-label="Label text color"
                 />
+              </PropRow>
+
+              <PropRow label="Weight">
+                <select className="prop-input" value={String(map.style.fontWeight ?? 500)}
+                  onChange={(e) => setFontWeight(Number(e.target.value))}>
+                  <option value="400">Normal (400)</option>
+                  <option value="500">Medium (500)</option>
+                  <option value="600">Semi-bold (600)</option>
+                  <option value="700">Bold (700)</option>
+                </select>
+              </PropRow>
+
+              <PropRow label="Style">
+                <select className="prop-input" value={map.style.fontStyle ?? "normal"}
+                  onChange={(e) => setFontStyle(e.target.value)}>
+                  <option value="normal">Normal</option>
+                  <option value="italic">Italic</option>
+                </select>
+              </PropRow>
+
+              <PropRow label="Case">
+                <select className="prop-input" value={map.style.textTransform ?? "none"}
+                  onChange={(e) => setTextTransform(e.target.value)}>
+                  <option value="none">None</option>
+                  <option value="uppercase">UPPERCASE</option>
+                  <option value="lowercase">lowercase</option>
+                </select>
+              </PropRow>
+
+              <PropRow label="Tracking">
+                <input type="number" className="prop-input" min={-2} max={8} step={0.5}
+                  value={map.style.letterSpacing ?? 0}
+                  onChange={(e) => setLetterSpacing(Number(e.target.value) || 0)} />
               </PropRow>
 
               <div style={{ marginTop: 12 }}>
