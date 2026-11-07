@@ -2,8 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, roundedPolyline, svgPath, type Vec2 } from "@linewright/core";
 import { useEditor } from "../store/useEditor.js";
 import { linePathPoints } from "@linewright/renderer";
-import { PlusIcon } from "./Icons.js";
-import { exampleMap } from "../example.js";
 
 interface DragState {
   kind: "pan" | "move" | "connect" | "none";
@@ -339,24 +337,6 @@ export function Canvas() {
           })}
         </g>
       </svg>
-
-      {stationCount === 0 && (
-        <div className="empty-state">
-          <h2>Start with the example, or add your first station</h2>
-          <p>Click an empty area to place a station, then use the Connect tool to draw lines between stations.</p>
-          <div className="actions">
-            <button type="button" className="btn btn-primary" onClick={() => setTool("add-station")}>
-              <PlusIcon /> Add a station
-            </button>
-            <button type="button" className="btn" onClick={() => {
-              const { loadMap } = useEditor.getState();
-              loadMap(exampleMap());
-            }}>
-              Load the fictional city
-            </button>
-          </div>
-        </div>
-      )}
 
       {hint && stationCount > 0 && <div className="canvas-hint" role="status">{hint}</div>}
 

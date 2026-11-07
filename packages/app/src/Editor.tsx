@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "./styles/editor.css";
 import { MenuBar } from "./components/MenuBar.js";
 import { Toolbar } from "./components/Toolbar.js";
 import { ToolsDock } from "./components/ToolsDock.js";
+import { StartupWindow } from "./components/StartupWindow.js";
 import { Canvas } from "./components/Canvas.js";
 import { LinesPanel, PropertiesPanel } from "./components/Panels.js";
 import { StatusBar } from "./components/StatusBar.js";
@@ -15,6 +16,11 @@ export function Editor() {
   const clearToast = useEditor((s) => s.clearToast);
   const undo = useEditor((s) => s.undo);
   const theme = useEditor((s) => s.theme);
+  const stationCount = useEditor((s) => Object.keys(s.map.stations).length);
+  const [startupOpen, setStartupOpen] = useState(true);
+
+  // Show the startup window until the user picks something or the map has content.
+  const showStartup = startupOpen && stationCount === 0;
 
   useEffect(() => {
     document.documentElement.dataset["theme"] = theme;
@@ -49,6 +55,8 @@ export function Editor() {
           <button type="button" onClick={clearToast}>Close</button>
         </div>
       )}
+
+      {showStartup && <StartupWindow onClose={() => setStartupOpen(false)} />}
     </div>
   );
 }

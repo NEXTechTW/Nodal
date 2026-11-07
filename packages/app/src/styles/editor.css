@@ -201,6 +201,32 @@ button, input, select { font: inherit; color: inherit; }
 }
 
 .btn-tool { border-color: transparent; }
+
+.startup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-bg) 55%, transparent);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: var(--space-4);
+}
+.startup-window {
+  width: min(480px, 100%);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-6);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+  text-align: center;
+}
+.startup-title { margin: 0 0 4px; font-size: var(--text-20); letter-spacing: -0.01em; }
+.startup-sub { margin: 0 0 var(--space-4); color: var(--color-text-secondary); font-size: var(--text-13); text-wrap: pretty; }
+.startup-actions { display: flex; flex-direction: column; gap: var(--space-2); }
+.startup-main { min-height: 40px; font-size: var(--text-14); }
+.startup-note { margin: var(--space-4) 0 0; font-size: var(--text-12); color: var(--color-text-secondary); }
 .btn-tool[aria-pressed="true"] {
   background: var(--color-accent-soft);
   border-color: var(--color-accent);
