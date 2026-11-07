@@ -42,10 +42,12 @@ function initialTheme(): Theme {
     /* ignore — storage may be unavailable */
   }
   try {
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) return "dark";
   } catch {
-    return "light";
+    /* ignore */
   }
+  // Adobe-style workbench defaults to dark charcoal.
+  return "dark";
 }
 
 interface EditorState {

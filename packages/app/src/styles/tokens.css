@@ -78,13 +78,14 @@
   --color-focus-ring: var(--primitive-blue-600);
 
   /* ---- Component tokens ---- */
-  --toolbar-h: 52px;
+  --toolbar-h: 40px;
   --statusbar-h: 28px;
-  --panel-w: 260px;
-  --button-h: 32px;
-  --button-h-sm: 28px;
-  --input-h: 32px;
-  --hit-min: 36px;
+  --panel-w: 264px;
+  --dock-w: 48px;
+  --button-h: 30px;
+  --button-h-sm: 26px;
+  --input-h: 30px;
+  --hit-min: 32px;
   --canvas-grid: var(--primitive-gray-200);
 
   --shadow-sm: 0 1px 2px oklch(0.13 0.02 260 / 0.08), 0 1px 3px oklch(0.13 0.02 260 / 0.06);
@@ -96,27 +97,27 @@
   --dur-base: 200ms;
 }
 
-/* Dark theme — remap semantic roles only; primitives unchanged. Applied to <html>. */
+/* Dark theme (Adobe-style charcoal) — semantic roles only. Applied to <html>. */
 :root[data-theme="dark"] {
-  --color-bg: oklch(0.18 0.02 260);
-  --color-bg-surface: oklch(0.22 0.02 260);
-  --color-bg-canvas: oklch(0.16 0.015 260);
-  --color-bg-inset: oklch(0.26 0.02 260);
+  --color-bg: oklch(0.20 0 0);
+  --color-bg-surface: oklch(0.16 0 0);
+  --color-bg-canvas: oklch(0.29 0 0);
+  --color-bg-inset: oklch(0.26 0 0);
   --color-text: oklch(1 0 0);
-  --color-text-secondary: oklch(0.84 0.015 260);
-  --color-text-tertiary: oklch(0.72 0.02 260);
-  --color-border: oklch(0.32 0.02 260);
-  --color-border-strong: oklch(0.42 0.02 260);
+  --color-text-secondary: oklch(0.80 0 0);
+  --color-text-tertiary: oklch(0.68 0 0);
+  --color-border: oklch(0.32 0 0);
+  --color-border-strong: oklch(0.42 0 0);
   --color-accent: oklch(0.68 0.16 258);
   --color-accent-hover: oklch(0.74 0.14 258);
-  --color-accent-soft: oklch(0.26 0.06 258);
+  --color-accent-soft: oklch(0.28 0.05 258);
   --color-accent-contrast: oklch(0.16 0.02 260);
   --color-danger: oklch(0.68 0.18 25);
   --color-danger-soft: oklch(0.26 0.06 25);
   --color-success: oklch(0.72 0.16 150);
   --color-success-soft: oklch(0.26 0.06 150);
   --color-focus-ring: oklch(0.74 0.14 258);
-  --canvas-grid: oklch(0.32 0.02 260);
+  --canvas-grid: oklch(0.36 0 0);
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
   --shadow-md: 0 4px 12px oklch(0 0 0 / 0.5);
   color-scheme: dark;

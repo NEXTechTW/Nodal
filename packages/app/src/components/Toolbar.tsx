@@ -1,37 +1,9 @@
 import { useRef } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
-import { useEditor, type Tool } from "../store/useEditor.js";
-import { AddStationIcon, ConnectIcon, ExportIcon, GitHubIcon, LoadIcon, MoonIcon, PanIcon, RedoIcon, SaveIcon, SelectIcon, SunIcon, UndoIcon } from "./Icons.js";
+import { useEditor } from "../store/useEditor.js";
+import { ExportIcon, GitHubIcon, LoadIcon, MoonIcon, RedoIcon, SaveIcon, SunIcon, UndoIcon } from "./Icons.js";
 import { exampleMap } from "../example.js";
-
-function ToolBtn({
-  tool,
-  label,
-  children,
-  onClick,
-}: {
-  tool?: Tool;
-  label: string;
-  children: React.ReactNode;
-  onClick?: () => void;
-}) {
-  const current = useEditor((s) => s.tool);
-  const setTool = useEditor((s) => s.setTool);
-  const pressed = tool ? current === tool : undefined;
-  return (
-    <button
-      type="button"
-      className="btn btn-tool icon-btn"
-      title={label}
-      aria-label={label}
-      aria-pressed={pressed}
-      onClick={onClick ?? (tool ? () => setTool(tool) : undefined)}
-    >
-      {children}
-    </button>
-  );
-}
 
 export function Toolbar() {
   const map = useEditor((s) => s.map);
@@ -108,6 +80,7 @@ export function Toolbar() {
 
   return (
     <header className="toolbar" aria-label="Editor toolbar">
+      <span className="win-dots" aria-hidden="true"><i className="dot r" /><i className="dot y" /><i className="dot g" /></span>
       <span className="toolbar-title">Nodal</span>
       <input
         className="map-title-input"
@@ -116,15 +89,6 @@ export function Toolbar() {
         onChange={(e) => renameMap(e.target.value)}
         onBlur={(e) => { if (!e.target.value.trim()) renameMap("Untitled map"); }}
       />
-      <div className="toolbar-sep" aria-hidden="true" />
-
-      <div role="group" aria-label="Tools" style={{ display: "flex", gap: 4 }}>
-        <ToolBtn tool="select" label="Select (V)"><SelectIcon /></ToolBtn>
-        <ToolBtn tool="add-station" label="Add station — click canvas (A)"><AddStationIcon /></ToolBtn>
-        <ToolBtn tool="connect" label="Connect stations — drag from one station to another (C)"><ConnectIcon /></ToolBtn>
-        <ToolBtn tool="pan" label="Pan — drag canvas or hold Space (H)"><PanIcon /></ToolBtn>
-      </div>
-
       <div className="toolbar-sep" aria-hidden="true" />
 
       <button type="button" className="btn btn-tool icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!canUndo} onClick={undo}><UndoIcon /></button>
