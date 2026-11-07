@@ -26,6 +26,8 @@ export interface Station {
   labelAnchor: Anchor;
   /** Optional manual label offset in map units. */
   labelOffset?: Vec2;
+  /** Rotation in degrees for the station mark + label. */
+  rotation?: number;
 }
 
 export interface Segment {

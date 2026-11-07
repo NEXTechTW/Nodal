@@ -86,8 +86,15 @@ interface EditorState {
   setLineColor(lineId: string, color: string): void;
   renameLine(id: string, name: string, lang?: string): void;
   setLineStyle(id: string, style: LineStyle): void;
+  setLineWidth(id: string, width: number): void;
   deleteLine(id: string): void;
   setMapBackground(color: string): void;
+  setStationPosition(id: string, pos: Vec2): void;
+  setStationRotation(id: string, deg: number): void;
+  setStationLabelOffset(id: string, offset: Vec2): void;
+  setFontSize(n: number): void;
+  setStationRadius(n: number): void;
+  setGridStep(n: number): void;
   connectStations(lineId: string, from: string, to: string): void;
   renameMap(title: string): void;
   undo(): void;
@@ -260,6 +267,19 @@ export const useEditor = create<EditorState>((set, get) => {
       const map = get().stack.dispatch(cmd);
       set({ map, lastActionLabel: cmd.label });
     },
+    setLineWidth: (id, width) => {
+      const l = get().map.lines[id];
+      if (!l) return;
+      const prev = structuredClone(l);
+      const cmd: import("@linewright/core").Command = {
+        name: "SetLineColor",
+        label: "Change line width",
+        apply: (m) => ({ ...m, lines: { ...m.lines, [id]: { ...m.lines[id]!, width } } }),
+        revert: (m) => ({ ...m, lines: { ...m.lines, [id]: structuredClone(prev) } }),
+      };
+      const map = get().stack.dispatch(cmd);
+      set({ map, lastActionLabel: cmd.label });
+    },
     deleteLine: (id) => {
       const l = get().map.lines[id];
       if (!l) return;
@@ -273,6 +293,49 @@ export const useEditor = create<EditorState>((set, get) => {
       set((s) => ({
         map: { ...s.map, style: { ...s.map.style, background: color } },
         lastActionLabel: "Change background",
+      }));
+    },
+    setStationPosition: (id, pos) => {
+      const s = get().map.stations[id];
+      if (!s) return;
+      const cmd = moveStationCommand(id, s.position, pos);
+      const map = get().stack.dispatch(cmd);
+      set({ map, lastActionLabel: cmd.label });
+    },
+    setStationRotation: (id, deg) => {
+      set((st) => ({
+        map: {
+          ...st.map,
+          stations: { ...st.map.stations, [id]: { ...st.map.stations[id]!, rotation: ((deg % 360) + 360) % 360 } },
+        },
+        lastActionLabel: "Rotate station",
+      }));
+    },
+    setStationLabelOffset: (id, offset) => {
+      set((st) => ({
+        map: {
+          ...st.map,
+          stations: { ...st.map.stations, [id]: { ...st.map.stations[id]!, labelOffset: { ...offset } } },
+        },
+        lastActionLabel: "Nudge label",
+      }));
+    },
+    setFontSize: (n) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, fontSize: Math.min(32, Math.max(8, n)) } },
+        lastActionLabel: "Change label size",
+      }));
+    },
+    setStationRadius: (n) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, stationRadius: Math.min(16, Math.max(3, n)) } },
+        lastActionLabel: "Change station size",
+      }));
+    },
+    setGridStep: (n) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, gridStep: Math.min(120, Math.max(10, n)) } },
+        lastActionLabel: "Change grid",
       }));
     },
     connectStations: (lineId, from, to) => {

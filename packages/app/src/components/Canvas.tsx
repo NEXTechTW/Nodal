@@ -279,7 +279,7 @@ export function Canvas() {
             const sw = isSel ? 4 : 2.5;
             const ring = isSel ? 3 : isHover ? 2 : 0;
             return (
-              <g key={s.id} transform={`translate(${pos.x} ${pos.y})`} data-station={s.id} style={{ cursor: tool === "connect" ? "crosshair" : "pointer" }}>
+              <g key={s.id} transform={`translate(${pos.x} ${pos.y}) rotate(${s.rotation ?? 0})`} data-station={s.id} style={{ cursor: tool === "connect" ? "crosshair" : "pointer" }}>
                 {ring > 0 && <circle r={r + 6} fill="none" stroke="#0B5FFF" strokeWidth={1.5} opacity={0.6} />}
                 {s.kind === "interchange" ? (
                   <>

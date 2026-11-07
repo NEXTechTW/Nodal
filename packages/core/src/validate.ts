@@ -68,6 +68,9 @@ export function validateMap(value: unknown): ValidationIssue[] {
     if (typeof raw.labelAnchor !== "string" || !ANCHORS.has(raw.labelAnchor)) {
       push(`$.stations.${id}.labelAnchor`, "unknown anchor");
     }
+    if (raw.rotation !== undefined && typeof raw.rotation !== "number") {
+      push(`$.stations.${id}.rotation`, "rotation must be a number");
+    }
     if (!isObj(raw.name)) push(`$.stations.${id}.name`, "name must be an object");
   }
 

@@ -124,16 +124,18 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
     const r = map.style.stationRadius;
     const isSel = opts.selectedId === s.id;
     const stroke = isSel ? "#0B5FFF" : "#111";
+    const rot = s.rotation ? ` transform="rotate(${s.rotation} ${s.position.x} ${s.position.y})"` : "";
     if (s.kind === "interchange") {
-      parts.push(`<g data-station="${esc(s.id)}"><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/><circle cx="${s.position.x}" cy="${s.position.y}" r="${r + 7}" fill="none" stroke="${stroke}" stroke-width="2" opacity="0.9"/></g>`);
+      parts.push(`<g data-station="${esc(s.id)}"${rot}><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/><circle cx="${s.position.x}" cy="${s.position.y}" r="${r + 7}" fill="none" stroke="${stroke}" stroke-width="2" opacity="0.9"/></g>`);
     } else if (s.kind === "terminus") {
-      parts.push(`<g data-station="${esc(s.id)}"><rect x="${s.position.x - r}" y="${s.position.y - r}" width="${r * 2}" height="${r * 2}" rx="3" fill="#fff" stroke="${stroke}" stroke-width="2.5"/></g>`);
+      parts.push(`<g data-station="${esc(s.id)}"${rot}><rect x="${s.position.x - r}" y="${s.position.y - r}" width="${r * 2}" height="${r * 2}" rx="3" fill="#fff" stroke="${stroke}" stroke-width="2.5"/></g>`);
     } else {
-      parts.push(`<g data-station="${esc(s.id)}"><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/></g>`);
+      parts.push(`<g data-station="${esc(s.id)}"${rot}><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/></g>`);
     }
     const lp = stationLabelPos(map, s.id);
     const name = displayName(s.name, "Untitled station", map.style.labelLanguage);
-    parts.push(`<text x="${lp.x}" y="${lp.y}" text-anchor="${anchorTextAnchor(s.labelAnchor)}" dominant-baseline="${anchorBaseline(s.labelAnchor)}" font-family="Noto Sans, sans-serif" font-size="${map.style.fontSize}" fill="#111">${esc(name)}</text>`);
+    const labelRot = s.rotation ? ` transform="rotate(${s.rotation} ${lp.x} ${lp.y})"` : "";
+    parts.push(`<text${labelRot} x="${lp.x}" y="${lp.y}" text-anchor="${anchorTextAnchor(s.labelAnchor)}" dominant-baseline="${anchorBaseline(s.labelAnchor)}" font-family="Noto Sans, sans-serif" font-size="${map.style.fontSize}" fill="#111">${esc(name)}</text>`);
   }
 
   parts.push(`</svg>`);

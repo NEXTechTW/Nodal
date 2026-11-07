@@ -90,8 +90,15 @@ export function PropertiesPanel() {
   const setLineColor = useEditor((s) => s.setLineColor);
   const renameLine = useEditor((s) => s.renameLine);
   const setLineStyle = useEditor((s) => s.setLineStyle);
+  const setLineWidth = useEditor((s) => s.setLineWidth);
   const deleteLine = useEditor((s) => s.deleteLine);
   const setMapBackground = useEditor((s) => s.setMapBackground);
+  const setStationPosition = useEditor((s) => s.setStationPosition);
+  const setStationRotation = useEditor((s) => s.setStationRotation);
+  const setStationLabelOffset = useEditor((s) => s.setStationLabelOffset);
+  const setFontSize = useEditor((s) => s.setFontSize);
+  const setStationRadius = useEditor((s) => s.setStationRadius);
+  const setGridStep = useEditor((s) => s.setGridStep);
   const cornerRadius = useEditor((s) => s.cornerRadius);
   const setCornerRadius = useEditor((s) => s.setCornerRadius);
   const setLabelLanguage = useEditor((s) => s.setLabelLanguage);
@@ -126,6 +133,21 @@ export function PropertiesPanel() {
         <div className="field">
           <label htmlFor="map-bg">Background</label>
           <input id="map-bg" type="color" value={map.style.background} onChange={(e) => setMapBackground(e.target.value)} />
+        </div>
+        <div className="field">
+          <label htmlFor="map-font">Label size</label>
+          <input id="map-font" type="number" min={8} max={32} step={1} value={map.style.fontSize}
+            onChange={(e) => setFontSize(Number(e.target.value) || map.style.fontSize)} />
+        </div>
+        <div className="field">
+          <label htmlFor="map-station">Station size</label>
+          <input id="map-station" type="number" min={3} max={16} step={1} value={map.style.stationRadius}
+            onChange={(e) => setStationRadius(Number(e.target.value) || map.style.stationRadius)} />
+        </div>
+        <div className="field">
+          <label htmlFor="map-grid">Grid step</label>
+          <input id="map-grid" type="number" min={10} max={120} step={5} value={map.style.gridStep}
+            onChange={(e) => setGridStep(Number(e.target.value) || map.style.gridStep)} />
         </div>
         <button type="button" className="btn" onClick={avoidLabelOverlaps} style={{ width: "100%" }}>
           Arrange labels to avoid overlap
@@ -183,8 +205,32 @@ export function PropertiesPanel() {
               {ANCHORS.map((a) => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div className="field">
+              <label htmlFor="st-x">X</label>
+              <input id="st-x" type="number" step={10} value={Math.round(station.position.x)} onChange={(e) => setStationPosition(station.id, { x: Number(e.target.value) || 0, y: station.position.y })} />
+            </div>
+            <div className="field">
+              <label htmlFor="st-y">Y</label>
+              <input id="st-y" type="number" step={10} value={Math.round(station.position.y)} onChange={(e) => setStationPosition(station.id, { x: station.position.x, y: Number(e.target.value) || 0 })} />
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div className="field">
+              <label htmlFor="st-lx">Label X</label>
+              <input id="st-lx" type="number" step={2} value={station.labelOffset?.x ?? 0} onChange={(e) => setStationLabelOffset(station.id, { x: Number(e.target.value) || 0, y: station.labelOffset?.y ?? 0 })} />
+            </div>
+            <div className="field">
+              <label htmlFor="st-ly">Label Y</label>
+              <input id="st-ly" type="number" step={2} value={station.labelOffset?.y ?? 0} onChange={(e) => setStationLabelOffset(station.id, { x: station.labelOffset?.x ?? 0, y: Number(e.target.value) || 0 })} />
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="st-rot">Rotation (°)</label>
+            <input id="st-rot" type="number" min={0} max={359} step={15} value={station.rotation ?? 0} onChange={(e) => setStationRotation(station.id, Number(e.target.value) || 0)} />
+          </div>
           <p style={{ margin: "0 0 var(--space-3)", fontSize: "var(--text-12)", color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
-            Position {station.position.x.toFixed(0)}, {station.position.y.toFixed(0)}
+            Position {station.position.x.toFixed(0)}, {station.position.y.toFixed(0)} · {station.rotation ?? 0}°
           </p>
           <button type="button" className="btn btn-danger" onClick={deleteSelectedStation}>
             <TrashIcon /> Delete station
@@ -222,6 +268,11 @@ export function PropertiesPanel() {
               <option value="dashed">Dashed</option>
               <option value="double">Double</option>
             </select>
+          </div>
+          <div className="field">
+            <label htmlFor="line-width">Width</label>
+            <input id="line-width" type="number" min={3} max={24} step={1} value={line.width ?? 8}
+              onChange={(e) => setLineWidth(line.id, Math.min(24, Math.max(3, Number(e.target.value) || 8)))} />
           </div>
           <p style={{ margin: "0 0 var(--space-3)", fontSize: "var(--text-12)", color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
             {line.segments.length} segment{line.segments.length === 1 ? "" : "s"}

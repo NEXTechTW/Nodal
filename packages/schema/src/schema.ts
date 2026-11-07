@@ -38,6 +38,7 @@ export const metroMapSchema = {
             type: "object",
             properties: { x: { type: "number" }, y: { type: "number" } },
           },
+          rotation: { type: "number", description: "Station rotation in degrees." },
         },
       },
     },
