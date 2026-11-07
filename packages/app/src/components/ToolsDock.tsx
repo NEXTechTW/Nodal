@@ -28,8 +28,7 @@ export function ToolsDock() {
           {t.icon}
         </button>
       ))}
-      <span className="dock-sep" aria-hidden="true" />
-      <span className="dock-hint" aria-hidden="true">V · A · C · H</span>
+
     </nav>
   );
 }

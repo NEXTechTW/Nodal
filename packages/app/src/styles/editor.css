@@ -71,8 +71,7 @@ button, input, select { font: inherit; color: inherit; }
   .dock-btn:hover { background: var(--color-bg-inset); color: var(--color-text); }
 }
 .dock-btn[aria-pressed="true"] { background: var(--color-accent-soft); color: var(--color-accent); border-color: color-mix(in srgb, var(--color-accent) 40%, transparent); }
-.dock-sep { width: 24px; height: 1px; background: var(--color-border); margin: 6px 0; }
-.dock-hint { font-size: 10px; color: var(--color-text-tertiary); letter-spacing: 0.05em; font-variant-numeric: tabular-nums; }
+
 
 .toolbar {
   grid-area: toolbar;
