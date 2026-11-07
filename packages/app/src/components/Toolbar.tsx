@@ -80,7 +80,6 @@ export function Toolbar() {
 
   return (
     <header className="toolbar" aria-label="Editor toolbar">
-      <span className="win-dots" aria-hidden="true"><i className="dot r" /><i className="dot y" /><i className="dot g" /></span>
       <span className="toolbar-title">Nodal</span>
       <input
         className="map-title-input"

@@ -42,12 +42,6 @@ button, input, select { font: inherit; color: inherit; }
   color: var(--color-text);
 }
 
-.win-dots { display: inline-flex; gap: 8px; flex: none; }
-.win-dots .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.win-dots .r { background: #ed6a5e; }
-.win-dots .y { background: #f4bf4f; }
-.win-dots .g { background: #61c454; }
-
 .tools-dock {
   grid-area: tools;
   background: var(--color-bg-surface);
