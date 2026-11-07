@@ -186,6 +186,19 @@ export function MenuBar() {
       ],
     },
     {
+      label: "Translate",
+      items: [
+        {
+          label: "Open Crowdin project",
+          action: () => window.open("https://crowdin.com/projects", "_blank", "noopener"),
+        },
+        {
+          label: "Translation sources (en.json)",
+          action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/packages/app/src/locales/en.json", "_blank", "noopener"),
+        },
+      ],
+    },
+    {
       label: "Help",
       items: [
         { label: "Keyboard Shortcuts…", action: () => setShortcutsOpen(true), shortcut: "F1 / ?" },

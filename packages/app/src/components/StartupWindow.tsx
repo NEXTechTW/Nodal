@@ -4,12 +4,14 @@ import { useEditor } from "../store/useEditor.js";
 import { exampleMap } from "../example.js";
 import { AddStationIcon, LoadIcon } from "./Icons.js";
 import { LogoImage } from "./LogoImage.js";
+import { CrowdinPanel } from "./CrowdinPanel.js";
 
 /** Startup project window shown over a blurred editor until dismissed. */
 export function StartupWindow({ onClose }: { onClose: () => void }) {
   const loadMap = useEditor((s) => s.loadMap);
   const setError = useEditor((s) => s.setError);
   const setTool = useEditor((s) => s.setTool);
+  const uiLang = useEditor((s) => s.uiLang);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +90,8 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
           <span className="startup-foot-sep" aria-hidden="true">·</span>
           <a href="https://github.com/NEXTechTW/Nodal" target="_blank" rel="noreferrer noopener">GitHub</a>
         </div>
+
+        <CrowdinPanel lang={uiLang} />
 
         <input ref={fileRef} type="file" accept="application/json,.json" aria-label="Load map JSON file" hidden onChange={onFile} />
       </div>
