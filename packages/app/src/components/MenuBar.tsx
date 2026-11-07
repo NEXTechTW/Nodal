@@ -6,24 +6,20 @@ import { exampleMap } from "../example.js";
 
 type Item = { label: string; action: () => void; disabled?: boolean; shortcut?: string };
 
-/** Nodal menu bar (File … Help). Dropdowns close on Escape / outside click. */
+/** Main menu. Five menus only; everything else lives in the dock and panels. */
 export function MenuBar() {
   const map = useEditor((s) => s.map);
   const canUndo = useEditor((s) => s.stack.canUndo);
   const canRedo = useEditor((s) => s.stack.canRedo);
   const undo = useEditor((s) => s.undo);
   const redo = useEditor((s) => s.redo);
-  const deleteSelected = useEditor((s) => s.deleteSelectedStation);
-  const selectedStationId = useEditor((s) => s.selectedStationId);
   const setError = useEditor((s) => s.setError);
   const loadMap = useEditor((s) => s.loadMap);
   const setToast = useEditor((s) => s.setToast);
   const theme = useEditor((s) => s.theme);
   const toggleTheme = useEditor((s) => s.toggleTheme);
   const setViewport = useEditor((s) => s.setViewport);
-  const setTool = useEditor((s) => s.setTool);
   const avoidLabels = useEditor((s) => s.avoidLabelOverlaps);
-  const setStartupOpen = useEditor((s) => s.setStartupOpen);
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState<string | null>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -63,7 +59,6 @@ export function MenuBar() {
         { label: "Export SVG", action: () => { downloadSVG(toSVGString(map), `${map.meta.title || "map"}.svg`); setToast("SVG exported"); } },
         { label: "Export PNG", action: () => { downloadPNG(map, map.meta.title || "map").then(() => setToast("PNG exported")).catch((e) => setError(e instanceof Error ? e.message : "PNG export failed")); } },
         { label: "Export PDF…", action: () => { try { printPDF(map); setToast("PDF print view opened"); } catch (e) { setError(e instanceof Error ? e.message : "PDF export failed"); } } },
-        { label: "Load example (Lumen City)", action: () => { loadMap(exampleMap()); setToast("Example map loaded"); } },
       ],
     },
     {
@@ -77,48 +72,20 @@ export function MenuBar() {
       label: "Map",
       items: [
         { label: "Arrange labels (avoid overlap)", action: avoidLabels },
-        { label: "Load example (Lumen City)", action: () => { loadMap(exampleMap()); setToast("Example map loaded"); } },
-      ],
-    },
-    {
-      label: "Station",
-      items: [
-        { label: "Add station tool", action: () => setTool("add-station"), shortcut: "A" },
-        { label: "Select tool", action: () => setTool("select"), shortcut: "V" },
-        { label: "Delete selected station", action: deleteSelected, disabled: !selectedStationId, shortcut: "Del" },
-      ],
-    },
-    {
-      label: "Line",
-      items: [
-        { label: "Connect tool (drag between stations)", action: () => setTool("connect"), shortcut: "C" },
-        { label: "Lines are created in the Lines panel", action: () => {}, disabled: true },
-      ],
-    },
-    {
-      label: "Label",
-      items: [
-        { label: "Arrange labels (avoid overlap)", action: avoidLabels },
-        { label: "Label language is set in Properties", action: () => {}, disabled: true },
+        { label: "Open example (Lumen City)", action: () => { loadMap(exampleMap()); setToast("Example map loaded"); } },
       ],
     },
     {
       label: "View",
       items: [
         { label: theme === "dark" ? "Switch to light mode" : "Switch to dark mode", action: toggleTheme },
-        { label: "Zoom 100% (reset viewport)", action: () => setViewport({ x: 0, y: 0, k: 1 }) },
-      ],
-    },
-    {
-      label: "Window",
-      items: [
-        { label: "Open GitHub repository", action: () => window.open("https://github.com/NEXTechTW/Nodal", "_blank", "noopener") },
+        { label: "Reset zoom (100%)", action: () => setViewport({ x: 0, y: 0, k: 1 }) },
       ],
     },
     {
       label: "Help",
       items: [
-        { label: "Welcome & Quick Start…", action: () => setStartupOpen(true) },
+        { label: "Open GitHub repository", action: () => window.open("https://github.com/NEXTechTW/Nodal", "_blank", "noopener") },
         { label: "Read the tutorial", action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/TUTORIAL.md", "_blank", "noopener") },
         { label: "Read the format spec", action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/FORMAT.md", "_blank", "noopener") },
       ],
