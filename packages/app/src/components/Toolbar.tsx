@@ -3,6 +3,7 @@ import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { useEditor } from "../store/useEditor.js";
 import { ExportIcon, GitHubIcon, LoadIcon, MoonIcon, RedoIcon, SaveIcon, SunIcon, UndoIcon } from "./Icons.js";
+import { LogoImage } from "./LogoImage.js";
 import { exampleMap } from "../example.js";
 
 export function Toolbar() {
@@ -104,7 +105,7 @@ export function Toolbar() {
 
   return (
     <header className="toolbar" aria-label="Editor toolbar">
-      <span className="toolbar-title">Nodal</span>
+      <LogoImage height={20} />
       <input
         className="map-title-input"
         aria-label="Map title"

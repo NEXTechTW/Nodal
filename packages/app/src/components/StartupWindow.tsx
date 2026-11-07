@@ -3,6 +3,7 @@ import { parseMapFile } from "@linewright/core";
 import { useEditor } from "../store/useEditor.js";
 import { exampleMap } from "../example.js";
 import { AddStationIcon, LoadIcon } from "./Icons.js";
+import { LogoImage } from "./LogoImage.js";
 
 /** Startup project window shown over a blurred editor until dismissed. */
 export function StartupWindow({ onClose }: { onClose: () => void }) {
@@ -28,13 +29,11 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
     <div className="startup-backdrop" role="dialog" aria-modal="true" aria-labelledby="startup-title">
       <div className="startup-window">
         <div className="startup-head">
-          <img className="startup-logo" src="/logo.svg" alt="" aria-hidden="true" width={36} height={36} />
-          <div className="startup-head-text">
-            <h2 id="startup-title" className="startup-title">Nodal</h2>
-            <p className="startup-sub">Transit map editor</p>
-          </div>
+          <LogoImage height={28} />
+          <p className="startup-sub" style={{ marginLeft: 4 }}>Transit map editor</p>
           <span className="startup-badge">v0.3</span>
         </div>
+        <h2 id="startup-title" className="startup-title sr-only">Nodal</h2>
 
         <p className="startup-lead">Start a new map, open the example city, or load a saved file.</p>
 
