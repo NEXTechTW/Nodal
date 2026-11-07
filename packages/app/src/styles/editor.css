@@ -30,9 +30,10 @@ button, input, select { font: inherit; color: inherit; }
 
 .app-shell {
   display: grid;
-  grid-template-rows: var(--toolbar-h) 1fr var(--statusbar-h);
+  grid-template-rows: 30px var(--toolbar-h) 1fr var(--statusbar-h);
   grid-template-columns: var(--dock-w) var(--panel-w) 1fr var(--panel-w);
   grid-template-areas:
+    "menu menu menu menu"
     "toolbar toolbar toolbar toolbar"
     "tools left canvas right"
     "status status status status";
@@ -41,6 +42,66 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--color-bg);
   color: var(--color-text);
 }
+
+.menubar {
+  grid-area: menu;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding-inline: var(--space-2);
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-13);
+}
+.menu-wrap { position: relative; display: flex; }
+.menu-btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0 10px;
+  cursor: pointer;
+  border-radius: var(--radius-2);
+}
+@media (hover: hover) {
+  .menu-btn:hover { background: var(--color-bg-inset); }
+}
+.menu-btn[aria-expanded="true"] { background: var(--color-bg-inset); }
+.menu-pop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 240px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-4);
+  box-shadow: var(--shadow-md);
+  padding: 4px;
+  z-index: 40;
+  max-height: min(70dvh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  text-align: start;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 6px 10px;
+  border-radius: var(--radius-3);
+  cursor: pointer;
+  font-size: var(--text-13);
+  min-height: var(--hit-min);
+}
+@media (hover: hover) {
+  .menu-item:hover:not(:disabled) { background: var(--color-accent-soft); }
+}
+.menu-item:disabled { opacity: 0.5; cursor: not-allowed; }
+.menu-shortcut { color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
+.menu-note { align-self: center; color: var(--color-text-tertiary); font-size: var(--text-12); padding-inline: 10px; }
 
 .tools-dock {
   grid-area: tools;
@@ -327,8 +388,8 @@ button, input, select { font: inherit; color: inherit; }
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: var(--dock-w) 1fr;
-    grid-template-areas: "toolbar toolbar" "tools canvas" "status status";
-    grid-template-rows: var(--toolbar-h) 1fr var(--statusbar-h);
+    grid-template-areas: "menu menu" "toolbar toolbar" "tools canvas" "status status";
+    grid-template-rows: 30px var(--toolbar-h) 1fr var(--statusbar-h);
   }
   .left-panel, .right-panel { display: none; }
   .left-panel.mobile-open, .right-panel.mobile-open { display: flex; position: fixed; inset: auto 0 0 0; max-height: 60dvh; z-index: 20; box-shadow: var(--shadow-md); }

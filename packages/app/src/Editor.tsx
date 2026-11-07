@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import "./styles/editor.css";
+import { MenuBar } from "./components/MenuBar.js";
 import { Toolbar } from "./components/Toolbar.js";
 import { ToolsDock } from "./components/ToolsDock.js";
 import { Canvas } from "./components/Canvas.js";
@@ -21,6 +22,7 @@ export function Editor() {
 
   return (
     <div className="app-shell">
+      <MenuBar />
       <Toolbar />
       <ToolsDock />
       <LinesPanel />
