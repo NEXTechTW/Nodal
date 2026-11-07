@@ -58,7 +58,8 @@ export interface MapStyle {
   background: string;
   gridStep: number;
   cornerRadius: number;
-  snap45: boolean;
+  /** Deprecated: 45° snap was removed. Accepted on load, ignored at runtime. */
+  snap45?: boolean;
   labelLanguage: string;
   fontSize: number;
   stationRadius: number;
@@ -86,7 +87,6 @@ export function emptyMap(title = "Untitled map"): MetroMap {
       background: "#FFFFFF",
       gridStep: 40,
       cornerRadius: 18,
-      snap45: true,
       labelLanguage: "en",
       fontSize: 14,
       stationRadius: 6,

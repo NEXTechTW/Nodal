@@ -95,3 +95,29 @@
   --dur-fast: 150ms;
   --dur-base: 200ms;
 }
+
+/* Dark theme — remap semantic roles only; primitives unchanged. */
+[data-theme="dark"] {
+  --color-bg: oklch(0.18 0.02 260);
+  --color-bg-surface: oklch(0.22 0.02 260);
+  --color-bg-canvas: oklch(0.16 0.015 260);
+  --color-bg-inset: oklch(0.26 0.02 260);
+  --color-text: oklch(0.94 0.01 260);
+  --color-text-secondary: oklch(0.72 0.02 260);
+  --color-text-tertiary: oklch(0.64 0.02 260);
+  --color-border: oklch(0.32 0.02 260);
+  --color-border-strong: oklch(0.42 0.02 260);
+  --color-accent: oklch(0.68 0.16 258);
+  --color-accent-hover: oklch(0.74 0.14 258);
+  --color-accent-soft: oklch(0.26 0.06 258);
+  --color-accent-contrast: oklch(0.16 0.02 260);
+  --color-danger: oklch(0.68 0.18 25);
+  --color-danger-soft: oklch(0.26 0.06 25);
+  --color-success: oklch(0.72 0.16 150);
+  --color-success-soft: oklch(0.26 0.06 150);
+  --color-focus-ring: oklch(0.74 0.14 258);
+  --canvas-grid: oklch(0.32 0.02 260);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.5);
+  color-scheme: dark;
+}

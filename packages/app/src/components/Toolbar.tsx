@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { useEditor, type Tool } from "../store/useEditor.js";
-import { AddStationIcon, ConnectIcon, ExportIcon, LoadIcon, PanIcon, RedoIcon, SaveIcon, SelectIcon, UndoIcon } from "./Icons.js";
+import { AddStationIcon, ConnectIcon, ExportIcon, LoadIcon, MoonIcon, PanIcon, RedoIcon, SaveIcon, SelectIcon, SunIcon, UndoIcon } from "./Icons.js";
 import { exampleMap } from "../example.js";
 
 function ToolBtn({
@@ -43,6 +43,8 @@ export function Toolbar() {
   const loadMap = useEditor((s) => s.loadMap);
   const renameMap = useEditor((s) => s.renameMap);
   const setToast = useEditor((s) => s.setToast);
+  const theme = useEditor((s) => s.theme);
+  const toggleTheme = useEditor((s) => s.toggleTheme);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const saveJSON = () => {
@@ -127,6 +129,16 @@ export function Toolbar() {
 
       <button type="button" className="btn btn-tool icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!canUndo} onClick={undo}><UndoIcon /></button>
       <button type="button" className="btn btn-tool icon-btn" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled={!canRedo} onClick={redo}><RedoIcon /></button>
+      <button
+        type="button"
+        className="btn btn-tool icon-btn"
+        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        title={theme === "dark" ? "Light mode" : "Dark mode"}
+        aria-pressed={theme === "dark"}
+        onClick={toggleTheme}
+      >
+        {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+      </button>
 
       <div className="toolbar-sep" aria-hidden="true" />
 

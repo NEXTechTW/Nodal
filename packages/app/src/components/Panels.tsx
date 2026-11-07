@@ -88,8 +88,6 @@ export function PropertiesPanel() {
   const setStationAnchor = useEditor((s) => s.setStationAnchor);
   const deleteSelectedStation = useEditor((s) => s.deleteSelectedStation);
   const setLineColor = useEditor((s) => s.setLineColor);
-  const snap45 = useEditor((s) => s.snap45);
-  const setSnap45 = useEditor((s) => s.setSnap45);
   const cornerRadius = useEditor((s) => s.cornerRadius);
   const setCornerRadius = useEditor((s) => s.setCornerRadius);
   const setLabelLanguage = useEditor((s) => s.setLabelLanguage);
@@ -107,10 +105,6 @@ export function PropertiesPanel() {
         <p style={{ margin: "0 0 var(--space-3)", fontSize: "var(--text-13)", color: "var(--color-text-secondary)" }}>
           {Object.keys(map.stations).length} stations · {Object.keys(map.lines).length} lines
         </p>
-        <label className="check-row">
-          <input type="checkbox" checked={snap45} onChange={(e) => setSnap45(e.target.checked)} />
-          <span>Snap moves to 45°</span>
-        </label>
         <div className="field" style={{ marginTop: 8 }}>
           <label htmlFor="corner">Corner radius</label>
           <input id="corner" type="number" min={0} max={60} step={1} value={cornerRadius}

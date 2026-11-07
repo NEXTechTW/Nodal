@@ -58,7 +58,6 @@
     "background": "#FFFFFF",
     "gridStep": 40,
     "cornerRadius": 18,
-    "snap45": true,
     "labelLanguage": "en",
     "fontSize": 14,
     "stationRadius": 6

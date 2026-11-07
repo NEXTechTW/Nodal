@@ -33,7 +33,7 @@ IDs are opaque strings (UUID v4 today). Never assume ordering — iterate by key
 
 ## Style
 
-`{ background: "#RRGGBB", gridStep, cornerRadius, snap45, labelLanguage, fontSize, stationRadius }`
+`{ background: "#RRGGBB", gridStep, cornerRadius, labelLanguage, fontSize, stationRadius }` — an older `snap45` field is accepted on load and ignored.
 
 ## Compatibility
 

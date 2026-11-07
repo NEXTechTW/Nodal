@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, roundedPolyline, snap45, svgPath, type Vec2 } from "@linewright/core";
+import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, roundedPolyline, svgPath, type Vec2 } from "@linewright/core";
 import { useEditor } from "../store/useEditor.js";
 import { linePathPoints } from "@linewright/renderer";
 import { PlusIcon } from "./Icons.js";
@@ -26,7 +26,6 @@ export function Canvas() {
   const setViewport = useEditor((s) => s.setViewport);
   const selectedStationId = useEditor((s) => s.selectedStationId);
   const activeLineId = useEditor((s) => s.activeLineId);
-  const snap = useEditor((s) => s.snap45);
   const cornerRadius = useEditor((s) => s.cornerRadius);
   const addStation = useEditor((s) => s.addStation);
   const moveStation = useEditor((s) => s.moveStation);
@@ -135,8 +134,7 @@ export function Canvas() {
     } else if (d.kind === "move" && d.stationId && d.startStationPos) {
       const dxMap = (client.x - d.startClient.x) / viewport.k;
       const dyMap = (client.y - d.startClient.y) / viewport.k;
-      let pos = { x: d.startStationPos.x + dxMap, y: d.startStationPos.y + dyMap };
-      if (snap) pos = snap45(d.startStationPos, pos);
+      const pos = { x: d.startStationPos.x + dxMap, y: d.startStationPos.y + dyMap };
       setDragStationPos({ [d.stationId]: pos });
       d.currentMap = pos;
       d.moved = true;
@@ -153,11 +151,7 @@ export function Canvas() {
     const mapPt = getRectMap(client);
     if (d.kind === "move" && d.stationId && d.currentMap) {
       if (d.moved) {
-        // Commit move (undoable). Use committed pos with snap.
-        const startPos = d.startStationPos!;
-        let final = d.currentMap;
-        if (snap) final = snap45(startPos, final);
-        final = gridSnap(final, map.style.gridStep / 2);
+        const final = gridSnap(d.currentMap, map.style.gridStep / 2);
         moveStation(d.stationId, final);
       }
       setDragStationPos({});
@@ -308,7 +302,7 @@ export function Canvas() {
                       dominantBaseline={anchorBaseline(s.labelAnchor)}
                       fontFamily="Noto Sans, sans-serif"
                       fontSize={map.style.fontSize}
-                      fill="#111"
+                      fill="var(--color-text)"
                       style={{ pointerEvents: "none" }}
                     >
                       {displayName(s.name, "Untitled station", map.style.labelLanguage)}
@@ -336,8 +330,8 @@ export function Canvas() {
                 fontFamily="Noto Sans, sans-serif"
                 fontSize={map.style.fontSize - 1}
                 fontWeight={600}
-                fill="#111"
-                stroke={map.style.background}
+                fill="var(--color-text)"
+                stroke="var(--color-bg-canvas)"
                 strokeWidth={4}
                 paintOrder="stroke"
                 style={{ pointerEvents: "none" }}
@@ -352,7 +346,7 @@ export function Canvas() {
       {stationCount === 0 && (
         <div className="empty-state">
           <h2>Start with the example, or add your first station</h2>
-          <p>Click an empty area to place a station, then use the Connect tool to draw lines between stations. 45° snapping keeps lines crisp.</p>
+          <p>Click an empty area to place a station, then use the Connect tool to draw lines between stations.</p>
           <div className="actions">
             <button type="button" className="btn btn-primary" onClick={() => setTool("add-station")}>
               <PlusIcon /> Add a station

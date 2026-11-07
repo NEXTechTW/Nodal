@@ -49,7 +49,8 @@ export function validateMap(value: unknown): ValidationIssue[] {
   if (typeof style.cornerRadius !== "number" || style.cornerRadius < 0) {
     push("$.style.cornerRadius", "must be a number >= 0");
   }
-  if (typeof style.snap45 !== "boolean") push("$.style.snap45", "must be boolean");
+  // snap45 is deprecated and ignored; validate only when present.
+  if (style.snap45 !== undefined && typeof style.snap45 !== "boolean") push("$.style.snap45", "must be boolean");
   if (typeof style.labelLanguage !== "string") push("$.style.labelLanguage", "must be string");
   if (typeof style.fontSize !== "number" || !(style.fontSize > 0)) push("$.style.fontSize", "must be number > 0");
   if (typeof style.stationRadius !== "number" || !(style.stationRadius > 0)) push("$.style.stationRadius", "must be number > 0");

@@ -11,9 +11,10 @@ export function Editor() {
   const toast = useEditor((s) => s.toast);
   const clearToast = useEditor((s) => s.clearToast);
   const undo = useEditor((s) => s.undo);
+  const theme = useEditor((s) => s.theme);
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-theme={theme}>
       <Toolbar />
       <LinesPanel />
       <Canvas />

@@ -10,7 +10,7 @@ PROJECT.md). Free, MIT-licensed, runs in the browser, saves as open JSON.
 ## What it does (v0.3)
 
 - Add, move, and delete stations on an SVG canvas
-- Draw lines by dragging between stations, with 45° snap
+- Draw lines by dragging between stations
 - Rounded corners, interchange / terminus symbols, line labels
 - Shared tracks offset automatically (parallel lines)
 - One-click label arrange to avoid overlap
@@ -26,7 +26,7 @@ Try it: `pnpm install && pnpm dev` → http://localhost:5173
 1. **Data model first.** UI is a view over `MetroMap`. `core` has zero UI deps.
 2. **Every edit is a command.** Undo/redo works from day one.
 3. **Open format.** JSON with `schemaVersion`. Git-friendly, documented in `packages/schema`.
-4. **Transit-native.** 45° snapping, rounded corners, interchange glyphs — not a generic vector tool.
+4. **Transit-native.** Rounded corners, interchange glyphs, parallel offsets — not a generic vector tool.
 
 ## Architecture
 

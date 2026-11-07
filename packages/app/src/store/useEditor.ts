@@ -32,6 +32,22 @@ export interface Viewport {
   k: number; // scale
 }
 
+export type Theme = "light" | "dark";
+
+function initialTheme(): Theme {
+  try {
+    const saved = localStorage.getItem("nodal:theme");
+    if (saved === "dark" || saved === "light") return saved;
+  } catch {
+    /* ignore — storage may be unavailable */
+  }
+  try {
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
+
 interface EditorState {
   map: MetroMap;
   stack: CommandStack;
@@ -40,8 +56,8 @@ interface EditorState {
   selectedLineId: string | null;
   viewport: Viewport;
   activeLineId: string | null;
-  snap45: boolean;
   cornerRadius: number;
+  theme: Theme;
   toast: string | null;
   error: string | null;
   lastActionLabel: string | null;
@@ -49,7 +65,8 @@ interface EditorState {
   // actions
   setTool(t: Tool): void;
   setViewport(v: Partial<Viewport>): void;
-  setSnap45(b: boolean): void;
+  setTheme(t: Theme): void;
+  toggleTheme(): void;
   setCornerRadius(n: number): void;
   selectStation(id: string | null): void;
   selectLine(id: string | null): void;
@@ -86,15 +103,23 @@ export const useEditor = create<EditorState>((set, get) => {
     selectedLineId: null,
     viewport: { x: 0, y: 0, k: 1 },
     activeLineId: null,
-    snap45: true,
     cornerRadius: 18,
+    theme: initialTheme(),
     toast: null,
     error: null,
     lastActionLabel: null,
 
     setTool: (t) => set({ tool: t }),
     setViewport: (v) => set((s) => ({ viewport: { ...s.viewport, ...v } })),
-    setSnap45: (b) => set({ snap45: b }),
+    setTheme: (t) => {
+      try { localStorage.setItem("nodal:theme", t); } catch { /* ignore */ }
+      set({ theme: t });
+    },
+    toggleTheme: () => {
+      const next: Theme = get().theme === "dark" ? "light" : "dark";
+      try { localStorage.setItem("nodal:theme", next); } catch { /* ignore */ }
+      set({ theme: next });
+    },
     setCornerRadius: (n) => set({ cornerRadius: n }),
     selectStation: (id) => set({ selectedStationId: id, selectedLineId: null }),
     selectLine: (id) => set({ selectedLineId: id, selectedStationId: null }),
