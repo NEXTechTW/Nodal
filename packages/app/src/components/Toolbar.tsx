@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { useEditor, type Tool } from "../store/useEditor.js";
-import { AddStationIcon, ConnectIcon, ExportIcon, LoadIcon, MoonIcon, PanIcon, RedoIcon, SaveIcon, SelectIcon, SunIcon, UndoIcon } from "./Icons.js";
+import { AddStationIcon, ConnectIcon, ExportIcon, GitHubIcon, LoadIcon, MoonIcon, PanIcon, RedoIcon, SaveIcon, SelectIcon, SunIcon, UndoIcon } from "./Icons.js";
 import { exampleMap } from "../example.js";
 
 function ToolBtn({
@@ -148,6 +148,17 @@ export function Toolbar() {
       <button type="button" className="btn" onClick={exportPNG} title="Export a 2× PNG image">PNG</button>
       <button type="button" className="btn" onClick={exportPDF} title="Open a print view — save as PDF">PDF</button>
       <button type="button" className="btn" onClick={loadExample}>Example</button>
+      <a
+        className="btn btn-tool icon-btn"
+        href="https://github.com/NEXTechTW/Nodal"
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-label="Open the Nodal repository on GitHub"
+        title="GitHub — NEXTechTW/Nodal"
+        style={{ textDecoration: "none" }}
+      >
+        <GitHubIcon />
+      </a>
 
       <input ref={fileRef} type="file" accept="application/json,.json" aria-label="Load map JSON file" hidden onChange={onFile} />
     </header>
