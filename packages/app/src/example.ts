@@ -59,3 +59,49 @@ export function exampleMap(): MetroMap {
   };
   return m;
 }
+
+/** 2-line crossroad starter template with central interchange. */
+export function crossroadTemplate(): MetroMap {
+  const m = emptyMap("Metropolis Hub (template)");
+  m.meta.author = "Nodal starters";
+  m.style.background = "#FFFFFF";
+
+  const S = m.stations;
+  const add = (id: string, en: string, zh: string, x: number, y: number, kind: "normal" | "interchange" | "terminus" = "normal", anchor: "N" | "E" | "S" | "W" | "NE" | "NW" | "SE" | "SW" = "N") => {
+    S[id] = { id, name: { en, "zh-TW": zh }, position: { x, y }, kind, labelAnchor: anchor };
+  };
+  add("c1", "West Pier", "西碼頭", 160, 320, "terminus", "N");
+  add("c2", "Civic Center", "市政中心", 320, 320, "normal", "N");
+  add("c3", "Grand Interchange", "中央交會", 480, 320, "interchange", "NE");
+  add("c4", "East Boulevard", "東林蔭道", 640, 320, "terminus", "N");
+
+  add("c5", "North Terminal", "北端點", 480, 160, "terminus", "E");
+  add("c6", "South Harbor", "南港口", 480, 480, "terminus", "E");
+
+  m.lines = {
+    red: {
+      id: "red",
+      name: { en: "Line 1 (East-West)" },
+      color: "#E00034",
+      style: "solid",
+      width: 8,
+      segments: [
+        { from: "c1", to: "c2" },
+        { from: "c2", to: "c3" },
+        { from: "c3", to: "c4" },
+      ],
+    },
+    blue: {
+      id: "blue",
+      name: { en: "Line 2 (North-South)" },
+      color: "#0067C0",
+      style: "solid",
+      width: 8,
+      segments: [
+        { from: "c5", to: "c3" },
+        { from: "c3", to: "c6" },
+      ],
+    },
+  };
+  return m;
+}

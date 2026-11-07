@@ -23,6 +23,7 @@ export function MenuBar() {
   const setViewport = useEditor((s) => s.setViewport);
   const setTool = useEditor((s) => s.setTool);
   const avoidLabels = useEditor((s) => s.avoidLabelOverlaps);
+  const setStartupOpen = useEditor((s) => s.setStartupOpen);
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState<string | null>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -117,6 +118,7 @@ export function MenuBar() {
     {
       label: "Help",
       items: [
+        { label: "Welcome & Quick Start…", action: () => setStartupOpen(true) },
         { label: "Read the tutorial", action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/TUTORIAL.md", "_blank", "noopener") },
         { label: "Read the format spec", action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/FORMAT.md", "_blank", "noopener") },
       ],

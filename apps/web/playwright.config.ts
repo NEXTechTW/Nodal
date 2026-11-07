@@ -11,7 +11,7 @@ export default defineConfig({
     : {
         command: "pnpm --filter @linewright/web dev --port 5173",
         url: "http://localhost:5173",
-        reuseExistingServer: !!process.env.CI,
+        reuseExistingServer: !process.env.CI,
         timeout: 60_000,
       },
 });

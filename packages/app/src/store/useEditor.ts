@@ -66,8 +66,10 @@ interface EditorState {
   toast: string | null;
   error: string | null;
   lastActionLabel: string | null;
+  startupOpen: boolean;
 
   // actions
+  setStartupOpen(open: boolean): void;
   setTool(t: Tool): void;
   setViewport(v: Partial<Viewport>): void;
   setTheme(t: Theme): void;
@@ -124,7 +126,15 @@ export const useEditor = create<EditorState>((set, get) => {
     toast: null,
     error: null,
     lastActionLabel: null,
+    startupOpen: (() => {
+      try {
+        return localStorage.getItem("nodal:hide_startup") !== "true";
+      } catch {
+        return true;
+      }
+    })(),
 
+    setStartupOpen: (open) => set({ startupOpen: open }),
     setTool: (t) => set({ tool: t }),
     setViewport: (v) => set((s) => ({ viewport: { ...s.viewport, ...v } })),
     setTheme: (t) => {
