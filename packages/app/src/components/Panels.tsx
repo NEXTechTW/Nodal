@@ -88,12 +88,17 @@ export function PropertiesPanel() {
   const setStationAnchor = useEditor((s) => s.setStationAnchor);
   const deleteSelectedStation = useEditor((s) => s.deleteSelectedStation);
   const setLineColor = useEditor((s) => s.setLineColor);
+  const renameLine = useEditor((s) => s.renameLine);
+  const setLineStyle = useEditor((s) => s.setLineStyle);
+  const deleteLine = useEditor((s) => s.deleteLine);
+  const setMapBackground = useEditor((s) => s.setMapBackground);
   const cornerRadius = useEditor((s) => s.cornerRadius);
   const setCornerRadius = useEditor((s) => s.setCornerRadius);
   const setLabelLanguage = useEditor((s) => s.setLabelLanguage);
   const avoidLabelOverlaps = useEditor((s) => s.avoidLabelOverlaps);
   const [draftName, setDraftName] = useState<string | null>(null);
   const [draftZh, setDraftZh] = useState<string | null>(null);
+  const [draftLineName, setDraftLineName] = useState<string | null>(null);
 
   const station = selectedStationId ? map.stations[selectedStationId] : undefined;
   const line = selectedLineId ? map.lines[selectedLineId] : undefined;
@@ -117,6 +122,10 @@ export function PropertiesPanel() {
             <option value="zh-TW">繁體中文</option>
             <option value="ja">Japanese</option>
           </select>
+        </div>
+        <div className="field">
+          <label htmlFor="map-bg">Background</label>
+          <input id="map-bg" type="color" value={map.style.background} onChange={(e) => setMapBackground(e.target.value)} />
         </div>
         <button type="button" className="btn" onClick={avoidLabelOverlaps} style={{ width: "100%" }}>
           Arrange labels to avoid overlap
@@ -186,16 +195,40 @@ export function PropertiesPanel() {
       {line && (
         <div className="panel-section">
           <h2 className="panel-heading">Line</h2>
-          <p style={{ margin: "0 0 var(--space-3)", fontSize: "var(--text-14)", fontWeight: 600 }}>
-            {displayName(line.name, "Line")}
-          </p>
+          <div className="field">
+            <label htmlFor="line-name">Name (English)</label>
+            <input
+              id="line-name"
+              type="text"
+              value={draftLineName ?? displayName(line.name, "")}
+              onChange={(e) => setDraftLineName(e.target.value)}
+              onBlur={() => {
+                if (draftLineName !== null && draftLineName !== displayName(line.name, "")) {
+                  renameLine(line.id, draftLineName.trim() || "Untitled line");
+                }
+                setDraftLineName(null);
+              }}
+              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+            />
+          </div>
           <div className="field">
             <label htmlFor="line-color">Color</label>
             <input id="line-color" type="color" value={line.color} onChange={(e) => setLineColor(line.id, e.target.value)} />
           </div>
-          <p style={{ margin: 0, fontSize: "var(--text-12)", color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+          <div className="field">
+            <label htmlFor="line-style">Style</label>
+            <select id="line-style" value={line.style} onChange={(e) => setLineStyle(line.id, e.target.value as "solid" | "dashed" | "double")}>
+              <option value="solid">Solid</option>
+              <option value="dashed">Dashed</option>
+              <option value="double">Double</option>
+            </select>
+          </div>
+          <p style={{ margin: "0 0 var(--space-3)", fontSize: "var(--text-12)", color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
             {line.segments.length} segment{line.segments.length === 1 ? "" : "s"}
           </p>
+          <button type="button" className="btn btn-danger" onClick={() => deleteLine(line.id)}>
+            <TrashIcon /> Delete line
+          </button>
         </div>
       )}
 

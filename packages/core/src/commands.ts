@@ -17,6 +17,8 @@ export type CommandName =
   | "AddLine"
   | "RenameLine"
   | "SetLineColor"
+  | "SetLineStyle"
+  | "DeleteLine"
   | "AddSegment"
   | "DeleteSegment"
   | "SetTitle";
@@ -236,6 +238,56 @@ export function setLineColorCommand(lineId: string, from: string, to: string): C
       if (!line) return map;
       return { ...map, lines: { ...map.lines, [lineId]: { ...line, color: from } } };
     },
+  };
+}
+
+export function renameLineCommand(lineId: string, from: Record<string, string>, to: Record<string, string>): Command {
+  const f = clone(from);
+  const t = clone(to);
+  return {
+    name: "RenameLine",
+    label: "Rename line",
+    apply: (map) => {
+      const line = map.lines[lineId];
+      if (!line) return map;
+      return { ...map, lines: { ...map.lines, [lineId]: { ...line, name: clone(t) } } };
+    },
+    revert: (map) => {
+      const line = map.lines[lineId];
+      if (!line) return map;
+      return { ...map, lines: { ...map.lines, [lineId]: { ...line, name: clone(f) } } };
+    },
+  };
+}
+
+export function setLineStyleCommand(lineId: string, from: import("./types.js").LineStyle, to: import("./types.js").LineStyle): Command {
+  return {
+    name: "SetLineStyle",
+    label: "Change line style",
+    apply: (map) => {
+      const line = map.lines[lineId];
+      if (!line) return map;
+      return { ...map, lines: { ...map.lines, [lineId]: { ...line, style: to } } };
+    },
+    revert: (map) => {
+      const line = map.lines[lineId];
+      if (!line) return map;
+      return { ...map, lines: { ...map.lines, [lineId]: { ...line, style: from } } };
+    },
+  };
+}
+
+export function deleteLineCommand(lineId: string, line: MetroMap["lines"][string]): Command {
+  const snapshot = clone(line);
+  return {
+    name: "DeleteLine",
+    label: "Delete line",
+    apply: (map) => {
+      const lines = { ...map.lines };
+      delete lines[lineId];
+      return { ...map, lines };
+    },
+    revert: (map) => ({ ...map, lines: { ...map.lines, [lineId]: clone(snapshot) } }),
   };
 }
 

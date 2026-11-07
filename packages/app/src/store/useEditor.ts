@@ -12,13 +12,17 @@ import {
   addStationCommand,
   avoidLabelOverlaps as avoidLabels,
   createId,
+  deleteLineCommand,
   displayName,
   emptyMap,
   moveStationCommand,
+  renameLineCommand,
   renameStationCommand,
   setLineColorCommand,
+  setLineStyleCommand,
   setTitleCommand,
   type Anchor,
+  type LineStyle,
   type MetroMap,
   type StationKind,
   type Vec2,
@@ -81,6 +85,10 @@ interface EditorState {
   addLine(name: string): string;
   setActiveLine(id: string | null): void;
   setLineColor(lineId: string, color: string): void;
+  renameLine(id: string, name: string, lang?: string): void;
+  setLineStyle(id: string, style: LineStyle): void;
+  deleteLine(id: string): void;
+  setMapBackground(color: string): void;
   connectStations(lineId: string, from: string, to: string): void;
   renameMap(title: string): void;
   undo(): void;
@@ -238,6 +246,35 @@ export const useEditor = create<EditorState>((set, get) => {
       const cmd = setLineColorCommand(lineId, l.color, color);
       const map = get().stack.dispatch(cmd);
       set({ map, lastActionLabel: cmd.label });
+    },
+    renameLine: (id, name, lang = "en") => {
+      const l = get().map.lines[id];
+      if (!l) return;
+      const cmd = renameLineCommand(id, { ...l.name }, { ...l.name, [lang]: name });
+      const map = get().stack.dispatch(cmd);
+      set({ map, lastActionLabel: cmd.label });
+    },
+    setLineStyle: (id, style) => {
+      const l = get().map.lines[id];
+      if (!l) return;
+      const cmd = setLineStyleCommand(id, l.style, style);
+      const map = get().stack.dispatch(cmd);
+      set({ map, lastActionLabel: cmd.label });
+    },
+    deleteLine: (id) => {
+      const l = get().map.lines[id];
+      if (!l) return;
+      const cmd = deleteLineCommand(id, l);
+      const map = get().stack.dispatch(cmd);
+      const nextActive = get().activeLineId === id ? null : get().activeLineId;
+      const nextSel = get().selectedLineId === id ? null : get().selectedLineId;
+      set({ map, activeLineId: nextActive, selectedLineId: nextSel, lastActionLabel: cmd.label, toast: "Line deleted" });
+    },
+    setMapBackground: (color) => {
+      set((s) => ({
+        map: { ...s.map, style: { ...s.map.style, background: color } },
+        lastActionLabel: "Change background",
+      }));
     },
     connectStations: (lineId, from, to) => {
       if (from === to) return;
