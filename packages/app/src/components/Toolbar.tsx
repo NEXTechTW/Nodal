@@ -275,8 +275,10 @@ export function Toolbar() {
       {/* If nodal-addon-theme is installed/enabled, the sun toggle is hidden
           and replaced by the palette icon picker (text merged into icon). */}
       {themeAddonOn ? (
-        <MarkEditor />
-        <ThemePicker />
+        <>
+          <MarkEditor />
+          <ThemePicker />
+        </>
       ) : (
         <button
           type="button"
