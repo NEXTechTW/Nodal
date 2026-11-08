@@ -133,3 +133,401 @@
   --shadow-dropdown: 0 10px 28px rgba(0, 0, 0, 0.65), 0 0 0 1px #333333;
   color-scheme: dark;
 }
+
+/* Whole-app themes — Nodal Theme Switcher addon.
+   Source: https://github.com/xft0729/nodal-addon-theme (themes/ui/*.css).
+   Map themes (canvas) are separate — see Appearance panel. */
+
+:root[data-theme="midnight"] {
+  color-scheme: dark;
+  --color-bg: #0a0f1e;
+  --color-bg-surface: #111a2e;
+  --color-bg-canvas: #070b16;
+  --color-bg-inset: #0d1526;
+  --color-bg-panel-header: #0f1930;
+  --color-text: #e3e9ff;
+  --color-text-secondary: #8b99c7;
+  --color-text-tertiary: #5a6b9e;
+  --color-border: #1c2a4a;
+  --color-border-subtle: #16223d;
+  --color-border-strong: #2a3d6b;
+  --color-accent: #4cc9f0;
+  --color-accent-hover: #7dd8fd;
+  --color-accent-soft: rgba(76, 201, 240, 0.14);
+  --color-accent-contrast: #06202e;
+  --color-danger: #ff5d73;
+  --color-danger-soft: rgba(255, 93, 115, 0.14);
+  --color-success: #2ee6a8;
+  --color-success-soft: rgba(46, 230, 168, 0.12);
+  --color-focus-ring: #4cc9f0;
+  --canvas-grid: #13203c;
+}
+
+:root[data-theme="forest"] {
+  color-scheme: dark;
+  --color-bg: #0e1a12;
+  --color-bg-surface: #14251a;
+  --color-bg-canvas: #0a130d;
+  --color-bg-inset: #101e14;
+  --color-bg-panel-header: #122217;
+  --color-text: #e2f0e3;
+  --color-text-secondary: #8fb593;
+  --color-text-tertiary: #5d7f64;
+  --color-border: #1e3a28;
+  --color-border-subtle: #1a3222;
+  --color-border-strong: #2c5439;
+  --color-accent: #52d273;
+  --color-accent-hover: #7be495;
+  --color-accent-soft: rgba(82, 210, 115, 0.14);
+  --color-accent-contrast: #062213;
+  --color-danger: #ff6b6b;
+  --color-danger-soft: rgba(255, 107, 107, 0.14);
+  --color-success: #4ecdc4;
+  --color-success-soft: rgba(78, 205, 196, 0.13);
+  --color-focus-ring: #52d273;
+  --canvas-grid: #16291d;
+}
+
+:root[data-theme="crimson"] {
+  color-scheme: dark;
+  --color-bg: #161011;
+  --color-bg-surface: #201517;
+  --color-bg-canvas: #100a0b;
+  --color-bg-inset: #1b1113;
+  --color-bg-panel-header: #1e1315;
+  --color-text: #f5e6e6;
+  --color-text-secondary: #b08f8f;
+  --color-text-tertiary: #7a5a5a;
+  --color-border: #382224;
+  --color-border-subtle: #2d1a1c;
+  --color-border-strong: #4d3133;
+  --color-accent: #ff4d6d;
+  --color-accent-hover: #ff7a93;
+  --color-accent-soft: rgba(255, 77, 109, 0.14);
+  --color-accent-contrast: #2b0710;
+  --color-danger: #ff6b6b;
+  --color-danger-soft: rgba(255, 107, 107, 0.15);
+  --color-success: #5ed3a3;
+  --color-success-soft: rgba(94, 211, 163, 0.13);
+  --color-focus-ring: #ff4d6d;
+  --canvas-grid: #2a191c;
+}
+
+:root[data-theme="solar"] {
+  color-scheme: light;
+  --color-bg: #faf5ec;
+  --color-bg-surface: #fffdf7;
+  --color-bg-canvas: #f1e8d7;
+  --color-bg-inset: #f5edd9;
+  --color-bg-panel-header: #fffaf0;
+  --color-text: #2b2118;
+  --color-text-secondary: #7a6a57;
+  --color-text-tertiary: #a89880;
+  --color-border: #e6dbc3;
+  --color-border-subtle: #efe6cf;
+  --color-border-strong: #d4c5a3;
+  --color-accent: #c25307;
+  --color-accent-hover: #a54405;
+  --color-accent-soft: rgba(194, 83, 7, 0.10);
+  --color-accent-contrast: #ffffff;
+  --color-danger: #c92a2a;
+  --color-danger-soft: #fdecec;
+  --color-success: #2f9e6e;
+  --color-success-soft: #eafaf0;
+  --color-focus-ring: #c25307;
+  --canvas-grid: #e2d5b8;
+}
+
+:root[data-theme="high-contrast"] {
+  color-scheme: light;
+  --color-bg: #ffffff;
+  --color-bg-surface: #ffffff;
+  --color-bg-canvas: #ffffff;
+  --color-bg-inset: #ffffff;
+  --color-bg-panel-header: #ffffff;
+  --color-text: #000000;
+  --color-text-secondary: #222222;
+  --color-text-tertiary: #444444;
+  --color-border: #000000;
+  --color-border-subtle: #666666;
+  --color-border-strong: #000000;
+  --color-accent: #0000c8;
+  --color-accent-hover: #0000a0;
+  --color-accent-soft: rgba(0, 0, 200, 0.08);
+  --color-accent-contrast: #ffffff;
+  --color-danger: #c30000;
+  --color-danger-soft: #ffe5e5;
+  --color-success: #005a1e;
+  --color-success-soft: #d6f5d6;
+  --color-focus-ring: #ffcc00;
+  --canvas-grid: #dddddd;
+}
+
+:root[data-theme="lavender"] {
+  color-scheme: light;
+  --color-bg: #faf5ff;
+  --color-bg-surface: #ffffff;
+  --color-bg-canvas: #f3e8ff;
+  --color-bg-inset: #f5f0ff;
+  --color-bg-panel-header: #fdfbff;
+  --color-text: #2e1065;
+  --color-text-secondary: #7c6aa8;
+  --color-text-tertiary: #a78bca;
+  --color-border: #e9d5ff;
+  --color-border-subtle: #f0e6ff;
+  --color-border-strong: #d8b4fe;
+  --color-accent: #7c3aed;
+  --color-accent-hover: #6d28d9;
+  --color-accent-soft: rgba(124, 58, 237, 0.10);
+  --color-accent-contrast: #ffffff;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-success: #059669;
+  --color-success-soft: #ecfdf5;
+  --color-focus-ring: #7c3aed;
+  --canvas-grid: #e9d5ff;
+}
+
+:root[data-theme="mint"] {
+  color-scheme: light;
+  --color-bg: #f0fdf4;
+  --color-bg-surface: #ffffff;
+  --color-bg-canvas: #dcfce7;
+  --color-bg-inset: #e6f9ec;
+  --color-bg-panel-header: #f7fef9;
+  --color-text: #052e16;
+  --color-text-secondary: #4a7a5c;
+  --color-text-tertiary: #7ba88a;
+  --color-border: #bbf7d0;
+  --color-border-subtle: #d9fbe4;
+  --color-border-strong: #86efac;
+  --color-accent: #059669;
+  --color-accent-hover: #047857;
+  --color-accent-soft: rgba(5, 150, 105, 0.10);
+  --color-accent-contrast: #ffffff;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-success: #059669;
+  --color-success-soft: #ecfdf5;
+  --color-focus-ring: #059669;
+  --canvas-grid: #cbf5d8;
+}
+
+:root[data-theme="sky"] {
+  color-scheme: light;
+  --color-bg: #f0f9ff;
+  --color-bg-surface: #ffffff;
+  --color-bg-canvas: #e0f2fe;
+  --color-bg-inset: #e8f5ff;
+  --color-bg-panel-header: #f7fcff;
+  --color-text: #0c2d4a;
+  --color-text-secondary: #4a7396;
+  --color-text-tertiary: #7ba0bd;
+  --color-border: #bae6fd;
+  --color-border-subtle: #d9efff;
+  --color-border-strong: #7dd3fc;
+  --color-accent: #0284c7;
+  --color-accent-hover: #0369a1;
+  --color-accent-soft: rgba(2, 132, 199, 0.10);
+  --color-accent-contrast: #ffffff;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-success: #059669;
+  --color-success-soft: #ecfdf5;
+  --color-focus-ring: #0284c7;
+  --canvas-grid: #c2e9fc;
+}
+
+:root[data-theme="rose"] {
+  color-scheme: light;
+  --color-bg: #fff1f2;
+  --color-bg-surface: #ffffff;
+  --color-bg-canvas: #ffe4e6;
+  --color-bg-inset: #fdeaea;
+  --color-bg-panel-header: #fff7f7;
+  --color-text: #4c0519;
+  --color-text-secondary: #9f6a72;
+  --color-text-tertiary: #c09095;
+  --color-border: #fecdd3;
+  --color-border-subtle: #fee2e2;
+  --color-border-strong: #fda4af;
+  --color-accent: #e11d48;
+  --color-accent-hover: #be123c;
+  --color-accent-soft: rgba(225, 29, 72, 0.10);
+  --color-accent-contrast: #ffffff;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-success: #059669;
+  --color-success-soft: #ecfdf5;
+  --color-focus-ring: #e11d48;
+  --canvas-grid: #fecdd3;
+}
+
+:root[data-theme="violet"] {
+  color-scheme: dark;
+  --color-bg: #1a0b2e;
+  --color-bg-surface: #251240;
+  --color-bg-canvas: #12081f;
+  --color-bg-inset: #1e0e36;
+  --color-bg-panel-header: #221038;
+  --color-text: #ede9fe;
+  --color-text-secondary: #a78bc7;
+  --color-text-tertiary: #7c66ab;
+  --color-border: #332058;
+  --color-border-subtle: #2a1a4a;
+  --color-border-strong: #472e7a;
+  --color-accent: #a78bfa;
+  --color-accent-hover: #c4b5fd;
+  --color-accent-soft: rgba(167, 139, 250, 0.15);
+  --color-accent-contrast: #2e1065;
+  --color-danger: #fb7185;
+  --color-danger-soft: rgba(251, 113, 133, 0.14);
+  --color-success: #34d399;
+  --color-success-soft: rgba(52, 211, 153, 0.13);
+  --color-focus-ring: #a78bfa;
+  --canvas-grid: #28164a;
+}
+
+:root[data-theme="teal"] {
+  color-scheme: dark;
+  --color-bg: #042f2e;
+  --color-bg-surface: #0a3a37;
+  --color-bg-canvas: #032220;
+  --color-bg-inset: #07302d;
+  --color-bg-panel-header: #083431;
+  --color-text: #ccfbf1;
+  --color-text-secondary: #7dc9c0;
+  --color-text-tertiary: #4f958d;
+  --color-border: #15534f;
+  --color-border-subtle: #114742;
+  --color-border-strong: #21726b;
+  --color-accent: #2dd4bf;
+  --color-accent-hover: #5eead4;
+  --color-accent-soft: rgba(45, 212, 191, 0.14);
+  --color-accent-contrast: #042f2e;
+  --color-danger: #f8a5a5;
+  --color-danger-soft: rgba(248, 165, 165, 0.14);
+  --color-success: #34d399;
+  --color-success-soft: rgba(52, 211, 153, 0.13);
+  --color-focus-ring: #2dd4bf;
+  --canvas-grid: #0d3f3c;
+}
+
+/* Per-theme UI structure — font / radius / density / shadows.
+   Same values as nodal-addon-theme src/ui-structures.ts.
+   Each theme is a different UI, not just a recolour. */
+
+:root[data-theme="midnight"] {
+  --font-sans: "Space Grotesk", Inter, sans-serif;
+  --radius-1: 2px; --radius-2: 3px; --radius-3: 4px; --radius-4: 6px;
+  --space-1: 3px; --space-2: 6px; --space-3: 9px; --space-4: 12px; --space-5: 16px; --space-6: 20px;
+  --panel-w: 230px; --dock-w: 36px;
+  --menubar-h: 26px; --toolbar-h: 32px; --statusbar-h: 22px; --panel-tab-h: 28px;
+  --button-h: 24px; --button-h-sm: 20px; --input-h: 22px;
+  --text-10: 0.5625rem; --text-11: 0.625rem; --text-12: 0.6875rem; --text-13: 0.75rem; --text-14: 0.8125rem; --text-16: 0.9375rem;
+  --leading-tight: 1.15; --leading-body: 1.35;
+  --shadow-sm: 0 1px 2px rgba(2, 6, 24, 0.5); --shadow-md: 0 4px 12px rgba(2, 6, 24, 0.55); --shadow-dropdown: 0 8px 24px rgba(2, 6, 24, 0.7);
+}
+
+:root[data-theme="forest"] {
+  --font-sans: Merriweather, "Noto Serif SC", Georgia, serif;
+  --radius-1: 4px; --radius-2: 8px; --radius-3: 10px; --radius-4: 14px;
+  --space-1: 5px; --space-2: 10px; --space-3: 15px; --space-4: 20px; --space-5: 25px; --space-6: 30px;
+  --panel-w: 270px; --dock-w: 44px;
+  --menubar-h: 30px; --toolbar-h: 40px; --statusbar-h: 26px; --panel-tab-h: 32px;
+  --button-h: 28px; --button-h-sm: 24px; --input-h: 26px;
+  --text-10: 0.6875rem; --text-11: 0.75rem; --text-12: 0.8125rem; --text-13: 0.875rem; --text-14: 0.9375rem; --text-16: 1.0625rem;
+  --leading-tight: 1.3; --leading-body: 1.6;
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.30); --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.35); --shadow-dropdown: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="crimson"] {
+  --font-sans: Oswald, Barlow, Inter, sans-serif;
+  --radius-1: 0px; --radius-2: 2px; --radius-3: 4px; --radius-4: 6px;
+  --space-1: 3px; --space-2: 6px; --space-3: 9px; --space-4: 12px; --space-5: 16px; --space-6: 20px;
+  --panel-w: 260px; --dock-w: 40px;
+  --menubar-h: 28px; --toolbar-h: 34px; --statusbar-h: 24px; --panel-tab-h: 28px;
+  --button-h: 24px; --button-h-sm: 20px; --input-h: 22px;
+  --leading-tight: 1.1; --leading-body: 1.35;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.55); --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.60); --shadow-dropdown: 0 10px 28px rgba(0, 0, 0, 0.70);
+}
+
+:root[data-theme="solar"] {
+  --font-sans: "Playfair Display", Merriweather, Georgia, serif;
+  --radius-1: 1px; --radius-2: 2px; --radius-3: 4px; --radius-4: 6px;
+  --space-1: 5px; --space-2: 10px; --space-3: 15px; --space-4: 20px; --space-5: 28px; --space-6: 36px;
+  --panel-w: 260px; --dock-w: 42px;
+  --menubar-h: 30px; --toolbar-h: 40px; --statusbar-h: 26px; --panel-tab-h: 32px;
+  --button-h: 28px; --button-h-sm: 24px; --input-h: 26px;
+  --text-10: 0.6875rem; --text-11: 0.75rem; --text-12: 0.8125rem; --text-13: 0.875rem; --text-14: 0.9375rem; --text-16: 1.0625rem;
+  --leading-tight: 1.35; --leading-body: 1.65;
+  --shadow-sm: 0 1px 2px rgba(60, 40, 20, 0.08); --shadow-md: 0 4px 12px rgba(60, 40, 20, 0.10); --shadow-dropdown: 0 8px 24px rgba(60, 40, 20, 0.14);
+}
+
+:root[data-theme="high-contrast"] {
+  --font-sans: "IBM Plex Mono", "JetBrains Mono", Menlo, monospace;
+  --radius-1: 0px; --radius-2: 0px; --radius-3: 2px; --radius-4: 2px;
+  --space-1: 6px; --space-2: 12px; --space-3: 18px; --space-4: 24px; --space-5: 32px; --space-6: 40px;
+  --panel-w: 280px; --dock-w: 48px;
+  --menubar-h: 32px; --toolbar-h: 44px; --statusbar-h: 28px; --panel-tab-h: 34px;
+  --button-h: 32px; --button-h-sm: 28px; --input-h: 28px;
+  --text-10: 0.75rem; --text-11: 0.8125rem; --text-12: 0.875rem; --text-13: 0.9375rem; --text-14: 1rem; --text-16: 1.125rem;
+  --leading-tight: 1.3; --leading-body: 1.5;
+  --shadow-sm: none; --shadow-md: none; --shadow-dropdown: 0 0 0 2px #000000;
+}
+
+:root[data-theme="lavender"] {
+  --font-sans: Quicksand, Nunito, sans-serif;
+  --radius-1: 8px; --radius-2: 12px; --radius-3: 16px; --radius-4: 20px;
+  --space-1: 5px; --space-2: 10px; --space-3: 15px; --space-4: 20px; --space-5: 26px; --space-6: 32px;
+  --panel-w: 260px; --dock-w: 44px;
+  --menubar-h: 30px; --toolbar-h: 40px; --statusbar-h: 26px; --panel-tab-h: 32px;
+  --button-h: 28px; --button-h-sm: 24px; --input-h: 26px;
+  --text-10: 0.6875rem; --text-11: 0.75rem; --text-12: 0.8125rem; --text-13: 0.875rem; --text-14: 0.9375rem; --text-16: 1.0625rem;
+  --leading-tight: 1.3; --leading-body: 1.6;
+  --shadow-sm: 0 2px 8px rgba(76, 29, 149, 0.12); --shadow-md: 0 8px 22px rgba(76, 29, 149, 0.14); --shadow-dropdown: 0 14px 32px rgba(76, 29, 149, 0.18);
+}
+
+:root[data-theme="mint"] {
+  --font-sans: Manrope, Inter, sans-serif;
+  --radius-1: 3px; --radius-2: 6px; --radius-3: 8px; --radius-4: 10px;
+  --panel-w: 240px; --dock-w: 38px;
+}
+
+:root[data-theme="sky"] {
+  --font-sans: Poppins, Inter, sans-serif;
+  --radius-1: 4px; --radius-2: 8px; --radius-3: 10px; --radius-4: 12px;
+  --panel-w: 250px; --dock-w: 40px;
+}
+
+:root[data-theme="rose"] {
+  --font-sans: Nunito, Quicksand, sans-serif;
+  --radius-1: 6px; --radius-2: 10px; --radius-3: 14px; --radius-4: 18px;
+  --space-1: 5px; --space-2: 10px; --space-3: 14px; --space-4: 18px; --space-5: 24px; --space-6: 30px;
+  --panel-w: 260px; --dock-w: 44px;
+  --toolbar-h: 40px;
+  --button-h: 28px; --input-h: 26px;
+  --leading-body: 1.6;
+  --shadow-sm: 0 2px 8px rgba(136, 19, 55, 0.10); --shadow-md: 0 8px 22px rgba(136, 19, 55, 0.12); --shadow-dropdown: 0 14px 32px rgba(136, 19, 55, 0.16);
+}
+
+:root[data-theme="violet"] {
+  --font-sans: "Space Grotesk", Inter, sans-serif;
+  --radius-1: 6px; --radius-2: 10px; --radius-3: 14px; --radius-4: 18px;
+  --space-1: 5px; --space-2: 10px; --space-3: 15px; --space-4: 20px; --space-5: 26px; --space-6: 32px;
+  --panel-w: 240px; --dock-w: 40px;
+  --toolbar-h: 38px;
+  --button-h: 28px; --input-h: 26px;
+  --text-10: 0.6875rem; --text-11: 0.75rem; --text-12: 0.8125rem; --text-13: 0.875rem; --text-14: 0.9375rem; --text-16: 1.0625rem;
+  --shadow-sm: 0 2px 10px rgba(167, 139, 250, 0.18); --shadow-md: 0 8px 24px rgba(167, 139, 250, 0.22); --shadow-dropdown: 0 14px 36px rgba(167, 139, 250, 0.28);
+}
+
+:root[data-theme="teal"] {
+  --font-sans: "Plus Jakarta Sans", Inter, sans-serif;
+  --radius-1: 6px; --radius-2: 10px; --radius-3: 12px; --radius-4: 16px;
+  --space-1: 5px; --space-2: 10px; --space-3: 14px; --space-4: 18px; --space-5: 24px; --space-6: 30px;
+  --panel-w: 265px; --dock-w: 42px;
+  --toolbar-h: 38px;
+  --button-h: 27px; --input-h: 25px;
+  --shadow-sm: 0 2px 8px rgba(4, 47, 46, 0.30); --shadow-md: 0 8px 22px rgba(4, 47, 46, 0.35); --shadow-dropdown: 0 14px 32px rgba(4, 47, 46, 0.45);
+}

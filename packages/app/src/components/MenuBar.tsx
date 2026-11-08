@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { t } from "../i18n.js";
-import { useEditor } from "../store/useEditor.js";
+import { UI_THEMES, useEditor } from "../store/useEditor.js";
 import { exampleMap } from "../example.js";
 import { LogoImage } from "./LogoImage.js";
 
@@ -22,6 +22,7 @@ export function MenuBar() {
   const newMap = useEditor((s) => s.newMap);
   const setToast = useEditor((s) => s.setToast);
   const theme = useEditor((s) => s.theme);
+  const setTheme = useEditor((s) => s.setTheme);
   const toggleTheme = useEditor((s) => s.toggleTheme);
   const avoidLabels = useEditor((s) => s.avoidLabelOverlaps);
   const toggleGrid = useEditor((s) => s.toggleGrid);
@@ -178,9 +179,15 @@ export function MenuBar() {
       label: L("Window"),
       items: [
         {
-          label: theme === "dark" ? "Theme: Switch to Light" : "Theme: Switch to Nodal Dark",
+          label: `App Theme: ${theme} (whole app)`,
           action: toggleTheme,
         },
+        { divider: true },
+        ...UI_THEMES.map((t) => ({
+          label: `${t.name} (whole app)${theme === t.id ? " ✓" : ""}`,
+          action: () => setTheme(t.id),
+        })),
+        { divider: true },
         {
           label: "Addon & Extension Manager…",
           action: () => useEditor.getState().setAddonManagerOpen(true),

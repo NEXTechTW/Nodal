@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { t } from "../i18n.js";
-import { useEditor } from "../store/useEditor.js";
+import { isDarkTheme, useEditor } from "../store/useEditor.js";
 import { AddonManager } from "./AddonManager.js";
-import { ThemePicker } from "./ThemePicker.js";
+import { ThemePicker, isThemeAddonEnabled } from "./ThemePicker.js";
 import {
   AddStationIcon,
   ConnectIcon,
@@ -46,6 +46,18 @@ export function Toolbar() {
   const fileWrapRef = useRef<HTMLDivElement>(null);
   const addonManagerOpen = useEditor((s) => s.addonManagerOpen);
   const setAddonManagerOpen = useEditor((s) => s.setAddonManagerOpen);
+  const [themeAddonOn, setThemeAddonOn] = useState(() => isThemeAddonEnabled());
+
+  useEffect(() => {
+    setThemeAddonOn(isThemeAddonEnabled());
+    const onStorage = () => setThemeAddonOn(isThemeAddonEnabled());
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    if (!addonManagerOpen) setThemeAddonOn(isThemeAddonEnabled());
+  }, [addonManagerOpen]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -259,19 +271,21 @@ export function Toolbar() {
 
       <div className="toolbar-sep" aria-hidden="true" />
 
-      {/* Map / UI Theme Picker (nodal-addon-theme, online) */}
-      <ThemePicker />
-
-      {/* Theme Toggle */}
-      <button
-        type="button"
-        className="btn btn-tool icon-btn"
-        aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-        title={theme === "dark" ? "Light Theme" : "Dark Theme"}
-        onClick={toggleTheme}
-      >
-        {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-      </button>
+      {/* If nodal-addon-theme is installed/enabled, the sun toggle is hidden
+          and replaced by the palette icon picker (text merged into icon). */}
+      {themeAddonOn ? (
+        <ThemePicker />
+      ) : (
+        <button
+          type="button"
+          className="btn btn-tool icon-btn"
+          aria-label={isDarkTheme(theme) ? "Switch to light theme" : "Switch to dark theme"}
+          title={isDarkTheme(theme) ? "Light Theme" : "Dark Theme"}
+          onClick={toggleTheme}
+        >
+          {isDarkTheme(theme) ? <SunIcon /> : <MoonIcon />}
+        </button>
+      )}
 
       <button
         type="button"

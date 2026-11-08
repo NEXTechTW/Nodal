@@ -641,6 +641,39 @@ export function PropertiesPanel() {
 
         {tab === "map" && (
           <>
+            <CollapsibleSection title="Map Template" defaultOpen={true}>
+              <p style={{ margin: "0 0 8px", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
+                Upload a template JSON (see docs/TEMPLATES.md). It restyles background and line colours without moving stations.
+              </p>
+              <label className="btn btn-sm" style={{ width: "100%", justifyContent: "center", cursor: "pointer" }}>
+                Upload template…
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  aria-label="Upload template JSON"
+                  hidden
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!f) return;
+                    try {
+                      const { validateTemplate, applyTemplate } = await import("@linewright/core");
+                      const parsed = JSON.parse(await f.text());
+                      const issues = validateTemplate(parsed);
+                      if (issues.length) {
+                        useEditor.getState().setError(`Template invalid: ${issues[0]}. See docs/TEMPLATES.md.`);
+                        return;
+                      }
+                      const next = applyTemplate(useEditor.getState().map, parsed);
+                      useEditor.getState().loadMap(next);
+                      useEditor.getState().setToast(`Template applied: ${parsed.name}`);
+                    } catch {
+                      useEditor.getState().setError("Unable to read that template. Choose a .json file like docs/TEMPLATES.md and try again.");
+                    }
+                  }}
+                />
+              </label>
+            </CollapsibleSection>
             <CollapsibleSection title="Map & Canvas" defaultOpen={true}>
               <PropRow label="Background">
                 <input

@@ -35,14 +35,62 @@ export interface Viewport {
   k: number; // scale
 }
 
-export type Theme = "light" | "dark";
+export type Theme =
+  | "light"
+  | "dark"
+  | "midnight"
+  | "forest"
+  | "crimson"
+  | "solar"
+  | "high-contrast"
+  | "lavender"
+  | "mint"
+  | "sky"
+  | "rose"
+  | "violet"
+  | "teal";
+
+export const UI_THEMES: { id: Theme; name: string; dark: boolean; hint: string }[] = [
+  { id: "light", name: "Nodal Light", dark: false, hint: "Inter · standard" },
+  { id: "dark", name: "Nodal Dark", dark: true, hint: "Inter · standard" },
+  { id: "midnight", name: "Midnight", dark: true, hint: "Space Grotesk · compact" },
+  { id: "forest", name: "Forest", dark: true, hint: "serif · soft · wide" },
+  { id: "crimson", name: "Crimson Line", dark: true, hint: "Oswald · sharp · bold" },
+  { id: "violet", name: "Violet Night", dark: true, hint: "Space Grotesk · pill" },
+  { id: "teal", name: "Deep Teal", dark: true, hint: "Jakarta · rounded" },
+  { id: "solar", name: "Solar Paper", dark: false, hint: "serif · paper · loose" },
+  { id: "lavender", name: "Lavender", dark: false, hint: "Quicksand · airy" },
+  { id: "mint", name: "Mint", dark: false, hint: "Manrope · fresh" },
+  { id: "sky", name: "Sky", dark: false, hint: "Poppins · clean" },
+  { id: "rose", name: "Rose", dark: false, hint: "Nunito · soft" },
+  { id: "high-contrast", name: "High Contrast (A11y)", dark: false, hint: "mono · square · large" },
+];
+
+export function isDarkTheme(t: Theme): boolean {
+  return UI_THEMES.find((u) => u.id === t)?.dark ?? t === "dark";
+}
+
+function normalizeThemeId(v: string | null): Theme | null {
+  if (!v) return null;
+  if (v === "nodal-light") return "light";
+  if (v === "nodal-dark") return "dark";
+  return UI_THEMES.some((u) => u.id === v) ? (v as Theme) : null;
+}
 
 function initialTheme(): Theme {
   try {
-    const saved = localStorage.getItem("nodal:theme");
-    if (saved === "dark" || saved === "light") return saved;
+    const addon = localStorage.getItem("nodal:theme-addon");
+    const fromAddon = normalizeThemeId(addon);
+    if (fromAddon) return fromAddon;
   } catch {
     /* ignore — storage may be unavailable */
+  }
+  try {
+    const saved = localStorage.getItem("nodal:theme");
+    const fromSaved = normalizeThemeId(saved);
+    if (fromSaved) return fromSaved;
+  } catch {
+    /* ignore */
   }
   try {
     if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) return "dark";
@@ -102,6 +150,7 @@ interface EditorState {
   measureTo: Vec2 | null;
   setMeasurePoints(a: Vec2 | null, b: Vec2 | null): void;
   addStandaloneLabel(pos: Vec2, text: string): void;
+  applyTemplate(tpl: import("@linewright/core").StationTemplate): void;
 
   // actions
   setStartupOpen(open: boolean): void;
@@ -227,6 +276,32 @@ export const useEditor = create<EditorState>((set, get) => {
     measureFrom: null,
     measureTo: null,
     setMeasurePoints: (a, b) => set({ measureFrom: a, measureTo: b }),
+    applyTemplate: (tpl) => {
+      const { applyTemplate } = { applyTemplate: (m: MetroMap, t: import("@linewright/core").StationTemplate) => {
+        const lines: MetroMap["lines"] = {};
+        const ids = Object.keys(m.lines);
+        ids.forEach((id, idx) => {
+          const line = m.lines[id]!;
+          const copy = structuredClone(line);
+          if (t.linePalette?.length) copy.color = t.linePalette[idx % t.linePalette.length]!;
+          lines[id] = copy;
+        });
+        return {
+          ...m,
+          style: {
+            ...m.style,
+            ...(t.style ?? {}),
+            ...(t.stationRadius !== undefined ? { stationRadius: t.stationRadius } : {}),
+          },
+          lines,
+        };
+      } };
+      set((s) => ({
+        map: applyTemplate(s.map, tpl),
+        lastActionLabel: `Template: ${tpl.name}`,
+        toast: `Template applied: ${tpl.name}`,
+      }));
+    },
     addStandaloneLabel: (pos, text) => {
       const id = createId();
       const label = {
@@ -247,12 +322,19 @@ export const useEditor = create<EditorState>((set, get) => {
     setTool: (t) => set({ tool: t }),
     setViewport: (v) => set((s) => ({ viewport: { ...s.viewport, ...v } })),
     setTheme: (t) => {
-      try { localStorage.setItem("nodal:theme", t); } catch { /* ignore */ }
+      try {
+        localStorage.setItem("nodal:theme", t);
+        localStorage.setItem("nodal:theme-addon", t);
+      } catch { /* ignore */ }
       set({ theme: t });
     },
     toggleTheme: () => {
-      const next: Theme = get().theme === "dark" ? "light" : "dark";
-      try { localStorage.setItem("nodal:theme", next); } catch { /* ignore */ }
+      const cur = get().theme;
+      const next: Theme = isDarkTheme(cur) ? "light" : "dark";
+      try {
+        localStorage.setItem("nodal:theme", next);
+        localStorage.setItem("nodal:theme-addon", next);
+      } catch { /* ignore */ }
       set({ theme: next });
     },
     setUiLang: (l) => {
