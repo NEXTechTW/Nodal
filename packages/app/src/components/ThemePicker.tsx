@@ -19,11 +19,12 @@ export function ThemePicker() {
 
   const loadOnline = async () => {
     setStatus("Loading themes online…");
+    const dyn = (url: string) => (import(/* @vite-ignore */ url) as Promise<unknown>);
     try {
       const [mapMod, uiMod, applyMod] = await Promise.all([
-        import(`${CDN}/dist/map-themes.js`),
-        import(`${CDN}/dist/ui-themes.js`),
-        import(`${CDN}/dist/apply.js`),
+        dyn(`${CDN}/dist/map-themes.js`),
+        dyn(`${CDN}/dist/ui-themes.js`),
+        dyn(`${CDN}/dist/apply.js`),
       ]);
       setMapThemes((mapMod as { MAP_THEMES: { id: string; name: string }[] }).MAP_THEMES);
       setUiThemes((uiMod as { UI_THEMES: { id: string; name: string }[] }).UI_THEMES);
@@ -36,8 +37,9 @@ export function ThemePicker() {
 
   const apply = async (id: string) => {
     try {
+      const dyn = (url: string) => (import(/* @vite-ignore */ url) as Promise<unknown>);
       const mod = (window as unknown as { __nodalThemeApply?: { applyMapTheme: (m: unknown, id: string, o?: unknown) => unknown } }).__nodalThemeApply
-        ?? await import(`${CDN}/dist/apply.js`);
+        ?? await dyn(`${CDN}/dist/apply.js`);
       const next = mod.applyMapTheme(map, id, { preserveLabelLanguage: true });
       loadMap(next as Parameters<typeof loadMap>[0]);
       setToast(`Theme applied: ${id}`);
@@ -78,8 +80,9 @@ export function ThemePicker() {
               className="menu-item"
               onClick={async () => {
                 try {
+                  const dyn = (url: string) => (import(/* @vite-ignore */ url) as Promise<unknown>);
                   const mod = (window as unknown as { __nodalThemeApply?: { applyUiTheme: (id: string) => () => void } }).__nodalThemeApply
-                    ?? await import(`${CDN}/dist/apply.js`);
+                    ?? await dyn(`${CDN}/dist/apply.js`);
                   mod.applyUiTheme(t.id);
                 } catch { /* offline */ }
                 setOpen(false);

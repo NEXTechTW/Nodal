@@ -34,7 +34,8 @@ export function Editor() {
       }
     })();
     if (!savedUi) return;
-    import("https://cdn.jsdelivr.net/gh/xft0729/nodal-addon-theme@main/dist/apply.js")
+    const url = "https://cdn.jsdelivr.net/gh/xft0729/nodal-addon-theme@main/dist/apply.js";
+    (import(/* @vite-ignore */ url) as Promise<unknown>)
       .then((mod) => {
         const applyUiTheme = (mod as { applyUiTheme: (id: string) => void }).applyUiTheme;
         if (applyUiTheme) applyUiTheme(savedUi);
