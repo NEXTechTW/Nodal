@@ -797,6 +797,7 @@ export function Canvas() {
                 data-station={s.id}
                 style={{ cursor: tool === "connect" ? "crosshair" : "pointer" }}
               >
+                <circle r={r + 5} fill="#ffffff" />
                 {/* Nodal Selection Halo Indicator */}
                 {(isSel || isHover) && (
                   <circle

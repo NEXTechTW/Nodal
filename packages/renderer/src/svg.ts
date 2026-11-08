@@ -157,6 +157,8 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
     )?.color;
     const stroke = isSel ? "#0B5FFF" : (lineColor ?? "#111");
     const rot = s.rotation ? ` transform="rotate(${s.rotation} ${s.position.x} ${s.position.y})"` : "";
+    // White halo hides line casings notching into the station disc.
+    parts.push(`<circle cx="${s.position.x}" cy="${s.position.y}" r="${r + 5}" fill="#fff"/>`);
     if (s.kind === "interchange") {
       parts.push(`<g data-station="${esc(s.id)}"${rot}><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/><circle cx="${s.position.x}" cy="${s.position.y}" r="${r + 7}" fill="none" stroke="${stroke}" stroke-width="2" opacity="0.9"/></g>`);
     } else if (s.kind === "terminus") {
