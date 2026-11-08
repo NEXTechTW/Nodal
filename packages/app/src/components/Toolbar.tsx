@@ -4,6 +4,7 @@ import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/ren
 import { t } from "../i18n.js";
 import { isDarkTheme, useEditor } from "../store/useEditor.js";
 import { AddonManager } from "./AddonManager.js";
+import { MarkEditor } from "./MarkEditor.js";
 import { ThemePicker, isThemeAddonEnabled } from "./ThemePicker.js";
 import {
   AddStationIcon,
@@ -274,6 +275,7 @@ export function Toolbar() {
       {/* If nodal-addon-theme is installed/enabled, the sun toggle is hidden
           and replaced by the palette icon picker (text merged into icon). */}
       {themeAddonOn ? (
+        <MarkEditor />
         <ThemePicker />
       ) : (
         <button
