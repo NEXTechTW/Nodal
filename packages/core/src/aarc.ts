@@ -54,16 +54,38 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
   const metaTitle = (aarc as { meta?: { title?: string } }).meta?.title;
   if (typeof metaTitle === "string" && metaTitle.trim()) map.meta.title = metaTitle;
 
-  for (const p of aarc.points ?? []) {
+  // Merge points that are drawn at (almost) the same spot into one interchange
+  // so CY/O lines sharing a station do not double-draw.
+  const rawPoints = aarc.points ?? [];
+  const idMap = new Map<number, number>();
+  for (let i = 0; i < rawPoints.length; i++) {
+    for (let j = i + 1; j < rawPoints.length; j++) {
+      const a = rawPoints[i]!;
+      const b = rawPoints[j]!;
+      const d = Math.hypot(a.pos[0] - b.pos[0], a.pos[1] - b.pos[1]);
+      if (d < 25) idMap.set(b.id, a.id);
+    }
+  }
+  const merged = rawPoints.filter((p) => !idMap.has(p.id));
+  for (const p of merged) {
     const id = String(p.id);
+    // Collect names from merged-away twins too.
     const name: Record<string, string> = {};
     if (p.name) name["zh-TW"] = p.name;
     if (p.nameS) name.en = p.nameS;
+    for (const [gone, host] of idMap) {
+      if (host === p.id) {
+        const twin = rawPoints.find((q) => q.id === gone);
+        if (twin?.name && !name["zh-TW"]) name["zh-TW"] = twin.name;
+        if (twin?.nameS && !name.en) name.en = twin.nameS;
+      }
+    }
+    const isInterchange = [...idMap.entries()].some(([, host]) => host === p.id) || (p.sta !== undefined && p.sta > 1);
     const station: Station = {
       id,
-      name: Object.keys(name).length ? name : { en: `Station ${p.id}` },
+      name: Object.keys(name).length ? name : { en: "" },
       position: { x: p.pos?.[0] ?? 0, y: p.pos?.[1] ?? 0 },
-      kind: p.sta !== undefined && p.sta > 1 ? "interchange" : "normal",
+      kind: isInterchange ? "interchange" : "normal",
       labelAnchor: aarcDirToAnchor(p.dir),
     };
     if (Array.isArray(p.nameP) && typeof p.nameP[0] === "number" && typeof p.nameP[1] === "number") {
@@ -80,8 +102,11 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
     map.transfers = {};
     links.forEach((link, idx) => {
       if (!Array.isArray(link.pts) || link.pts.length < 2) return;
-      const from = String(link.pts[0]);
-      const to = String(link.pts[1]);
+      const fromId = idMap.get(link.pts[0]!) ?? link.pts[0]!;
+      const toId = idMap.get(link.pts[1]!) ?? link.pts[1]!;
+      const from = String(fromId);
+      const to = String(toId);
+      if (from === to) return;
       const a = map.stations[from];
       const b = map.stations[to];
       if (!a || !b) return;
@@ -120,7 +145,10 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
         .filter((s, i, arr) => Math.floor(arr.length / 2) > 0 && i < arr.length - 1),
     };
     // Fix: consecutive pairs, not wrap-around.
-    const ids = (l.pts ?? []).filter((pt) => map.stations[String(pt)]).map(String);
+    const ids = (l.pts ?? [])
+      .map((pt) => idMap.get(pt) ?? pt)
+      .filter((pt, idx, arr) => map.stations[String(pt)] && arr.indexOf(pt) === idx)
+      .map(String);
     map.lines[id]!.segments = ids.slice(0, -1).map((from, i) => ({ from, to: ids[i + 1]! }));
   }
 
