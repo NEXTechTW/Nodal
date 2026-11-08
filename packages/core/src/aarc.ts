@@ -98,7 +98,9 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
           if (tag.textS) label.en = tag.textS;
         }
       }
-      map.transfers![`aarc-link-${idx}`] = { id: `aarc-link-${idx}`, from, to, label };
+      map.transfers![`aarc-link-${idx}`] = label
+        ? { id: `aarc-link-${idx}`, from, to, label }
+        : { id: `aarc-link-${idx}`, from, to };
     });
   }
 
