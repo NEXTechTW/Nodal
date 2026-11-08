@@ -18,19 +18,10 @@ export interface AddonMetadata {
   defaultEnabled?: boolean;
 }
 
-const CATALOG: AddonMetadata[] = [{
-  id: "nodal-addon-theme",
-  name: "Nodal Theme Switcher",
-  version: "1.0.0",
-  author: "xft0729",
-  githubUrl: "https://github.com/xft0729/nodal-addon-theme",
-  category: "transit",
-  source: "community",
-  desc: "Switch between 12 transit map presets and 7 editor UI themes — background, typography, line palettes and workbench colours in one click.",
-  features: ["12 map presets", "7 UI themes", "Undo-safe apply"],
-  tags: ["theme", "ui", "preset"],
-  defaultEnabled: true,
-}];
+// Loaded online from the addon's repo — nothing bundled.
+// Falls back to an empty list offline.
+const CATALOG: AddonMetadata[] = [];
+const REMOTE_MANIFEST = "https://cdn.jsdelivr.net/gh/xft0729/nodal-addon-theme@main/addon.json";
 
 export function AddonManager({ onClose }: { onClose: () => void }) {
   const [enabled, setEnabled] = useState<Record<string, boolean>>(() => {
@@ -50,8 +41,20 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
     return defaults;
   });
 
+  const [catalog, setCatalog] = useState<AddonMetadata[]>(CATALOG);
   const [activeCategory, setActiveCategory] = useState<AddonCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(REMOTE_MANIFEST)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((meta: AddonMetadata | null) => {
+        if (!cancelled && meta?.id) setCatalog([meta]);
+      })
+      .catch(() => { /* offline: stay empty */ });
+    return () => { cancelled = true; };
+  }, []);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -107,7 +110,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
   // Filtered list
   const filteredAddons = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return CATALOG.filter((addon) => {
+    return catalog.filter((addon) => {
       // Category filter
       if (activeCategory === "enabled") {
         if (enabled[addon.id] === false) return false;
@@ -133,7 +136,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
   // Category counts
   const counts = useMemo(() => {
     const c = {
-      all: CATALOG.length,
+      all: catalog.length,
       transit: 0,
       localization: 0,
       integrations: 0,
@@ -173,7 +176,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             <div>
               <div className="addon-title-row">
                 <h2 id="addon-manager-title" className="addon-modal-title">Addons & Extensions</h2>
-                <span className="addon-badge-count">{counts.enabled} of {CATALOG.length} active</span>
+                <span className="addon-badge-count">{counts.enabled} of {catalog.length} active</span>
               </div>
               <p className="addon-modal-sub">
                 Manage transit packs, regional typography, and integrations.
