@@ -375,7 +375,7 @@ export function PropertiesPanel() {
             {station && (
               <>
                 <CollapsibleSection title="Station Identity" defaultOpen={true}>
-                  <PropRow label="Name (EN)">
+                  <PropRow label="站名（主）">
                     <input
                       type="text"
                       className="prop-input"
@@ -383,7 +383,7 @@ export function PropertiesPanel() {
                       onChange={(e) => renameStation(station.id, e.target.value, "en")}
                     />
                   </PropRow>
-                  <PropRow label="Name (中文)">
+                  <PropRow label="副站名">
                     <input
                       type="text"
                       className="prop-input"
