@@ -762,6 +762,7 @@ export function Canvas() {
                         strokeLinejoin="round"
                         strokeDasharray={line.style === "dashed" ? "12 8" : undefined}
                       />
+                    </g>
                   );
                 })}
               </g>
