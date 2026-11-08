@@ -24,6 +24,24 @@ export function Editor() {
     document.documentElement.dataset["theme"] = theme;
   }, [theme]);
 
+  // Preload the theme addon online at boot so it is active on first paint.
+  useEffect(() => {
+    const savedUi = (() => {
+      try {
+        return localStorage.getItem("nodal:theme-addon");
+      } catch {
+        return null;
+      }
+    })();
+    if (!savedUi) return;
+    import("https://cdn.jsdelivr.net/gh/xft0729/nodal-addon-theme@main/dist/apply.js")
+      .then((mod) => {
+        const applyUiTheme = (mod as { applyUiTheme: (id: string) => void }).applyUiTheme;
+        if (applyUiTheme) applyUiTheme(savedUi);
+      })
+      .catch(() => { /* offline: stock light/dark stays */ });
+  }, []);
+
   return (
     <div className="app-shell">
       <MenuBar />

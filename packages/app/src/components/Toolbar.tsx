@@ -4,6 +4,7 @@ import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/ren
 import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
 import { AddonManager } from "./AddonManager.js";
+import { ThemePicker } from "./ThemePicker.js";
 import {
   AddStationIcon,
   ConnectIcon,
@@ -257,6 +258,9 @@ export function Toolbar() {
       </div>
 
       <div className="toolbar-sep" aria-hidden="true" />
+
+      {/* Map / UI Theme Picker (nodal-addon-theme, online) */}
+      <ThemePicker />
 
       {/* Theme Toggle */}
       <button
