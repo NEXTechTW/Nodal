@@ -1,9 +1,9 @@
 /**
- * Design tokens — Adobe Creative Cloud 2026 refined design system.
+ * Design tokens — Nodal Creative Cloud 2026 refined design system.
  * Minimal, clean, focused dark palette with harmonious contrast and subtle borders.
  */
 :root {
-  /* ---- Primitive: neutral ramp (Refined Adobe dark charcoal) ---- */
+  /* ---- Primitive: neutral ramp (Refined Nodal dark charcoal) ---- */
   --primitive-black: #0f0f0f;
   --primitive-gray-900: #181818;
   --primitive-gray-850: #1e1e1e;
@@ -20,7 +20,7 @@
   --primitive-gray-50: #f4f4f4;
   --primitive-white: #ffffff;
 
-  /* ---- Primitive: Adobe blue accent ---- */
+  /* ---- Primitive: Nodal blue accent ---- */
   --primitive-blue-700: #095ec2;
   --primitive-blue-600: #1473e6;
   --primitive-blue-500: #2680eb;
@@ -105,7 +105,7 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* Dark theme — Clean, cohesive, understated Adobe Dark Charcoal */
+/* Dark theme — Clean, cohesive, understated Nodal Dark Charcoal */
 :root[data-theme="dark"] {
   --color-bg: #1c1c1c;
   --color-bg-surface: #242424;

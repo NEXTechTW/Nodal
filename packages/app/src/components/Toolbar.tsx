@@ -19,7 +19,7 @@ import {
 } from "./Icons.js";
 import { exampleMap } from "../example.js";
 
-/** Clean Adobe-style options / control bar. */
+/** Clean Nodal-style options / control bar. */
 export function Toolbar() {
   const map = useEditor((s) => s.map);
   const tool = useEditor((s) => s.tool);

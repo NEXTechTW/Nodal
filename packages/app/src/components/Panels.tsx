@@ -67,7 +67,7 @@ function CollapsibleSection({
   );
 }
 
-/** Compact Property Row (Adobe CC standard: label left, control right) */
+/** Compact Property Row (Nodal CC standard: label left, control right) */
 function PropRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="prop-row">

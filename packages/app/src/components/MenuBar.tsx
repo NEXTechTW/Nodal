@@ -10,7 +10,7 @@ type Item =
   | { label: string; action: () => void; disabled?: boolean; shortcut?: string }
   | { divider: true };
 
-/** Adobe Native Main Menu Bar */
+/** Nodal Native Main Menu Bar */
 export function MenuBar() {
   const map = useEditor((s) => s.map);
   const canUndo = useEditor((s) => s.stack.canUndo);
@@ -178,7 +178,7 @@ export function MenuBar() {
       label: L("Window"),
       items: [
         {
-          label: theme === "dark" ? "Theme: Switch to Light" : "Theme: Switch to Adobe Dark",
+          label: theme === "dark" ? "Theme: Switch to Light" : "Theme: Switch to Nodal Dark",
           action: toggleTheme,
         },
         {

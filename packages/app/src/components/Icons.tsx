@@ -1,4 +1,4 @@
-/** Inline SVG icons. `currentColor` so CSS states recolor them. Modeled after Adobe Creative Cloud UI icons. */
+/** Inline SVG icons. `currentColor` so CSS states recolor them. Modeled after Nodal Creative Cloud UI icons. */
 import type { SVGProps } from "react";
 
 function base(props: SVGProps<SVGSVGElement>) {
@@ -85,7 +85,7 @@ export const CheckIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}><path d="M20 6L9 17l-5-5" /></svg>
 );
 
-/* ---- Adobe UI Extra Icons ---- */
+/* ---- Nodal UI Extra Icons ---- */
 export const ChevronDownIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}><polyline points="6 9 12 15 18 9" /></svg>
 );

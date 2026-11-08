@@ -9,7 +9,7 @@ import {
   SnapIcon,
 } from "./Icons.js";
 
-/** Clean Adobe-style vertical tool dock with icon buttons and tooltips. */
+/** Clean Nodal-style vertical tool dock with icon buttons and tooltips. */
 export function ToolsDock() {
   const tool = useEditor((s) => s.tool);
   const setTool = useEditor((s) => s.setTool);

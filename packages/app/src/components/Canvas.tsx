@@ -329,7 +329,7 @@ export function Canvas() {
   const stationCount = Object.keys(map.stations).length;
   const parallel = computeParallelOffsets(map).bySegment;
 
-  // Global Keyboard Shortcuts (Adobe Standards: V, A, C, H, F, Ctrl+Z, Ctrl+D, Ctrl+', Ctrl+;, etc.)
+  // Global Keyboard Shortcuts (Nodal Standards: V, A, C, H, F, Ctrl+Z, Ctrl+D, Ctrl+', Ctrl+;, etc.)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -800,7 +800,7 @@ export function Canvas() {
                 data-station={s.id}
                 style={{ cursor: tool === "connect" ? "crosshair" : "pointer" }}
               >
-                {/* Adobe Selection Halo Indicator */}
+                {/* Nodal Selection Halo Indicator */}
                 {(isSel || isHover) && (
                   <circle
                     r={r + 6}
@@ -1015,7 +1015,7 @@ export function Canvas() {
         </g>
       </svg>
 
-      {/* Floating Contextual Taskbar (Adobe Photoshop 2026 style) */}
+      {/* Floating contextual toolbar */}
       {selectedStation && (
         <div className="ctx-toolbar" role="toolbar" aria-label="Selected Station Actions">
           <span className="ctx-label">

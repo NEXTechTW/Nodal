@@ -1,7 +1,7 @@
 /**
  * Zustand store — UI state (viewport, selection, tool) + domain state (MetroMap).
  * Undo/redo via CommandStack from @linewright/core (PROJECT.md §3).
- * Modeled after Adobe Creative Cloud workbench state management.
+ * Modeled after Nodal Creative Cloud workbench state management.
  */
 import { create } from "zustand";
 import {
@@ -49,7 +49,7 @@ function initialTheme(): Theme {
   } catch {
     /* ignore */
   }
-  // Adobe-style workbench defaults to dark charcoal.
+  // Nodal-style workbench defaults to dark charcoal.
   return "dark";
 }
 
@@ -80,7 +80,7 @@ interface EditorState {
   lastActionLabel: string | null;
   startupOpen: boolean;
 
-  // Adobe & RMP transit cartography features
+  // Nodal & RMP transit cartography features
   showGrid: boolean;
   snapToGrid: boolean;
   showRulers: boolean;
