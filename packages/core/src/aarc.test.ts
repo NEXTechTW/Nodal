@@ -4,7 +4,7 @@ import { validateMap } from "./validate.js";
 
 describe("AARC import", () => {
   it("converts lines/points to MetroMap", () => {
-    const aarc = {
+    const aarc: import("./aarc.js").AarcFile = {
       lines: [{ id: 9, pts: [7, 11], name: "L1", nameSub: "Line One", color: "#123456" }],
       points: [
         { id: 7, pos: [100, 200], name: "桃園", nameS: "Taoyuan", dir: 1 },
