@@ -291,6 +291,9 @@ export function Canvas() {
   const redo = useEditor((s) => s.redo);
   const setCursorPos = useEditor((s) => s.setCursorPos);
   const hiddenLineIds = useEditor((s) => s.hiddenLineIds);
+  const measureFrom = useEditor((s) => s.measureFrom);
+  const measureTo = useEditor((s) => s.measureTo);
+  const setMeasurePoints = useEditor((s) => s.setMeasurePoints);
   const bilingualLabels = useEditor((s) => s.bilingualLabels);
   const showTransferBadges = useEditor((s) => s.showTransferBadges);
   const showDPad = useEditor((s) => s.showDPad);
@@ -388,6 +391,21 @@ export function Canvas() {
       else if (k === "a") setTool("add-station");
       else if (k === "c") setTool("connect");
       else if (k === "h") setTool("pan");
+      else if (k === "m") setTool("measure");
+      else if (k === "t") setTool("label");
+      else if (["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) {
+        const s = useEditor.getState();
+        if (s.selectedStationId) {
+          const st = s.map.stations[s.selectedStationId];
+          if (st) {
+            const step = e.shiftKey ? 20 : 5;
+            const dx = k === "arrowleft" ? -step : k === "arrowright" ? step : 0;
+            const dy = k === "arrowup" ? -step : k === "arrowdown" ? step : 0;
+            s.setStationPosition(s.selectedStationId, { x: st.position.x + dx, y: st.position.y + dy });
+            e.preventDefault();
+          }
+        }
+      }
       else if (k === "f") zoomFit();
       else if (k === "?" || e.key === "F1") {
         e.preventDefault();
@@ -471,6 +489,24 @@ export function Canvas() {
       const pos = snapToGrid ? gridSnap(mapPt, map.style.gridStep) : mapPt;
       addStation(pos);
       selectStation(null);
+      return;
+    }
+
+    if (tool === "measure" && !effectivePan) {
+      const s = useEditor.getState();
+      if (!s.measureFrom) {
+        s.setMeasurePoints(mapPt, null);
+      } else {
+        s.setMeasurePoints(s.measureFrom, mapPt);
+        const d = Math.hypot(mapPt.x - s.measureFrom.x, mapPt.y - s.measureFrom.y);
+        s.setToast(`${d.toFixed(0)} units`);
+      }
+      return;
+    }
+
+    if (tool === "label" && !effectivePan) {
+      const text = window.prompt("Label text", "New label");
+      if (text && text.trim()) useEditor.getState().addStandaloneLabel(mapPt, text.trim());
       return;
     }
 
@@ -865,6 +901,37 @@ export function Canvas() {
               </g>
             );
           })}
+
+          {/* Standalone labels */}
+          {Object.values(map.labels).map((lb) => (
+            <text
+              key={lb.id}
+              x={lb.position.x}
+              y={lb.position.y}
+              textAnchor="middle"
+              fontFamily={map.style.fontFamily ?? "Noto Sans, sans-serif"}
+              fontSize={map.style.fontSize}
+              style={{ fill: map.style.labelColor ?? "#000000", pointerEvents: "none" }}
+            >
+              {displayName(lb.text, "Label", map.style.labelLanguage)}
+            </text>
+          ))}
+
+          {/* Measure overlay */}
+          {measureFrom && tool === "measure" && (
+            <g style={{ pointerEvents: "none" }}>
+              <circle cx={measureFrom.x} cy={measureFrom.y} r={4} fill="var(--color-accent)" />
+              {measureTo && (
+                <>
+                  <circle cx={measureTo.x} cy={measureTo.y} r={4} fill="var(--color-accent)" />
+                  <line x1={measureFrom.x} y1={measureFrom.y} x2={measureTo.x} y2={measureTo.y} stroke="var(--color-accent)" strokeWidth={2} strokeDasharray="6 4" />
+                  <text x={(measureFrom.x + measureTo.x) / 2} y={(measureFrom.y + measureTo.y) / 2 - 8} textAnchor="middle" fontSize={12} style={{ fill: "var(--color-accent)" }}>
+                    {Math.hypot(measureTo.x - measureFrom.x, measureTo.y - measureFrom.y).toFixed(0)} units
+                  </text>
+                </>
+              )}
+            </g>
+          )}
 
           {/* Line Labels */}
           {Object.values(map.lines).map((line) => {

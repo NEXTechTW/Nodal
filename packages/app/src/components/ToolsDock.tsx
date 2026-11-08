@@ -25,6 +25,8 @@ export function ToolsDock() {
     { id: "add-station", label: "Add Station (A)", icon: <AddStationIcon /> },
     { id: "connect", label: "Connect Stations (C)", icon: <ConnectIcon /> },
     { id: "pan", label: "Hand / Pan (H)", icon: <PanIcon /> },
+    { id: "measure", label: "Measure (M)", icon: <RulersIcon /> },
+    { id: "label", label: "Text label (T)", icon: <SelectIcon /> },
   ];
 
   return (

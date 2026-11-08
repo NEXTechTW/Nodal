@@ -27,7 +27,7 @@ import {
   type Vec2,
 } from "@linewright/core";
 
-export type Tool = "select" | "add-station" | "connect" | "pan";
+export type Tool = "select" | "add-station" | "connect" | "pan" | "measure" | "label";
 
 export interface Viewport {
   x: number;
@@ -97,6 +97,10 @@ interface EditorState {
     rotation?: number;
     labelOffset?: Vec2;
   } | null;
+  measureFrom: Vec2 | null;
+  measureTo: Vec2 | null;
+  setMeasurePoints(a: Vec2 | null, b: Vec2 | null): void;
+  addStandaloneLabel(pos: Vec2, text: string): void;
 
   // actions
   setStartupOpen(open: boolean): void;
@@ -217,6 +221,24 @@ export const useEditor = create<EditorState>((set, get) => {
     showTransferBadges: getStoredBool("nodal:transfer_badges", true),
     showDPad: getStoredBool("nodal:show_dpad", false),
     copiedStationAttrs: null,
+    measureFrom: null,
+    measureTo: null,
+    setMeasurePoints: (a, b) => set({ measureFrom: a, measureTo: b }),
+    addStandaloneLabel: (pos, text) => {
+      const id = createId();
+      const label = {
+        id,
+        targetId: id,
+        targetKind: "line" as const,
+        text: { en: text },
+        position: { ...pos },
+        anchor: "N" as Anchor,
+      };
+      set((s) => ({
+        map: { ...s.map, labels: { ...s.map.labels, [id]: label } },
+        lastActionLabel: "Add label",
+      }));
+    },
 
     setStartupOpen: (open) => set({ startupOpen: open }),
     setTool: (t) => set({ tool: t }),
