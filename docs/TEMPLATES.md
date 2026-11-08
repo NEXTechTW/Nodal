@@ -30,9 +30,13 @@ A template is one small JSON file that restyles the whole map. Stations and segm
 
 ## With the editor
 
+Design it here, no file needed:
+
 1. Open the **Map** tab.
-2. Click **Upload template…** and pick your `.json` file.
-3. The map recolours instantly. It is a normal edit — Undo (Ctrl+Z) reverts it.
+2. Tune background, fonts, station size, corner radius, and line colours with the controls.
+3. Click **Export current style as template…** to save it, or **Upload template…** to apply someone else's.
+
+Uploading does the same thing in reverse: the map recolours instantly. It is a normal edit — Undo (Ctrl+Z) reverts it.
 
 ## What people build first
 

@@ -643,8 +643,32 @@ export function PropertiesPanel() {
           <>
             <CollapsibleSection title="Map Template" defaultOpen={true}>
               <p style={{ margin: "0 0 8px", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
-                Upload a template JSON (see docs/TEMPLATES.md). It restyles background and line colours without moving stations.
+                Upload a template JSON, or design one right here with the controls below — then export it to share.
               </p>
+              <button
+                type="button"
+                className="btn btn-sm"
+                style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}
+                onClick={() => {
+                  const tpl = {
+                    name: "My template",
+                    style: { ...map.style },
+                    linePalette: Object.values(map.lines).map((l) => l.color),
+                    stationRadius: map.style.stationRadius,
+                  };
+                  const blob = new Blob([JSON.stringify(tpl, null, 2)], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "nodal-template.json";
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                Export current style as template…
+              </button>
               <label className="btn btn-sm" style={{ width: "100%", justifyContent: "center", cursor: "pointer" }}>
                 Upload template…
                 <input
