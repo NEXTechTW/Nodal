@@ -32,6 +32,7 @@ export interface AarcFile {
   points?: AarcPoint[];
   meta?: { title?: string; author?: string };
   pointLinks?: { pts?: number[]; type?: number }[];
+  textTags?: { pos?: [number, number]; text?: string; textS?: string }[];
 }
 
 export function isAarc(value: unknown): value is AarcFile {
@@ -71,17 +72,33 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
     map.stations[id] = station;
   }
 
-  // AARC type 2 pointLinks are dashed transfer footpaths (their midpoint
-  // label text lives in textTags; keep it simple and draw the dashed link).
+  // AARC type 2 pointLinks are dashed transfer footpaths. Their label
+  // lives in textTags near the midpoint (e.g. "透過林口長庚醫院").
   const links = aarc.pointLinks ?? [];
+  const tags = aarc.textTags ?? [];
   if (links.length) {
     map.transfers = {};
     links.forEach((link, idx) => {
       if (!Array.isArray(link.pts) || link.pts.length < 2) return;
       const from = String(link.pts[0]);
       const to = String(link.pts[1]);
-      if (!map.stations[from] || !map.stations[to]) return;
-      map.transfers![`aarc-link-${idx}`] = { id: `aarc-link-${idx}`, from, to };
+      const a = map.stations[from];
+      const b = map.stations[to];
+      if (!a || !b) return;
+      const mid = { x: (a.position.x + b.position.x) / 2, y: (a.position.y + b.position.y) / 2 };
+      let label: Record<string, string> | undefined;
+      let best = Infinity;
+      for (const tag of tags) {
+        if (!Array.isArray(tag.pos)) continue;
+        const d = Math.hypot(tag.pos[0] - mid.x, tag.pos[1] - mid.y);
+        if (d < 400 && d < best) {
+          best = d;
+          label = {};
+          if (tag.text) label["zh-TW"] = tag.text;
+          if (tag.textS) label.en = tag.textS;
+        }
+      }
+      map.transfers![`aarc-link-${idx}`] = { id: `aarc-link-${idx}`, from, to, label };
     });
   }
 
