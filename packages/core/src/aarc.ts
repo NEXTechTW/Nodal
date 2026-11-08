@@ -175,7 +175,9 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
         if (cur.wp) pending.push(cur.wp);
         continue;
       }
-      segs.push({ from: String(cur.pid), to: String(nxt.pid), waypoints: pending.length ? [...pending] : undefined });
+      segs.push(pending.length
+        ? { from: String(cur.pid), to: String(nxt.pid), waypoints: [...pending] }
+        : { from: String(cur.pid), to: String(nxt.pid) });
       pending = [];
     }
     map.lines[id]!.segments = segs;
