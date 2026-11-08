@@ -114,6 +114,8 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
         parts.push(`<path d="${d}" fill="none" stroke="${esc(line.color)}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`);
       } else {
         const dash = line.style === "dashed" ? ` stroke-dasharray="12 8"` : "";
+        // White casing separates overlapping lines, like the reference detail.
+        parts.push(`<path d="${d}" fill="none" stroke="#fff" stroke-width="${w + 5}" stroke-linecap="round" stroke-linejoin="round"${dash}/>`);
         parts.push(`<path d="${d}" fill="none" stroke="${esc(line.color)}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${dash}/>`);
       }
     }
