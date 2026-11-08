@@ -2,7 +2,7 @@
  * Turns a MetroMap into a standalone SVG string for export.
  * Kept free of DOM calls so it can run in Node.
  */
-import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, lineChains, offsetPolyline, roundedPolyline, svgPath, type MetroMap, type Vec2 } from "@linewright/core";
+import { anchorBaseline, anchorOffset, anchorTextAnchor, chainPoints, computeParallelOffsets, displayName, lineChains, offsetPolyline, roundedPolyline, svgPath, type MetroMap, type Vec2 } from "@linewright/core";
 
 export interface RenderOptions {
   width?: number;
@@ -95,11 +95,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
   for (const line of Object.values(map.lines)) {
     const w = line.width ?? 10;
     for (const chain of lineChains(map, line.id)) {
-      const raw: Vec2[] = [];
-      for (const id of chain) {
-        const st = map.stations[id];
-        if (st) raw.push(st.position);
-      }
+      const raw = chainPoints(map, chain);
       if (raw.length < 2) continue;
       // Apply parallel offset from the first matching segment.
       let pts = raw;

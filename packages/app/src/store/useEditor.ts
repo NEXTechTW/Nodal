@@ -218,7 +218,7 @@ export const useEditor = create<EditorState>((set, get) => {
     cursorPos: null,
     hiddenLineIds: {},
     bilingualLabels: getStoredBool("nodal:bilingual", true),
-    showTransferBadges: getStoredBool("nodal:transfer_badges", true),
+    showTransferBadges: getStoredBool("nodal:transfer_badges", false),
     showDPad: getStoredBool("nodal:show_dpad", false),
     copiedStationAttrs: null,
     measureFrom: null,

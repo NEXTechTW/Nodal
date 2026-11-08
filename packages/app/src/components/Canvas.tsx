@@ -3,8 +3,10 @@ import {
   anchorBaseline,
   anchorOffset,
   anchorTextAnchor,
+  chainPoints,
   computeParallelOffsets,
   lineChains,
+  offsetPolyline,
   displayName,
   roundedPolyline,
   svgPath,
@@ -721,9 +723,7 @@ export function Canvas() {
                     const inChain = chain.some((id, idx) => idx < chain.length - 1 && seg.from === id && seg.to === chain[idx + 1]);
                     if (inChain) offset = parallel.get(line.id)?.get(si) ?? 0;
                   }
-                  const raw: Vec2[] = chain
-                    .map((id) => map.stations[id]?.position)
-                    .filter((p): p is Vec2 => !!p);
+                  const raw = chainPoints(map, chain);
                   if (raw.length < 2) return null;
                   let pts = roundedPolyline(raw, cornerRadius);
                   if (offset) {

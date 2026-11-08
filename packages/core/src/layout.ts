@@ -30,6 +30,33 @@ export function lineChains(map: MetroMap, lineId: string): string[][] {
   return chains.filter((c) => c.length > 1);
 }
 
+/**
+ * Transit-style routing for one segment: straight when axis-aligned or 45°,
+ * otherwise an L-bend through a single elbow so bends land on the grid
+ * (matches the hand-drawn references: orthogonal + rounded corners).
+ */
+export function routedPoints(a: import("./types.js").Vec2, b: import("./types.js").Vec2): import("./types.js").Vec2[] {
+  if (a.x === b.x || a.y === b.y) return [a, b];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  if (Math.abs(Math.abs(dx) - Math.abs(dy)) < 1) return [a, b]; // already 45°
+  return [a, { x: b.x, y: a.y }, b];
+}
+
+/** Expand station chains into routed map points (elbow inserted per segment). */
+export function chainPoints(map: MetroMap, chain: string[]): import("./types.js").Vec2[] {
+  const pts: import("./types.js").Vec2[] = [];
+  for (let i = 0; i < chain.length - 1; i++) {
+    const a = map.stations[chain[i]!]?.position;
+    const b = map.stations[chain[i + 1]!]?.position;
+    if (!a || !b) continue;
+    const routed = routedPoints(a, b);
+    if (i === 0) pts.push(...routed);
+    else pts.push(routed[1]!, routed[2]!);
+  }
+  return pts;
+}
+
 export interface ParallelOffsets {
   /** lineId → segIndex → lateral offset (map units). Missing = 0. */
   bySegment: Map<string, Map<number, number>>;
