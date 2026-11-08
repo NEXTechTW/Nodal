@@ -382,7 +382,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
 
                           {/* Author & GitHub repository link */}
                           <div className="addon-byline">
-                            <span className="addon-author-label">by {addon.author}</span>
+                            <span className="addon-author-label">by @{addon.author}</span>
                             {addon.githubUrl && (
                               <a
                                 href={addon.githubUrl}
