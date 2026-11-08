@@ -618,19 +618,25 @@ export function Canvas() {
     setConnectPreview(null);
   };
 
-  const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
-    e.preventDefault();
-    const factor = Math.exp(-e.deltaY * 0.0012);
-    const k = Math.min(5, Math.max(0.15, viewport.k * factor));
+  // Wheel zoom must preventDefault, so it cannot be React's passive listener.
+  useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
-    const mapX = (cx - viewport.x) / viewport.k;
-    const mapY = (cy - viewport.y) / viewport.k;
-    setViewport({ k, x: cx - mapX * k, y: cy - mapY * k });
-  };
+    const handler = (e: WheelEvent) => {
+      e.preventDefault();
+      const factor = Math.exp(-e.deltaY * 0.0012);
+      const vp = useEditor.getState().viewport;
+      const k = Math.min(5, Math.max(0.15, vp.k * factor));
+      const rect = svg.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const mapX = (cx - vp.x) / vp.k;
+      const mapY = (cy - vp.y) / vp.k;
+      useEditor.getState().setViewport({ k, x: cx - mapX * k, y: cy - mapY * k });
+    };
+    svg.addEventListener("wheel", handler, { passive: false });
+    return () => svg.removeEventListener("wheel", handler);
+  }, []);
 
   const fromPos = connectFrom ? map.stations[connectFrom]?.position : null;
   const selectedStation = selectedStationId ? map.stations[selectedStationId] : null;
@@ -666,7 +672,6 @@ export function Canvas() {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onWheel={onWheel}
         onPointerLeave={() => {
           setConnectPreview(null);
           setCursorPos(null);
