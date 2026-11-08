@@ -74,6 +74,19 @@ export const metroMapSchema = {
         },
       },
     },
+    transfers: {
+      type: "object",
+      additionalProperties: {
+        type: "object",
+        required: ["id", "from", "to"],
+        properties: {
+          id: { type: "string" },
+          from: { type: "string" },
+          to: { type: "string" },
+          label: { type: "object", additionalProperties: { type: "string" } },
+        },
+      },
+    },
     labels: {
       type: "object",
       additionalProperties: {

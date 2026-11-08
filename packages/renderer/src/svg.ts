@@ -119,6 +119,22 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
     }
   }
 
+  // Transfers: dashed footpaths between stations (AARC pointLinks).
+  for (const tr of Object.values(map.transfers ?? {})) {
+    const a = map.stations[tr.from];
+    const b = map.stations[tr.to];
+    if (!a || !b) continue;
+    parts.push(`<line x1="${a.position.x}" y1="${a.position.y}" x2="${b.position.x}" y2="${b.position.y}" stroke="#333" stroke-width="3" stroke-dasharray="8 6" stroke-linecap="round"/>`);
+    if (tr.label) {
+      const mid = { x: (a.position.x + b.position.x) / 2, y: (a.position.y + b.position.y) / 2 };
+      const txt = displayName(tr.label, "", map.style.labelLanguage);
+      if (txt) {
+        parts.push(`<rect x="${mid.x - 70}" y="${mid.y - 14}" width="140" height="28" rx="4" fill="#fff" opacity="0.85"/>`);
+        parts.push(`<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dominant-baseline="middle" font-family="${esc(map.style.fontFamily ?? "Noto Sans, sans-serif")}" font-size="${Math.round(map.style.fontSize * 0.8)}" fill="${esc(map.style.labelColor ?? "#000000")}">${esc(txt)}</text>`);
+      }
+    }
+  }
+
   // Lines labels
   for (const line of Object.values(map.lines)) {
     // Cheap: place line label at first segment midpoint.

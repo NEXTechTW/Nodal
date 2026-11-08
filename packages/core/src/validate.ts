@@ -35,6 +35,7 @@ export function validateMap(value: unknown): ValidationIssue[] {
   if (!isObj(value.stations)) push("$.stations", "stations must be an object");
   if (!isObj(value.lines)) push("$.lines", "lines must be an object");
   if (!isObj(value.labels)) push("$.labels", "labels must be an object");
+  if (value.transfers !== undefined && !isObj(value.transfers)) push("$.transfers", "transfers must be an object");
   if (!isObj(value.style)) {
     push("$.style", "style must be an object");
     return issues;

@@ -925,6 +925,27 @@ export function Canvas() {
             );
           })}
 
+          {/* Transfer footpaths (dashed) */}
+          {Object.values(map.transfers ?? {}).map((tr) => {
+            const a = map.stations[tr.from];
+            const b = map.stations[tr.to];
+            if (!a || !b) return null;
+            return (
+              <line
+                key={tr.id}
+                x1={a.position.x}
+                y1={a.position.y}
+                x2={b.position.x}
+                y2={b.position.y}
+                stroke="var(--color-text-secondary)"
+                strokeWidth={3}
+                strokeDasharray="8 6"
+                strokeLinecap="round"
+                style={{ pointerEvents: "none" }}
+              />
+            );
+          })}
+
           {/* Standalone labels */}
           {Object.values(map.labels).map((lb) => (
             <text

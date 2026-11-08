@@ -78,12 +78,21 @@ export interface MapStyle {
   letterSpacing?: number;
 }
 
+export interface TransferLink {
+  id: ID;
+  from: ID;
+  to: ID;
+  /** e.g. "透過林口長庚醫院" — drawn at the midpoint. */
+  label?: Record<string, string>;
+}
+
 export interface MetroMap {
   schemaVersion: number;
   meta: { title: string; author?: string; createdAt: string };
   stations: Record<ID, Station>;
   lines: Record<ID, Line>;
   labels: Record<ID, Label>;
+  transfers?: Record<ID, TransferLink>;
   style: MapStyle;
 }
 

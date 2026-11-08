@@ -31,6 +31,7 @@ export interface AarcFile {
   lines?: AarcLine[];
   points?: AarcPoint[];
   meta?: { title?: string; author?: string };
+  pointLinks?: { pts?: number[]; type?: number }[];
 }
 
 export function isAarc(value: unknown): value is AarcFile {
@@ -68,6 +69,20 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
       station.labelOffset = { x: p.nameP[0], y: p.nameP[1] };
     }
     map.stations[id] = station;
+  }
+
+  // AARC type 2 pointLinks are dashed transfer footpaths (their midpoint
+  // label text lives in textTags; keep it simple and draw the dashed link).
+  const links = aarc.pointLinks ?? [];
+  if (links.length) {
+    map.transfers = {};
+    links.forEach((link, idx) => {
+      if (!Array.isArray(link.pts) || link.pts.length < 2) return;
+      const from = String(link.pts[0]);
+      const to = String(link.pts[1]);
+      if (!map.stations[from] || !map.stations[to]) return;
+      map.transfers![`aarc-link-${idx}`] = { id: `aarc-link-${idx}`, from, to };
+    });
   }
 
   for (const l of aarc.lines ?? []) {
