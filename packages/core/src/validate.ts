@@ -3,6 +3,7 @@
  * Every file carries `schemaVersion` (PROJECT.md §3). Migrations are pure.
  */
 import { CURRENT_SCHEMA_VERSION, type MetroMap } from "./types.js";
+import { aarcToMetroMap, isAarc } from "./aarc.js";
 
 export interface ValidationIssue {
   path: string;
@@ -118,13 +119,17 @@ export function migrateMap(value: unknown): { map: MetroMap; from: number } {
   return { map, from };
 }
 
-/** Safe JSON parse → MetroMap, with friendly errors (better-writing: errors name the fix). */
+/** Safe JSON parse → MetroMap. Accepts Nodal JSON and AARC files. */
 export function parseMapFile(text: string): MetroMap {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error("Unable to load map file. It is not valid JSON. Choose a .json file exported from Nodal and try again.");
+    throw new Error("Unable to load map file. It is not valid JSON. Choose a .json file exported from Nodal or AARC and try again.");
+  }
+  // AARC: convert through the importer.
+  if (typeof parsed === "object" && parsed !== null && "lines" in parsed && !("schemaVersion" in parsed)) {
+    if (isAarc(parsed)) return aarcToMetroMap(parsed);
   }
   const { map } = migrateMap(parsed);
   const issues = validateMap(map);
