@@ -31,16 +31,23 @@ export function lineChains(map: MetroMap, lineId: string): string[][] {
 }
 
 /**
- * Transit-style routing for one segment: straight when axis-aligned or 45°,
- * otherwise an L-bend through a single elbow so bends land on the grid
- * (matches the hand-drawn references: orthogonal + rounded corners).
+ * Octilinear routing: stay on 0°/45°/90° like real transit maps.
+ * If the delta is not axis-aligned or 45°, split it into a 45° diagonal
+ * plus an orthogonal remainder through one elbow.
  */
 export function routedPoints(a: import("./types.js").Vec2, b: import("./types.js").Vec2): import("./types.js").Vec2[] {
   if (a.x === b.x || a.y === b.y) return [a, b];
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   if (Math.abs(Math.abs(dx) - Math.abs(dy)) < 1) return [a, b]; // already 45°
-  return [a, { x: b.x, y: a.y }, b];
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    // Diagonal first (dy worth), then horizontal.
+    const mid = { x: a.x + Math.sign(dx) * Math.abs(dy), y: b.y };
+    return [a, mid, b];
+  }
+  // Vertical remainder: diagonal dx worth, then vertical.
+  const mid = { x: b.x, y: a.y + Math.sign(dy) * Math.abs(dx) };
+  return [a, mid, b];
 }
 
 /** Expand station chains into routed map points (elbow inserted per segment). */
