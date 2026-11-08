@@ -123,7 +123,10 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
   for (const s of Object.values(map.stations)) {
     const r = map.style.stationRadius;
     const isSel = opts.selectedId === s.id;
-    const stroke = isSel ? "#0B5FFF" : "#111";
+    const lineColor = Object.values(map.lines).find((l) =>
+      l.segments.some((seg) => seg.from === s.id || seg.to === s.id),
+    )?.color;
+    const stroke = isSel ? "#0B5FFF" : (lineColor ?? "#111");
     const rot = s.rotation ? ` transform="rotate(${s.rotation} ${s.position.x} ${s.position.y})"` : "";
     if (s.kind === "interchange") {
       parts.push(`<g data-station="${esc(s.id)}"${rot}><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/><circle cx="${s.position.x}" cy="${s.position.y}" r="${r + 7}" fill="none" stroke="${stroke}" stroke-width="2" opacity="0.9"/></g>`);

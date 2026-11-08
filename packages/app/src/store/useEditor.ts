@@ -513,7 +513,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const id = createId();
       const PALETTE = ["#0067C0", "#E00034", "#009444", "#FF8A00", "#6A1B9A", "#00A9A5", "#E55934", "#FFC800"];
       const color = PALETTE[Object.keys(get().map.lines).length % PALETTE.length]!;
-      const line = { id, name: { en: name || "New line" }, color, segments: [], style: "solid" as const, width: 8 };
+      const line = { id, name: { en: name || "New line" }, color, segments: [], style: "solid" as const, width: 10 };
       const cmd = addLineCommand(id, line);
       const map = get().stack.dispatch(cmd);
       set({ map, activeLineId: id, selectedLineId: id, selectedStationId: null, lastActionLabel: cmd.label });

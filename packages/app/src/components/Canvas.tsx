@@ -765,7 +765,10 @@ export function Canvas() {
             const isSel = s.id === selectedStationId;
             const isHover = s.id === hoverStation;
             const r = map.style.stationRadius;
-            const stroke = isSel ? "var(--color-accent)" : "#1e1e1e";
+            const lineColor = Object.values(map.lines).find((l) =>
+              l.segments.some((seg) => seg.from === s.id || seg.to === s.id),
+            )?.color;
+            const stroke = isSel ? "var(--color-accent)" : (lineColor ?? "#1e1e1e");
             const sw = isSel ? 3.5 : 2.5;
 
             return (
