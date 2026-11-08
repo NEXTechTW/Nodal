@@ -748,18 +748,16 @@ export function Canvas() {
                     );
                   }
                   return (
-                    <g key={ci}>
-                      <path d={d} fill="none" stroke="#ffffff" strokeWidth={w + 2} strokeLinecap="butt" strokeLinejoin="round" pointerEvents="none" />
-                      <path
-                        d={d}
-                        fill="none"
-                        stroke={line.color}
-                        strokeWidth={w}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeDasharray={line.style === "dashed" ? "12 8" : undefined}
-                      />
-                    </g>
+                    <path
+                      key={ci}
+                      d={d}
+                      fill="none"
+                      stroke={line.color}
+                      strokeWidth={w}
+                      strokeLinecap="butt"
+                      strokeLinejoin="round"
+                      strokeDasharray={line.style === "dashed" ? "12 8" : undefined}
+                    />
                   );
                 })}
               </g>

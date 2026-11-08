@@ -114,8 +114,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
         parts.push(`<path d="${d}" fill="none" stroke="${esc(line.color)}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`);
       } else {
         const dash = line.style === "dashed" ? ` stroke-dasharray="12 8"` : "";
-        // Thin white casing: parallel lines abut, crossings stay legible.
-        parts.push(`<path d="${d}" fill="none" stroke="#fff" stroke-width="${w + 2}" stroke-linecap="butt" stroke-linejoin="round"${dash}/>`);
+        // No white casing: parallel lines abut edge-to-edge.
         parts.push(`<path d="${d}" fill="none" stroke="${esc(line.color)}" stroke-width="${w}" stroke-linecap="butt" stroke-linejoin="round"${dash}/>`);
       }
     }
