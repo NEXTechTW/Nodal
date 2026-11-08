@@ -143,7 +143,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
       templates: 0,
       enabled: 0,
     };
-    for (const a of CATALOG) {
+    for (const a of catalog) {
       if (a.category in c) {
         c[a.category]++;
       }
@@ -152,7 +152,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
       }
     }
     return c;
-  }, [enabled]);
+  }, [catalog, enabled]);
 
   return (
     <div
