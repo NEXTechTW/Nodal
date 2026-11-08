@@ -42,6 +42,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
   });
 
   const [catalog, setCatalog] = useState<AddonMetadata[]>(CATALOG);
+  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<AddonCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -52,7 +53,8 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
       .then((meta: AddonMetadata | null) => {
         if (!cancelled && meta?.id) setCatalog([meta]);
       })
-      .catch(() => { /* offline: stay empty */ });
+      .catch(() => { /* offline: stay empty */ })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -296,12 +298,19 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
 
         {/* List of Addons */}
         <div className="addon-list" role="list">
-          {filteredAddons.length === 0 ? (
+          {loading ? (
+            <div className="addon-empty-state">
+              <p className="addon-empty-title">Loading addons…</p>
+              <p className="addon-empty-sub">Fetching from cdn.jsdelivr.net (nodal-addon-theme).</p>
+            </div>
+          ) : filteredAddons.length === 0 ? (
             <div className="addon-empty-state">
               <div className="addon-empty-icon" aria-hidden="true">🔍</div>
               <p className="addon-empty-title">No addons found</p>
               <p className="addon-empty-sub">
-                No matching addons for "{searchQuery}".
+                {searchQuery
+                  ? `No matching addons for "${searchQuery}".`
+                  : "Nothing in the registry yet. Check your connection and reopen."}
               </p>
               <button
                 type="button"
