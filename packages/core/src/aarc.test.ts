@@ -22,4 +22,21 @@ describe("AARC import", () => {
     const m = aarcToMetroMap({ lines: [{ id: 1, pts: [1, 99], name: "X", color: "#000000" }], points: [{ id: 1, pos: [0, 0] }] });
     expect(m.lines["aarc-1"]!.segments).toHaveLength(0);
   });
+  it("keeps unnamed waypoint in the correct segment without bleeding into next segment", () => {
+    const aarc: import("./aarc.js").AarcFile = {
+      lines: [{ id: 1, pts: [7, 65, 68, 178], name: "Silver", color: "#C0C0C0" }],
+      points: [
+        { id: 7, pos: [100, 100], name: "S1" },
+        { id: 65, pos: [150, 100] }, // unnamed junction waypoint
+        { id: 68, pos: [200, 100], name: "S2" },
+        { id: 178, pos: [300, 200], name: "S3" },
+      ],
+    };
+    const m = aarcToMetroMap(aarc);
+    const segs = m.lines["aarc-1"]!.segments;
+    expect(segs).toHaveLength(2);
+    // Waypoint 65 must be on seg 7->68, NOT on seg 68->178
+    expect(segs[0]).toEqual({ from: "7", to: "68", waypoints: [{ x: 150, y: 100 }] });
+    expect(segs[1]).toEqual({ from: "68", to: "178" });
+  });
 });

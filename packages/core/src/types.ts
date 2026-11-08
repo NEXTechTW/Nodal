@@ -108,10 +108,10 @@ export function emptyMap(title = "Untitled map"): MetroMap {
     style: {
       background: "#FFFFFF",
       gridStep: 40,
-      cornerRadius: 18,
+      cornerRadius: 36,
       labelLanguage: "en",
       fontSize: 14,
-      stationRadius: 6,
+      stationRadius: 8,
       fontFamily: "Noto Sans, sans-serif",
       labelColor: "#000000",
       fontWeight: 500,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyMap } from "./types.js";
-import { avoidLabelOverlaps, computeParallelOffsets, labelBox, offsetPolyline, trackKey } from "./layout.js";
+import { avoidLabelOverlaps, chainPoints, computeParallelOffsets, labelBox, offsetPolyline, trackKey } from "./layout.js";
 
 function twoStations() {
   const m = emptyMap("T");
@@ -31,6 +31,45 @@ describe("trackKey / parallel offsets", () => {
     const out = offsetPolyline([{ x: 0, y: 0 }, { x: 100, y: 0 }], 5);
     expect(out[0]).toEqual({ x: 0, y: 5 });
     expect(out[1]).toEqual({ x: 100, y: 5 });
+  });
+  it("offsets a multi-segment polyline keeping horizontal segment horizontal", () => {
+    const out = offsetPolyline([{ x: 200, y: 100 }, { x: 300, y: 200 }, { x: 400, y: 200 }], 10);
+    expect(out[1]?.y).toBeCloseTo(210);
+    expect(out[2]?.y).toBe(210);
+  });
+  it("applies parallel offsets per-segment in chainPoints", () => {
+    const m = emptyMap("T");
+    m.stations["s1"] = { id: "s1", name: { en: "S1" }, position: { x: 0, y: 100 }, kind: "normal", labelAnchor: "N" };
+    m.stations["s2"] = { id: "s2", name: { en: "S2" }, position: { x: 100, y: 100 }, kind: "normal", labelAnchor: "N" };
+    m.stations["s3"] = { id: "s3", name: { en: "S3" }, position: { x: 200, y: 100 }, kind: "normal", labelAnchor: "N" };
+    m.stations["s4"] = { id: "s4", name: { en: "S4" }, position: { x: 100, y: 0 }, kind: "normal", labelAnchor: "N" };
+
+    m.lines["l1"] = {
+      id: "l1",
+      name: { en: "L1" },
+      color: "#000",
+      style: "solid",
+      segments: [{ from: "s1", to: "s2" }, { from: "s2", to: "s3" }],
+    };
+    m.lines["l2"] = {
+      id: "l2",
+      name: { en: "L2" },
+      color: "#111",
+      style: "solid",
+      segments: [{ from: "s4", to: "s2" }, { from: "s2", to: "s3" }],
+    };
+
+    const offsets = computeParallelOffsets(m, 10).bySegment;
+    const ptsL1 = chainPoints(m, ["s1", "s2", "s3"], "l1", offsets);
+    const ptsL2 = chainPoints(m, ["s4", "s2", "s3"], "l2", offsets);
+
+    // Segment s1->s2 on l1 is single: offset is 0, y stays 100
+    expect(ptsL1[0]?.y).toBe(100);
+    // Shared segment s2->s3 on l1 has offset -5 -> y = 95
+    expect(ptsL1[ptsL1.length - 1]?.y).toBe(95);
+
+    // Shared segment s2->s3 on l2 has offset +5 -> y = 105
+    expect(ptsL2[ptsL2.length - 1]?.y).toBe(105);
   });
 });
 

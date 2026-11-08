@@ -718,24 +718,9 @@ export function Canvas() {
             return (
               <g key={line.id} data-line={line.id}>
                 {chains.map((chain, ci) => {
-                  // Find a parallel offset from any segment in this chain.
-                  let offset = 0;
-                  for (let si = 0; si < line.segments.length; si++) {
-                    const seg = line.segments[si]!;
-                    const inChain = chain.some((id, idx) => idx < chain.length - 1 && seg.from === id && seg.to === chain[idx + 1]);
-                    if (inChain) offset = parallel.get(line.id)?.get(si) ?? 0;
-                  }
-                  const raw = chainPoints(map, chain, line.id);
+                  const raw = chainPoints(map, chain, line.id, parallel);
                   if (raw.length < 2) return null;
-                  let pts = roundedPolyline(raw, cornerRadius);
-                  if (offset) {
-                    const { offsetPolyline } = { offsetPolyline: undefined };
-                    void offsetPolyline;
-                    // Offset via per-segment helper already in renderer path; shift whole chain.
-                    const n = { x: -(pts[pts.length - 1]!.y - pts[0]!.y), y: pts[pts.length - 1]!.x - pts[0]!.x };
-                    const len = Math.hypot(n.x, n.y) || 1;
-                    pts = pts.map((p) => ({ x: p.x + (n.x / len) * offset, y: p.y + (n.y / len) * offset }));
-                  }
+                  const pts = roundedPolyline(raw, cornerRadius);
                   const d = svgPath(pts);
                   const w = line.width ?? 10;
                   if (line.style === "double") {

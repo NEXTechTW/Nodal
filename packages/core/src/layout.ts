@@ -51,19 +51,40 @@ export function routedPoints(a: import("./types.js").Vec2, b: import("./types.js
 }
 
 /** Expand station chains into routed map points (elbow + waypoints per segment). */
-export function chainPoints(map: MetroMap, chain: string[], lineId?: string): import("./types.js").Vec2[] {
+export function chainPoints(
+  map: MetroMap,
+  chain: string[],
+  lineId?: string,
+  offsets?: Map<string, Map<number, number>>,
+): import("./types.js").Vec2[] {
   const pts: import("./types.js").Vec2[] = [];
+  const line = lineId ? map.lines[lineId] : undefined;
   for (let i = 0; i < chain.length - 1; i++) {
-    const a = map.stations[chain[i]!]?.position;
-    const b = map.stations[chain[i + 1]!]?.position;
+    const fromId = chain[i]!;
+    const toId = chain[i + 1]!;
+    const a = map.stations[fromId]?.position;
+    const b = map.stations[toId]?.position;
     if (!a || !b) continue;
+
     // Explicit waypoints win over auto-routing.
     let routed = routedPoints(a, b);
-    if (lineId) {
-      const line = map.lines[lineId];
-      const seg = line?.segments.find((s) => s.from === chain[i] && s.to === chain[i + 1]);
-      if (seg?.waypoints?.length) routed = [a, ...seg.waypoints, b];
+    let segIdx = -1;
+    if (line) {
+      segIdx = line.segments.findIndex((s) => (s.from === fromId && s.to === toId) || (s.from === toId && s.to === fromId));
+      if (segIdx >= 0 && line.segments[segIdx]?.waypoints?.length) {
+        const isRev = line.segments[segIdx]!.from === toId && line.segments[segIdx]!.to === fromId;
+        const wps = line.segments[segIdx]!.waypoints!;
+        routed = isRev ? [a, ...[...wps].reverse(), b] : [a, ...wps, b];
+      }
     }
+
+    if (lineId && offsets && segIdx >= 0) {
+      const off = offsets.get(lineId)?.get(segIdx) ?? 0;
+      if (off) {
+        routed = offsetPolyline(routed, off);
+      }
+    }
+
     if (i === 0) pts.push(...routed);
     else pts.push(...routed.slice(1));
   }
@@ -115,14 +136,47 @@ export function computeParallelOffsets(map: MetroMap, step = 10): ParallelOffset
 }
 
 /**
- * Offset a polyline laterally. Straight segments use their own normal;
- * for simplicity waypoints reuse the overall segment normal so straight
- * 45° tracks (the common case) stay perfectly parallel.
+ * Offset a polyline laterally. Uses per-subsegment normals and intersects
+ * adjacent offset segments so turns (elbows) stay cleanly parallel.
  */
 export function offsetPolyline(points: Vec2[], offset: number): Vec2[] {
   if (offset === 0 || points.length < 2) return [...points];
-  const n = normalOf(points[0]!, points[points.length - 1]!);
-  return points.map((p) => ({ x: p.x + n.x * offset, y: p.y + n.y * offset }));
+  if (points.length === 2) {
+    const n = normalOf(points[0]!, points[1]!);
+    return [
+      { x: points[0]!.x + n.x * offset, y: points[0]!.y + n.y * offset },
+      { x: points[1]!.x + n.x * offset, y: points[1]!.y + n.y * offset },
+    ];
+  }
+  const nSegs: Vec2[] = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    nSegs.push(normalOf(points[i]!, points[i + 1]!));
+  }
+  const out: Vec2[] = [];
+  out.push({ x: points[0]!.x + nSegs[0]!.x * offset, y: points[0]!.y + nSegs[0]!.y * offset });
+  for (let i = 1; i < points.length - 1; i++) {
+    const n0 = nSegs[i - 1]!, n1 = nSegs[i]!;
+    const pPrev = points[i - 1]!, pCurr = points[i]!, pNext = points[i + 1]!;
+    const d0x = pCurr.x - pPrev.x, d0y = pCurr.y - pPrev.y;
+    const d1x = pNext.x - pCurr.x, d1y = pNext.y - pCurr.y;
+    const cross = d0x * d1y - d0y * d1x;
+    if (Math.abs(cross) < 1e-4) {
+      out.push({ x: pCurr.x + n0.x * offset, y: pCurr.y + n0.y * offset });
+    } else {
+      const aX = pPrev.x + n0.x * offset, aY = pPrev.y + n0.y * offset;
+      const bX = pCurr.x + n1.x * offset, bY = pCurr.y + n1.y * offset;
+      const t = ((bX - aX) * d1y - (bY - aY) * d1x) / cross;
+      const interX = aX + t * d0x, interY = aY + t * d0y;
+      if (Math.hypot(interX - pCurr.x, interY - pCurr.y) > Math.abs(offset) * 2.5) {
+        out.push({ x: pCurr.x + n0.x * offset, y: pCurr.y + n0.y * offset });
+      } else {
+        out.push({ x: interX, y: interY });
+      }
+    }
+  }
+  const nLast = nSegs[nSegs.length - 1]!;
+  out.push({ x: points[points.length - 1]!.x + nLast.x * offset, y: points[points.length - 1]!.y + nLast.y * offset });
+  return out;
 }
 
 /* ---------------- Label auto-avoidance ---------------- */

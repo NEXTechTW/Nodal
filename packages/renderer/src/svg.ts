@@ -95,18 +95,9 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
   for (const line of Object.values(map.lines)) {
     const w = line.width ?? 10;
     for (const chain of lineChains(map, line.id)) {
-      const raw = chainPoints(map, chain, line.id);
+      const raw = chainPoints(map, chain, line.id, offsets);
       if (raw.length < 2) continue;
-      // Apply parallel offset from the first matching segment.
-      let pts = raw;
-      for (let i = 0; i < line.segments.length; i++) {
-        const off = offsets.get(line.id)?.get(i) ?? 0;
-        if (off) {
-          pts = offsetPolyline(roundedPolyline(raw, map.style.cornerRadius), off);
-          break;
-        }
-      }
-      if (pts === raw) pts = roundedPolyline(raw, map.style.cornerRadius);
+      const pts = roundedPolyline(raw, map.style.cornerRadius);
       const d = svgPath(pts);
       if (line.style === "double") {
         parts.push(`<path d="${d}" fill="none" stroke="${esc(line.color)}" stroke-width="${w + 6}" stroke-linecap="round" stroke-linejoin="round"/>`);

@@ -5,7 +5,7 @@
  *   points: [{ id, pos: [x, y], name, nameS, nameP: [dx, dy], ... }]
  * Nodal maps it onto MetroMap so the file can be saved as Nodal JSON afterwards.
  */
-import { CURRENT_SCHEMA_VERSION, emptyMap, type Anchor, type MetroMap, type Station } from "./types.js";
+import { CURRENT_SCHEMA_VERSION, emptyMap, type Anchor, type MetroMap, type Segment, type Station } from "./types.js";
 
 export interface AarcPoint {
   id: number;
@@ -151,34 +151,31 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
         .map((pt, i, arr) => ({ from: String(pt), to: String(arr[(i + 1) % arr.length]) }))
         .filter((s, i, arr) => Math.floor(arr.length / 2) > 0 && i < arr.length - 1),
     };
-    // Fix: consecutive pairs, not wrap-around.
-    const ids = (l.pts ?? [])
-      .map((pt) => idMap.get(pt) ?? pt)
-      .filter((pt, idx, arr) => map.stations[String(pt)] && arr.indexOf(pt) === idx)
-      .map(String);
     // Carry unnamed junction positions through as waypoints so Y-forks land
     // between stations instead of forcing a join at a station.
     const full = (l.pts ?? []).map((pt) => ({
       pid: idMap.get(pt) ?? pt,
       wp: waypoints.get(pt),
     }));
-    const segs = [];
+    const segs: Segment[] = [];
+    let lastStationId: string | null = null;
     let pending: { x: number; y: number }[] = [];
-    for (let i = 0; i < full.length - 1; i++) {
-      const cur = full[i]!;
-      const nxt = full[i + 1]!;
-      if (!map.stations[String(nxt.pid)]) {
-        if (nxt.wp) pending.push(nxt.wp);
-        continue;
+
+    for (const pt of full) {
+      const sid = String(pt.pid);
+      if (map.stations[sid]) {
+        if (lastStationId !== null && lastStationId !== sid) {
+          segs.push(
+            pending.length
+              ? { from: lastStationId, to: sid, waypoints: [...pending] }
+              : { from: lastStationId, to: sid }
+          );
+        }
+        lastStationId = sid;
+        pending = [];
+      } else if (pt.wp) {
+        pending.push(pt.wp);
       }
-      if (!map.stations[String(cur.pid)]) {
-        if (cur.wp) pending.push(cur.wp);
-        continue;
-      }
-      segs.push(pending.length
-        ? { from: String(cur.pid), to: String(nxt.pid), waypoints: [...pending] }
-        : { from: String(cur.pid), to: String(nxt.pid) });
-      pending = [];
     }
     map.lines[id]!.segments = segs;
   }
