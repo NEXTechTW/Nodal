@@ -725,7 +725,7 @@ export function Canvas() {
                     const inChain = chain.some((id, idx) => idx < chain.length - 1 && seg.from === id && seg.to === chain[idx + 1]);
                     if (inChain) offset = parallel.get(line.id)?.get(si) ?? 0;
                   }
-                  const raw = chainPoints(map, chain);
+                  const raw = chainPoints(map, chain, line.id);
                   if (raw.length < 2) return null;
                   let pts = roundedPolyline(raw, cornerRadius);
                   if (offset) {

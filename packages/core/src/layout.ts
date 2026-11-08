@@ -50,14 +50,20 @@ export function routedPoints(a: import("./types.js").Vec2, b: import("./types.js
   return [a, mid, b];
 }
 
-/** Expand station chains into routed map points (elbow inserted per segment). */
-export function chainPoints(map: MetroMap, chain: string[]): import("./types.js").Vec2[] {
+/** Expand station chains into routed map points (elbow + waypoints per segment). */
+export function chainPoints(map: MetroMap, chain: string[], lineId?: string): import("./types.js").Vec2[] {
   const pts: import("./types.js").Vec2[] = [];
   for (let i = 0; i < chain.length - 1; i++) {
     const a = map.stations[chain[i]!]?.position;
     const b = map.stations[chain[i + 1]!]?.position;
     if (!a || !b) continue;
-    const routed = routedPoints(a, b);
+    // Explicit waypoints win over auto-routing.
+    let routed = routedPoints(a, b);
+    if (lineId) {
+      const line = map.lines[lineId];
+      const seg = line?.segments.find((s) => s.from === chain[i] && s.to === chain[i + 1]);
+      if (seg?.waypoints?.length) routed = [a, ...seg.waypoints, b];
+    }
     if (i === 0) pts.push(...routed);
     else pts.push(...routed.slice(1));
   }

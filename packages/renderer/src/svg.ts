@@ -95,7 +95,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
   for (const line of Object.values(map.lines)) {
     const w = line.width ?? 10;
     for (const chain of lineChains(map, line.id)) {
-      const raw = chainPoints(map, chain);
+      const raw = chainPoints(map, chain, line.id);
       if (raw.length < 2) continue;
       // Apply parallel offset from the first matching segment.
       let pts = raw;

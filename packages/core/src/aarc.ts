@@ -66,7 +66,14 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
       if (d < 25) idMap.set(b.id, a.id);
     }
   }
-  const merged = rawPoints.filter((p) => !idMap.has(p.id));
+  // Unnamed points are junctions, not stations — keep them as waypoints.
+  const waypoints = new Map<number, { x: number; y: number }>();
+  for (const p of rawPoints) {
+    if (!p.name && !p.nameS && Array.isArray(p.pos)) {
+      waypoints.set(p.id, { x: p.pos[0], y: p.pos[1] });
+    }
+  }
+  const merged = rawPoints.filter((p) => !idMap.has(p.id) && (p.name || p.nameS));
   for (const p of merged) {
     const id = String(p.id);
     // Collect names from merged-away twins too.
@@ -149,7 +156,29 @@ export function aarcToMetroMap(aarc: AarcFile): MetroMap {
       .map((pt) => idMap.get(pt) ?? pt)
       .filter((pt, idx, arr) => map.stations[String(pt)] && arr.indexOf(pt) === idx)
       .map(String);
-    map.lines[id]!.segments = ids.slice(0, -1).map((from, i) => ({ from, to: ids[i + 1]! }));
+    // Carry unnamed junction positions through as waypoints so Y-forks land
+    // between stations instead of forcing a join at a station.
+    const full = (l.pts ?? []).map((pt) => ({
+      pid: idMap.get(pt) ?? pt,
+      wp: waypoints.get(pt),
+    }));
+    const segs = [];
+    let pending: { x: number; y: number }[] = [];
+    for (let i = 0; i < full.length - 1; i++) {
+      const cur = full[i]!;
+      const nxt = full[i + 1]!;
+      if (!map.stations[String(nxt.pid)]) {
+        if (nxt.wp) pending.push(nxt.wp);
+        continue;
+      }
+      if (!map.stations[String(cur.pid)]) {
+        if (cur.wp) pending.push(cur.wp);
+        continue;
+      }
+      segs.push({ from: String(cur.pid), to: String(nxt.pid), waypoints: pending.length ? [...pending] : undefined });
+      pending = [];
+    }
+    map.lines[id]!.segments = segs;
   }
 
   return map;
