@@ -43,7 +43,8 @@ export function Toolbar() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileOpen, setFileOpen] = useState(false);
   const fileWrapRef = useRef<HTMLDivElement>(null);
-  const [addonOpen, setAddonOpen] = useState(false);
+  const addonManagerOpen = useEditor((s) => s.addonManagerOpen);
+  const setAddonManagerOpen = useEditor((s) => s.setAddonManagerOpen);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -272,8 +273,8 @@ export function Toolbar() {
         type="button"
         className="btn btn-tool icon-btn"
         aria-label="Manage addons"
-        title="Addons"
-        onClick={() => setAddonOpen(true)}
+        title="Addons & Extensions"
+        onClick={() => setAddonManagerOpen(true)}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M14 3h7v7" /><path d="M9 21H3v-6" /><path d="M21 3l-9 9" /><path d="M3 21l9-9" /></svg>
       </button>
@@ -292,7 +293,7 @@ export function Toolbar() {
       </a>
 
       <input ref={fileRef} type="file" accept="application/json,.json" aria-label="Load map JSON file" hidden onChange={onFile} />
-      {addonOpen && <AddonManager onClose={() => setAddonOpen(false)} />}
+      {addonManagerOpen && <AddonManager onClose={() => setAddonManagerOpen(false)} />}
     </header>
   );
 }

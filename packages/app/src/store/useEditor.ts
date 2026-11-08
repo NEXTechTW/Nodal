@@ -86,6 +86,7 @@ interface EditorState {
   showRulers: boolean;
   showMiniMap: boolean;
   shortcutsOpen: boolean;
+  addonManagerOpen: boolean;
   cursorPos: Vec2 | null;
   hiddenLineIds: Record<string, boolean>;
   bilingualLabels: boolean;
@@ -161,6 +162,7 @@ interface EditorState {
   toggleTransferBadges(): void;
   toggleDPad(): void;
   setShortcutsOpen(open: boolean): void;
+  setAddonManagerOpen(open: boolean): void;
   setCursorPos(pos: Vec2 | null): void;
   zoomIn(): void;
   zoomOut(): void;
@@ -215,6 +217,7 @@ export const useEditor = create<EditorState>((set, get) => {
     showRulers: getStoredBool("nodal:show_rulers", false),
     showMiniMap: getStoredBool("nodal:show_minimap", false),
     shortcutsOpen: false,
+    addonManagerOpen: false,
     cursorPos: null,
     hiddenLineIds: {},
     bilingualLabels: getStoredBool("nodal:bilingual", true),
@@ -285,6 +288,7 @@ export const useEditor = create<EditorState>((set, get) => {
       set({ showMiniMap: next });
     },
     setShortcutsOpen: (open) => set({ shortcutsOpen: open }),
+    setAddonManagerOpen: (open) => set({ addonManagerOpen: open }),
     setCursorPos: (pos) => set({ cursorPos: pos }),
     toggleLineVisibility: (id) => {
       set((s) => ({

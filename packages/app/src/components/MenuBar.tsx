@@ -182,6 +182,10 @@ export function MenuBar() {
           action: toggleTheme,
         },
         {
+          label: "Addon & Extension Manager…",
+          action: () => useEditor.getState().setAddonManagerOpen(true),
+        },
+        {
           label: "Reset Startup Welcome Screen",
           action: () => useEditor.getState().setStartupOpen(true),
         },

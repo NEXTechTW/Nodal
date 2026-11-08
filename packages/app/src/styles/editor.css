@@ -986,3 +986,632 @@ kbd {
   }
   .left-panel, .right-panel { display: none; }
 }
+
+/* ==========================================================================
+   Addon & Extension Manager (Rebuilt Modern CC / Figma style)
+   ========================================================================== */
+.addon-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+  animation: addonFadeIn 150ms ease-out;
+}
+
+@keyframes addonFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.addon-modal {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-4);
+  box-shadow: var(--shadow-dropdown);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: addonScaleIn 160ms var(--ease-standard);
+}
+
+@keyframes addonScaleIn {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Modal Header */
+.addon-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  background: var(--color-bg-panel-header);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.addon-modal-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.addon-modal-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-3);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.addon-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.addon-modal-title {
+  margin: 0;
+  font-size: var(--text-16);
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.addon-badge-count {
+  font-size: var(--text-11);
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border: 1px solid rgba(38, 128, 235, 0.25);
+}
+
+.addon-modal-sub {
+  margin: 3px 0 0;
+  font-size: var(--text-12);
+  color: var(--color-text-secondary);
+}
+
+.addon-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-2);
+  transition: all var(--dur-fast);
+}
+
+.addon-close-btn:hover {
+  background: var(--color-bg-inset);
+  color: var(--color-text);
+}
+
+/* Modal Toolbar & Search */
+.addon-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 12px 20px;
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.addon-search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 380px;
+  display: flex;
+  align-items: center;
+}
+
+.addon-search-icon {
+  position: absolute;
+  left: 9px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.addon-search-input {
+  width: 100%;
+  height: 28px;
+  background: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: 0 28px 0 30px;
+  font-size: var(--text-12);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--dur-fast);
+}
+
+.addon-search-input:focus {
+  border-color: var(--color-focus-ring);
+}
+
+.addon-search-clear {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--color-text-tertiary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.addon-search-clear:hover {
+  color: var(--color-text);
+}
+
+.addon-batch-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-11);
+}
+
+.addon-action-link {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: var(--text-11);
+  border-radius: var(--radius-1);
+}
+.addon-action-link:hover {
+  text-decoration: underline;
+}
+
+.addon-sep {
+  color: var(--color-text-tertiary);
+  font-size: 10px;
+}
+
+/* Category Tabs */
+.addon-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 20px 0;
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.addon-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 10px 8px;
+  font-size: var(--text-12);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all var(--dur-fast);
+}
+
+.addon-tab:hover {
+  color: var(--color-text);
+}
+
+.addon-tab.is-active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.addon-tab-count {
+  font-size: var(--text-10);
+  padding: 0px 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-inset);
+  color: var(--color-text-secondary);
+}
+.addon-tab.is-active .addon-tab-count {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+/* Addon List Container */
+.addon-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-bg-canvas);
+}
+
+/* Individual Addon Card */
+.addon-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-3);
+  padding: 14px 16px;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.addon-card:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.addon-card.is-disabled {
+  opacity: 0.72;
+}
+.addon-card.is-disabled:hover {
+  opacity: 0.92;
+}
+
+.addon-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.addon-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-2);
+  background: var(--color-bg-inset);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+}
+.addon-card.is-enabled .addon-icon-box {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-color: rgba(38, 128, 235, 0.2);
+}
+
+.addon-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.addon-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.addon-heading-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.addon-title-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.addon-name {
+  margin: 0;
+  font-size: var(--text-13);
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.addon-version {
+  font-size: var(--text-11);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.addon-source-tag {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: var(--radius-1);
+}
+
+.addon-source-core {
+  background: rgba(38, 142, 108, 0.15);
+  color: var(--color-success);
+}
+.addon-source-official {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+.addon-source-community {
+  background: var(--color-bg-inset);
+  color: var(--color-text-secondary);
+}
+
+/* Byline with Author & GitHub Repository Pill */
+.addon-byline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--text-11);
+  color: var(--color-text-tertiary);
+}
+
+.addon-author-label {
+  color: var(--color-text-secondary);
+  font-weight: 450;
+}
+
+.addon-github-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition: all var(--dur-fast);
+  line-height: 1.4;
+}
+
+.addon-github-pill:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-panel-header);
+}
+
+.addon-github-icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.addon-github-pill:hover .addon-github-icon {
+  opacity: 1;
+}
+
+.addon-external-arrow {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.addon-github-pill:hover .addon-external-arrow {
+  opacity: 1;
+  transform: translate(0.5px, -0.5px);
+}
+
+/* Custom Sliding Toggle Switch */
+.addon-switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.addon-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.addon-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--color-border-strong);
+  transition: 0.2s cubic-bezier(0.2, 0, 0, 1);
+  border-radius: 20px;
+}
+
+.addon-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: 0.2s cubic-bezier(0.2, 0, 0, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.addon-switch input:checked + .addon-slider {
+  background-color: var(--color-accent);
+}
+
+.addon-switch input:focus-visible + .addon-slider {
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
+}
+
+.addon-switch input:checked + .addon-slider:before {
+  transform: translateX(18px);
+}
+
+.addon-desc {
+  margin: 6px 0 8px;
+  font-size: var(--text-12);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-body);
+}
+
+.addon-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.addon-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.addon-tag {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-inset);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+}
+
+.addon-detail-toggle {
+  background: none;
+  border: none;
+  font-size: var(--text-11);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-1);
+}
+.addon-detail-toggle:hover {
+  color: var(--color-accent);
+}
+
+/* Details Box */
+.addon-details-box {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border);
+  font-size: var(--text-12);
+  color: var(--color-text-secondary);
+  animation: addonFadeIn 120ms ease-out;
+}
+
+.addon-details-text {
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.addon-features-list {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  font-size: var(--text-11);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.addon-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--text-11);
+  color: var(--color-text-tertiary);
+  margin-top: 6px;
+}
+
+.addon-meta-item code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--color-bg-inset);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: var(--color-text);
+}
+
+.addon-meta-sep {
+  color: var(--color-border-strong);
+}
+
+.addon-meta-link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.addon-meta-link:hover {
+  text-decoration: underline;
+}
+
+/* Empty State */
+.addon-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-3);
+}
+
+.addon-empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.addon-empty-title {
+  margin: 0;
+  font-size: var(--text-14);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.addon-empty-sub {
+  margin: 4px 0 0;
+  font-size: var(--text-12);
+  color: var(--color-text-secondary);
+}
+
+/* Modal Footer */
+.addon-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--color-bg-panel-header);
+  border-top: 1px solid var(--color-border);
+}
+
+.addon-modal-footer-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-11);
+  color: var(--color-text-tertiary);
+}
+
+.addon-kbd {
+  background: var(--color-bg-inset);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+}
+
+.addon-dim {
+  color: var(--color-text-tertiary);
+}
+
