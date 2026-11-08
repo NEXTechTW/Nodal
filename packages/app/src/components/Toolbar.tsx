@@ -3,6 +3,7 @@ import { parseMapFile } from "@linewright/core";
 import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
 import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
+import { AddonManager } from "./AddonManager.js";
 import {
   AddStationIcon,
   ConnectIcon,
@@ -42,6 +43,7 @@ export function Toolbar() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileOpen, setFileOpen] = useState(false);
   const fileWrapRef = useRef<HTMLDivElement>(null);
+  const [addonOpen, setAddonOpen] = useState(false);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -266,6 +268,16 @@ export function Toolbar() {
         {theme === "dark" ? <SunIcon /> : <MoonIcon />}
       </button>
 
+      <button
+        type="button"
+        className="btn btn-tool icon-btn"
+        aria-label="Manage addons"
+        title="Addons"
+        onClick={() => setAddonOpen(true)}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M14 3h7v7" /><path d="M9 21H3v-6" /><path d="M21 3l-9 9" /><path d="M3 21l9-9" /></svg>
+      </button>
+
       {/* GitHub Repository */}
       <a
         className="btn btn-tool icon-btn"
@@ -280,6 +292,7 @@ export function Toolbar() {
       </a>
 
       <input ref={fileRef} type="file" accept="application/json,.json" aria-label="Load map JSON file" hidden onChange={onFile} />
+      {addonOpen && <AddonManager onClose={() => setAddonOpen(false)} />}
     </header>
   );
 }
