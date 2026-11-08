@@ -8,6 +8,7 @@ import type { Vec2 } from "./types.js";
 export const DEG = Math.PI / 180;
 
 export function distance(a: Vec2, b: Vec2): number {
+  if (!a || !b) return 0;
   return Math.hypot(b.x - a.x, b.y - a.y);
 }
 

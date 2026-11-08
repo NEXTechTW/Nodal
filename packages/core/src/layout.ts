@@ -52,7 +52,7 @@ export function chainPoints(map: MetroMap, chain: string[]): import("./types.js"
     if (!a || !b) continue;
     const routed = routedPoints(a, b);
     if (i === 0) pts.push(...routed);
-    else pts.push(routed[1]!, routed[2]!);
+    else pts.push(...routed.slice(1));
   }
   return pts;
 }
