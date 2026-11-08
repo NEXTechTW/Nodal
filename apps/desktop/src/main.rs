@@ -4,6 +4,8 @@
 //! only adds native windows and file dialogs. All map logic lives in the
 //! TypeScript packages — this binary stays intentionally thin.
 
+use tauri::Manager;
+
 fn main() {
     tauri::Builder::default()
         .setup(|app| {

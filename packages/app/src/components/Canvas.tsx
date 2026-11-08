@@ -6,14 +6,12 @@ import {
   chainPoints,
   computeParallelOffsets,
   lineChains,
-  offsetPolyline,
   displayName,
   roundedPolyline,
   svgPath,
   type Vec2,
 } from "@linewright/core";
 import { useEditor } from "../store/useEditor.js";
-import { linePathPoints } from "@linewright/renderer";
 import {
   CloseIcon,
   CompassIcon,
@@ -296,7 +294,6 @@ export function Canvas() {
   const hiddenLineIds = useEditor((s) => s.hiddenLineIds);
   const measureFrom = useEditor((s) => s.measureFrom);
   const measureTo = useEditor((s) => s.measureTo);
-  const setMeasurePoints = useEditor((s) => s.setMeasurePoints);
   const bilingualLabels = useEditor((s) => s.bilingualLabels);
   const showTransferBadges = useEditor((s) => s.showTransferBadges);
   const showDPad = useEditor((s) => s.showDPad);
