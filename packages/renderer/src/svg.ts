@@ -2,7 +2,7 @@
  * Turns a MetroMap into a standalone SVG string for export.
  * Kept free of DOM calls so it can run in Node.
  */
-import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, offsetPolyline, roundedPolyline, svgPath, type MetroMap, type Vec2 } from "@linewright/core";
+import { anchorBaseline, anchorOffset, anchorTextAnchor, computeParallelOffsets, displayName, lineChains, offsetPolyline, roundedPolyline, svgPath, type MetroMap, type Vec2 } from "@linewright/core";
 
 export interface RenderOptions {
   width?: number;
@@ -90,13 +90,28 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
   // Parallel offsets: shared tracks are nudged apart (PROJECT.md §5).
   const offsets = computeParallelOffsets(map).bySegment;
 
-  // Lines (casing first for double style, then main stroke)
+  // Lines — one rounded path per continuous chain so bends between
+  // segments curve instead of meeting at a sharp point.
   for (const line of Object.values(map.lines)) {
-    line.segments.forEach((_seg, i) => {
-      const pts = linePathPoints(map, line.id, i, offsets);
-      if (pts.length < 2) return;
+    const w = line.width ?? 10;
+    for (const chain of lineChains(map, line.id)) {
+      const raw: Vec2[] = [];
+      for (const id of chain) {
+        const st = map.stations[id];
+        if (st) raw.push(st.position);
+      }
+      if (raw.length < 2) continue;
+      // Apply parallel offset from the first matching segment.
+      let pts = raw;
+      for (let i = 0; i < line.segments.length; i++) {
+        const off = offsets.get(line.id)?.get(i) ?? 0;
+        if (off) {
+          pts = offsetPolyline(roundedPolyline(raw, map.style.cornerRadius), off);
+          break;
+        }
+      }
+      if (pts === raw) pts = roundedPolyline(raw, map.style.cornerRadius);
       const d = svgPath(pts);
-      const w = line.width ?? 8;
       if (line.style === "double") {
         parts.push(`<path d="${d}" fill="none" stroke="${esc(line.color)}" stroke-width="${w + 6}" stroke-linecap="round" stroke-linejoin="round"/>`);
         parts.push(`<path d="${d}" fill="none" stroke="#fff" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`);
@@ -105,7 +120,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
         const dash = line.style === "dashed" ? ` stroke-dasharray="12 8"` : "";
         parts.push(`<path d="${d}" fill="none" stroke="${esc(line.color)}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${dash}/>`);
       }
-    });
+    }
   }
 
   // Lines labels

@@ -4,6 +4,7 @@ import {
   anchorOffset,
   anchorTextAnchor,
   computeParallelOffsets,
+  lineChains,
   displayName,
   roundedPolyline,
   svgPath,
@@ -706,24 +707,38 @@ export function Canvas() {
             />
           )}
 
-          {/* Transit Lines */}
+          {/* Transit Lines — one rounded path per continuous chain */}
           {Object.values(map.lines).map((line) => {
             if (hiddenLineIds[line.id]) return null;
+            const chains = lineChains({ ...map, style: { ...map.style, cornerRadius } }, line.id);
             return (
               <g key={line.id} data-line={line.id}>
-                {line.segments.map((_s, i) => {
-                  const pts = linePathPoints(
-                    { ...map, style: { ...map.style, cornerRadius } },
-                    line.id,
-                    i,
-                    parallel
-                  );
-                  if (pts.length < 2) return null;
+                {chains.map((chain, ci) => {
+                  // Find a parallel offset from any segment in this chain.
+                  let offset = 0;
+                  for (let si = 0; si < line.segments.length; si++) {
+                    const seg = line.segments[si]!;
+                    const inChain = chain.some((id, idx) => idx < chain.length - 1 && seg.from === id && seg.to === chain[idx + 1]);
+                    if (inChain) offset = parallel.get(line.id)?.get(si) ?? 0;
+                  }
+                  const raw: Vec2[] = chain
+                    .map((id) => map.stations[id]?.position)
+                    .filter((p): p is Vec2 => !!p);
+                  if (raw.length < 2) return null;
+                  let pts = roundedPolyline(raw, cornerRadius);
+                  if (offset) {
+                    const { offsetPolyline } = { offsetPolyline: undefined };
+                    void offsetPolyline;
+                    // Offset via per-segment helper already in renderer path; shift whole chain.
+                    const n = { x: -(pts[pts.length - 1]!.y - pts[0]!.y), y: pts[pts.length - 1]!.x - pts[0]!.x };
+                    const len = Math.hypot(n.x, n.y) || 1;
+                    pts = pts.map((p) => ({ x: p.x + (n.x / len) * offset, y: p.y + (n.y / len) * offset }));
+                  }
                   const d = svgPath(pts);
-                  const w = line.width ?? 8;
+                  const w = line.width ?? 10;
                   if (line.style === "double") {
                     return (
-                      <g key={i}>
+                      <g key={ci}>
                         <path d={d} fill="none" stroke={line.color} strokeWidth={w + 6} strokeLinecap="round" strokeLinejoin="round" />
                         <path d={d} fill="none" stroke="#ffffff" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
                         <path d={d} fill="none" stroke={line.color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
@@ -732,7 +747,7 @@ export function Canvas() {
                   }
                   return (
                     <path
-                      key={i}
+                      key={ci}
                       d={d}
                       fill="none"
                       stroke={line.color}

@@ -12,6 +12,24 @@ export function trackKey(a: string, b: string): string {
   return [a, b].sort().join("::");
 }
 
+/** Ordered station-id chains for one line (branching lines yield several chains). */
+export function lineChains(map: MetroMap, lineId: string): string[][] {
+  const line = map.lines[lineId];
+  if (!line) return [];
+  const chains: string[][] = [];
+  for (const seg of line.segments) {
+    const idx = chains.findIndex((c) => c[c.length - 1] === seg.from);
+    if (idx >= 0) chains[idx]!.push(seg.to);
+    else {
+      // Reverse match: from is the end of a chain stored backwards.
+      const revIdx = chains.findIndex((c) => c[0] === seg.to);
+      if (revIdx >= 0) chains[revIdx]!.unshift(seg.from);
+      else chains.push([seg.from, seg.to]);
+    }
+  }
+  return chains.filter((c) => c.length > 1);
+}
+
 export interface ParallelOffsets {
   /** lineId → segIndex → lateral offset (map units). Missing = 0. */
   bySegment: Map<string, Map<number, number>>;
