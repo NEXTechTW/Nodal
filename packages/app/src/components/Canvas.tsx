@@ -749,7 +749,7 @@ export function Canvas() {
                   }
                   return (
                     <g key={ci}>
-                      <path d={d} fill="none" stroke="#ffffff" strokeWidth={w + 5} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
+                      <path d={d} fill="none" stroke="#ffffff" strokeWidth={w + 2} strokeLinecap="butt" strokeLinejoin="round" pointerEvents="none" />
                       <path
                         d={d}
                         fill="none"
