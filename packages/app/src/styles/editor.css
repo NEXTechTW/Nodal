@@ -892,6 +892,55 @@ kbd {
   border-radius: var(--radius-2);
 }
 
+/* Station mark designer (big external-style editor) */
+.mark-editor {
+  width: min(980px, 94vw);
+  max-height: min(760px, 92dvh);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.mark-editor-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.mark-editor-title { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.mark-editor-sub { margin: 2px 0 0; color: var(--color-text-secondary); font-size: 13px; }
+.mark-editor-body {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  min-height: 0;
+}
+.mark-editor-canvas {
+  padding: 16px;
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-border);
+  min-width: 0;
+}
+.mark-editor-canvas svg { width: 100%; height: 300px; display: block; border-radius: 8px; }
+.mark-editor-canvas-note { margin: 8px 0 0; color: var(--color-text-secondary); font-size: 12px; }
+.mark-editor-props {
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.mark-section-title { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); }
+.mark-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; margin-bottom: 10px; }
+.mark-editor-foot { font-size: 12px; color: var(--color-text-secondary); border-top: 1px solid var(--color-border); padding-top: 10px; }
+@media (max-width: 760px) {
+  .mark-editor-body { grid-template-columns: 1fr; }
+  .mark-editor-canvas { border-right: none; border-bottom: 1px solid var(--color-border); }
+}
+
 /* Startup Welcome Screen */
 .startup-backdrop {
   position: fixed;
