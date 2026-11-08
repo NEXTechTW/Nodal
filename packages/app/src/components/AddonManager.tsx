@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ThemePicker } from "./ThemePicker.js";
 
 export type AddonCategory = "all" | "transit" | "localization" | "integrations" | "templates" | "enabled";
 
@@ -17,7 +18,19 @@ export interface AddonMetadata {
   defaultEnabled?: boolean;
 }
 
-const CATALOG: AddonMetadata[] = [];
+const CATALOG: AddonMetadata[] = [{
+  id: "nodal-addon-theme",
+  name: "Nodal Theme Switcher",
+  version: "1.0.0",
+  author: "xft0729",
+  githubUrl: "https://github.com/xft0729/nodal-addon-theme",
+  category: "transit",
+  source: "community",
+  desc: "Switch between 12 transit map presets and 7 editor UI themes — background, typography, line palettes and workbench colours in one click.",
+  features: ["12 map presets", "7 UI themes", "Undo-safe apply"],
+  tags: ["theme", "ui", "preset"],
+  defaultEnabled: true,
+}];
 
 export function AddonManager({ onClose }: { onClose: () => void }) {
   const [enabled, setEnabled] = useState<Record<string, boolean>>(() => {
@@ -446,6 +459,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
                               ))}
                             </ul>
                           )}
+                          <ThemePicker />
                           <div className="addon-meta-row">
                             <span className="addon-meta-item">
                               Package ID: <code>{addon.id}</code>
