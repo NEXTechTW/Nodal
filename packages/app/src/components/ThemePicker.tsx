@@ -37,10 +37,10 @@ export function ThemePicker() {
 
   const apply = async (id: string) => {
     try {
-      const dyn = (url: string) => (import(/* @vite-ignore */ url) as Promise<unknown>);
+      const dyn = (url: string) => (import(/* @vite-ignore */ url) as Promise<{ applyMapTheme: (m: unknown, id: string, o?: unknown) => unknown }>);
       const mod = (window as unknown as { __nodalThemeApply?: { applyMapTheme: (m: unknown, id: string, o?: unknown) => unknown } }).__nodalThemeApply
         ?? await dyn(`${CDN}/dist/apply.js`);
-      const next = mod.applyMapTheme(map, id, { preserveLabelLanguage: true });
+      const next = (mod as { applyMapTheme: (m: unknown, id: string, o?: unknown) => unknown }).applyMapTheme(map, id, { preserveLabelLanguage: true });
       loadMap(next as Parameters<typeof loadMap>[0]);
       setToast(`Theme applied: ${id}`);
     } catch {
@@ -80,10 +80,10 @@ export function ThemePicker() {
               className="menu-item"
               onClick={async () => {
                 try {
-                  const dyn = (url: string) => (import(/* @vite-ignore */ url) as Promise<unknown>);
+                  const dyn = (url: string) => (import(/* @vite-ignore */ url) as Promise<{ applyUiTheme: (id: string) => () => void }>);
                   const mod = (window as unknown as { __nodalThemeApply?: { applyUiTheme: (id: string) => () => void } }).__nodalThemeApply
                     ?? await dyn(`${CDN}/dist/apply.js`);
-                  mod.applyUiTheme(t.id);
+                  (mod as { applyUiTheme: (id: string) => () => void }).applyUiTheme(t.id);
                 } catch { /* offline */ }
                 setOpen(false);
               }}
