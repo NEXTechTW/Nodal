@@ -1,3 +1,4 @@
+import { t } from "../i18n.js";
 import { useEditor, type Tool } from "../store/useEditor.js";
 import {
   AddStationIcon,
@@ -19,14 +20,16 @@ export function ToolsDock() {
   const toggleSnap = useEditor((s) => s.toggleSnap);
   const showRulers = useEditor((s) => s.showRulers);
   const toggleRulers = useEditor((s) => s.toggleRulers);
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (k: string) => t(uiLang, k);
 
   const tools: { id: Tool; label: string; icon: React.ReactNode }[] = [
-    { id: "select", label: "Select (V)", icon: <SelectIcon /> },
-    { id: "add-station", label: "Add Station (A)", icon: <AddStationIcon /> },
-    { id: "connect", label: "Connect Stations (C)", icon: <ConnectIcon /> },
-    { id: "pan", label: "Hand / Pan (H)", icon: <PanIcon /> },
-    { id: "measure", label: "Measure (M)", icon: <RulersIcon /> },
-    { id: "label", label: "Text label (T)", icon: <SelectIcon /> },
+    { id: "select", label: `${tr("ToolSelect")} (V)`, icon: <SelectIcon /> },
+    { id: "add-station", label: `${tr("ToolAddStation")} (A)`, icon: <AddStationIcon /> },
+    { id: "connect", label: `${tr("ToolConnect")} (C)`, icon: <ConnectIcon /> },
+    { id: "pan", label: `${tr("ToolPan")} (H)`, icon: <PanIcon /> },
+    { id: "measure", label: `${tr("ToolMeasure")} (M)`, icon: <RulersIcon /> },
+    { id: "label", label: `${tr("ToolLabel")} (T)`, icon: <SelectIcon /> },
   ];
 
   return (
@@ -51,8 +54,8 @@ export function ToolsDock() {
       <button
         type="button"
         className="dock-btn"
-        aria-label="Toggle Grid (Ctrl+')"
-        title="Toggle Grid (Ctrl+')"
+        aria-label={`${tr("ToggleGrid")} (Ctrl+')`}
+        title={`${tr("ToggleGrid")} (Ctrl+')`}
         aria-pressed={showGrid}
         onClick={toggleGrid}
       >
@@ -63,8 +66,8 @@ export function ToolsDock() {
       <button
         type="button"
         className="dock-btn"
-        aria-label="Toggle Snap to Grid (Ctrl+;)"
-        title="Toggle Snap to Grid (Ctrl+;)"
+        aria-label={`${tr("ToggleSnap")} (Ctrl+;)`}
+        title={`${tr("ToggleSnap")} (Ctrl+;)`}
         aria-pressed={snapToGrid}
         onClick={toggleSnap}
       >
@@ -75,8 +78,8 @@ export function ToolsDock() {
       <button
         type="button"
         className="dock-btn"
-        aria-label="Toggle Rulers (Ctrl+R)"
-        title="Toggle Rulers (Ctrl+R)"
+        aria-label={`${tr("ToggleRulers")} (Ctrl+R)`}
+        title={`${tr("ToggleRulers")} (Ctrl+R)`}
         aria-pressed={showRulers}
         onClick={toggleRulers}
       >

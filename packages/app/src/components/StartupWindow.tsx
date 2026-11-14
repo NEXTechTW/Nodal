@@ -25,21 +25,47 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
       loadMap(parseMapFile(text));
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load map file. Choose a .json file exported from Nodal and try again.");
+      setError(err instanceof Error ? err.message : "Couldn't load that file. Choose a .json map from Nodal.");
     }
   };
 
   return (
     <div className="startup-backdrop" role="dialog" aria-modal="true" aria-labelledby="startup-title">
       <div className="startup-window">
+        <div className="startup-main">
         <div className="startup-head">
           <LogoImage height={28} />
-          <p className="startup-sub" style={{ marginLeft: 4 }}>Transit map editor</p>
-          <span className="startup-badge">v0.3</span>
+          <span className="startup-badge">v0.4</span>
         </div>
-        <h2 id="startup-title" className="startup-title sr-only">Nodal</h2>
+        <h2 id="startup-title" className="startup-title">{L("AppSubtitle")}</h2>
 
-        <p className="startup-lead">Start a new map, open the example city, or load a saved file.</p>
+        <p className="startup-lead">{L("StartupLead")}</p>
+
+        <div className="startup-art" aria-hidden="true">
+          <svg viewBox="0 0 560 200" fill="none" focusable="false">
+            <defs>
+              <pattern id="welcome-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="12" cy="12" r="1" fill="currentColor" opacity=".16" />
+              </pattern>
+            </defs>
+            <path fill="url(#welcome-grid)" d="M0 0h560v200H0z" />
+            <g strokeWidth="7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M-20 146h132l66-66h142l64 64h196" stroke="#619fff" />
+              <path d="M80-20v56l110 110h102l92-92h196" stroke="#bd99ff" />
+              <path d="M236 220v-52l88-88V-20" stroke="#f5b45f" />
+            </g>
+            <g fill="#20232b" stroke="#f1f3fa" strokeWidth="3">
+              <circle cx="66" cy="146" r="5" /><circle cx="138" cy="120" r="5" />
+              <circle cx="232" cy="80" r="5" /><circle cx="354" cy="114" r="5" />
+              <circle cx="446" cy="144" r="5" /><circle cx="80" cy="22" r="5" />
+              <circle cx="124" cy="80" r="5" /><circle cx="410" cy="54" r="5" />
+              <circle cx="494" cy="54" r="5" /><circle cx="236" cy="190" r="5" />
+              <circle cx="324" cy="24" r="5" />
+              <rect x="157" y="132" width="13" height="28" rx="6.5" transform="rotate(-45 157 132)" />
+              <circle cx="324" cy="80" r="8" /><circle cx="258" cy="146" r="8" />
+            </g>
+          </svg>
+        </div>
 
         <div className="startup-list" role="list">
           <button
@@ -51,7 +77,7 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
             <span className="startup-icon" aria-hidden="true"><AddStationIcon /></span>
             <span className="startup-item-text">
               <span className="startup-item-title">{L("NewMap")}</span>
-              <span className="startup-item-desc">Blank canvas, ready to place stations</span>
+              <span className="startup-item-desc">{L("BlankCanvasDesc")}</span>
             </span>
             <span className="startup-arrow" aria-hidden="true">→</span>
           </button>
@@ -67,7 +93,7 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
             </span>
             <span className="startup-item-text">
               <span className="startup-item-title">{L("OpenExample")}</span>
-              <span className="startup-item-desc">Lumen City — the fictional city with three lines</span>
+              <span className="startup-item-desc">{L("ExampleCityDesc")}</span>
             </span>
             <span className="startup-arrow" aria-hidden="true">→</span>
           </button>
@@ -81,19 +107,23 @@ export function StartupWindow({ onClose }: { onClose: () => void }) {
             <span className="startup-icon" aria-hidden="true"><LoadIcon /></span>
             <span className="startup-item-text">
               <span className="startup-item-title">{L("LoadJSON")}</span>
-              <span className="startup-item-desc">Open a Nodal map file (schema v1)</span>
+              <span className="startup-item-desc">{L("LoadJsonDesc")}</span>
             </span>
             <span className="startup-arrow" aria-hidden="true">→</span>
           </button>
         </div>
 
         <div className="startup-foot">
-          <span>Keys: V select · A add · C connect · H pan</span>
+          <span>{L("StartupShortcuts")}</span>
           <span className="startup-foot-sep" aria-hidden="true">·</span>
           <a href="https://github.com/NEXTechTW/Nodal" target="_blank" rel="noreferrer noopener">GitHub</a>
         </div>
 
-        <CrowdinPanel lang={uiLang} />
+        </div>
+
+        <aside className="startup-community">
+          <CrowdinPanel lang={uiLang} />
+        </aside>
 
         <input ref={fileRef} type="file" accept="application/json,.json" aria-label="Load map JSON file" hidden onChange={onFile} />
       </div>

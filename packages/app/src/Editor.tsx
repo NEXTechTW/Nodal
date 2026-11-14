@@ -24,6 +24,24 @@ export function Editor() {
     document.documentElement.dataset["theme"] = theme;
   }, [theme]);
 
+  // Apply the saved UI theme from the online addon on first paint.
+  useEffect(() => {
+    let savedUi: string | null = null;
+    try {
+      savedUi = localStorage.getItem("nodal:theme-addon");
+    } catch {
+      /* storage may be unavailable */
+    }
+    if (!savedUi) return;
+    const themeId = savedUi;
+    const url = "https://cdn.jsdelivr.net/gh/xft0729/nodal-addon-theme@main/dist/apply.js";
+    (import(/* @vite-ignore */ url) as Promise<{ applyUiTheme?: (id: string) => void }>)
+      .then((mod) => mod.applyUiTheme?.(themeId))
+      .catch(() => {
+        /* offline: stock light/dark stays */
+      });
+  }, []);
+
   return (
     <div className="app-shell">
       <MenuBar />

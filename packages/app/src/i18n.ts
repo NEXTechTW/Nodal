@@ -22,8 +22,6 @@ export const UI_LANGUAGES: { code: UiLang; label: string; native: string }[] = [
   { code: "ru", label: "Russian", native: "RU" },
 ];
 
-export const order = UI_LANGUAGES.map((l) => l.code);
-
 export const dicts: Record<UiLang, Record<string, string>> = {
   en: en as Record<string, string>,
   "zh-Hant": zhHant as Record<string, string>,

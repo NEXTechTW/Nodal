@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../i18n.js";
+import { useEditor } from "../store/useEditor.js";
 import { ThemePicker } from "./ThemePicker.js";
 
 export type AddonCategory = "all" | "transit" | "localization" | "integrations" | "templates" | "enabled";
@@ -45,6 +47,8 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<AddonCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (k: string) => t(uiLang, k);
 
   useEffect(() => {
     let cancelled = false;
@@ -177,11 +181,11 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <div className="addon-title-row">
-                <h2 id="addon-manager-title" className="addon-modal-title">Addons & Extensions</h2>
-                <span className="addon-badge-count">{counts.enabled} of {catalog.length} active</span>
+                <h2 id="addon-manager-title" className="addon-modal-title">{tr("AddonsModalTitle")}</h2>
+                <span className="addon-badge-count">{counts.enabled} {tr("Of")} {catalog.length} {tr("ActivePacksCount")}</span>
               </div>
               <p className="addon-modal-sub">
-                Manage transit packs, regional typography, and integrations.
+                {tr("AddonsModalSub")}
               </p>
             </div>
           </div>
@@ -189,7 +193,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             type="button"
             className="addon-close-btn"
             onClick={onClose}
-            aria-label="Close addon manager"
+            aria-label={tr("CloseShortcuts")}
             title="Close (Esc)"
           >
             ×
@@ -206,7 +210,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             <input
               type="text"
               className="addon-search-input"
-              placeholder="Filter by name, author, tag, or feature..."
+              placeholder={tr("SearchAddons")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -225,15 +229,15 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
 
           <div className="addon-batch-actions">
             <button type="button" className="addon-action-link" onClick={enableAll}>
-              Enable all
+              {tr("EnableAll")}
             </button>
             <span className="addon-sep">•</span>
             <button type="button" className="addon-action-link" onClick={disableAll}>
-              Disable all
+              {tr("DisableAll")}
             </button>
             <span className="addon-sep">•</span>
             <button type="button" className="addon-action-link" onClick={resetDefaults}>
-              Reset
+              {tr("Reset")}
             </button>
           </div>
         </div>
@@ -247,7 +251,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             className={`addon-tab ${activeCategory === "all" ? "is-active" : ""}`}
             onClick={() => setActiveCategory("all")}
           >
-            All <span className="addon-tab-count">{counts.all}</span>
+            {tr("All")} <span className="addon-tab-count">{counts.all}</span>
           </button>
           <button
             type="button"
@@ -256,7 +260,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             className={`addon-tab ${activeCategory === "transit" ? "is-active" : ""}`}
             onClick={() => setActiveCategory("transit")}
           >
-            Transit & Design <span className="addon-tab-count">{counts.transit}</span>
+            {tr("TransitDesign")} <span className="addon-tab-count">{counts.transit}</span>
           </button>
           <button
             type="button"
@@ -265,7 +269,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             className={`addon-tab ${activeCategory === "localization" ? "is-active" : ""}`}
             onClick={() => setActiveCategory("localization")}
           >
-            Localization & Fonts <span className="addon-tab-count">{counts.localization}</span>
+            {tr("LocalizationFonts")} <span className="addon-tab-count">{counts.localization}</span>
           </button>
           <button
             type="button"
@@ -274,7 +278,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             className={`addon-tab ${activeCategory === "integrations" ? "is-active" : ""}`}
             onClick={() => setActiveCategory("integrations")}
           >
-            Integrations <span className="addon-tab-count">{counts.integrations}</span>
+            {tr("Integrations")} <span className="addon-tab-count">{counts.integrations}</span>
           </button>
           <button
             type="button"
@@ -283,7 +287,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             className={`addon-tab ${activeCategory === "templates" ? "is-active" : ""}`}
             onClick={() => setActiveCategory("templates")}
           >
-            Templates <span className="addon-tab-count">{counts.templates}</span>
+            {tr("Templates")} <span className="addon-tab-count">{counts.templates}</span>
           </button>
           <button
             type="button"
@@ -292,7 +296,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
             className={`addon-tab ${activeCategory === "enabled" ? "is-active" : ""}`}
             onClick={() => setActiveCategory("enabled")}
           >
-            Active <span className="addon-tab-count">{counts.enabled}</span>
+            {tr("ActiveOnly")} <span className="addon-tab-count">{counts.enabled}</span>
           </button>
         </div>
 
@@ -301,16 +305,16 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
           {loading ? (
             <div className="addon-empty-state">
               <p className="addon-empty-title">Loading addons…</p>
-              <p className="addon-empty-sub">Fetching from cdn.jsdelivr.net (nodal-addon-theme).</p>
+              <p className="addon-empty-sub">From cdn.jsdelivr.net.</p>
             </div>
           ) : filteredAddons.length === 0 ? (
             <div className="addon-empty-state">
               <div className="addon-empty-icon" aria-hidden="true">🔍</div>
-              <p className="addon-empty-title">No addons found</p>
+              <p className="addon-empty-title">{tr("NoAddonsFound")}</p>
               <p className="addon-empty-sub">
                 {searchQuery
-                  ? `No matching addons for "${searchQuery}".`
-                  : "Nothing in the registry yet. Check your connection and reopen."}
+                  ? `No results for "${searchQuery}".`
+                  : "Could not load the list. Check your connection and try again."}
               </p>
               <button
                 type="button"
@@ -321,7 +325,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
                   setActiveCategory("all");
                 }}
               >
-                Clear filter
+                {tr("ClearFilter")}
               </button>
             </div>
           ) : (
@@ -382,14 +386,14 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
 
                           {/* Author & GitHub repository link */}
                           <div className="addon-byline">
-                            <span className="addon-author-label">by @{addon.author}</span>
+                            <span className="addon-author-label">{tr("ByAuthor")} @{addon.author}</span>
                             {addon.githubUrl && (
                               <a
                                 href={addon.githubUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="addon-github-pill"
-                                title={`Open ${addon.name} GitHub repository in new tab`}
+                                title={`Open ${addon.name} on GitHub`}
                                 aria-label={`GitHub repository for ${addon.name}`}
                                 onClick={(e) => e.stopPropagation()}
                               >
@@ -456,7 +460,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
                           onClick={() => setExpandedId(isExpanded ? null : addon.id)}
                           aria-expanded={isExpanded}
                         >
-                          {isExpanded ? "Less details ▲" : "Details ▼"}
+                          {isExpanded ? tr("LessDetails") : tr("Details")}
                         </button>
                       </div>
 
@@ -474,7 +478,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
                           <ThemePicker />
                           <div className="addon-meta-row">
                             <span className="addon-meta-item">
-                              Package ID: <code>{addon.id}</code>
+                              {tr("PackageId")}: <code>{addon.id}</code>
                             </span>
                             {addon.githubUrl && (
                               <>
@@ -485,7 +489,7 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
                                   rel="noopener noreferrer"
                                   className="addon-meta-link"
                                 >
-                                  Browse source code ↗
+                                  {tr("BrowseSourceCode")}
                                 </a>
                               </>
                             )}
@@ -503,13 +507,13 @@ export function AddonManager({ onClose }: { onClose: () => void }) {
         {/* Footer */}
         <div className="addon-modal-footer">
           <div className="addon-modal-footer-info">
-            <span>Settings saved locally</span>
+            <span>{tr("SettingsSavedLocally")}</span>
             <span className="addon-sep">•</span>
             <kbd className="addon-kbd">Esc</kbd>
-            <span className="addon-dim">to close</span>
+            <span className="addon-dim">{tr("PressEscToClose")}</span>
           </div>
           <button type="button" className="btn btn-sm btn-primary" onClick={onClose}>
-            Done
+            {tr("Done")}
           </button>
         </div>
       </div>

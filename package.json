@@ -2,7 +2,7 @@
   "name": "linewright",
   "version": "0.3.0",
   "private": true,
-  "description": "Nodal — open-source transit map editor. Linewright is the monorepo. Nodal is the product.",
+  "description": "Browser-based transit map editor. Linewright is the monorepo; Nodal is the product.",
   "license": "MIT",
   "packageManager": "pnpm@9.12.0",
   "type": "module",
@@ -16,6 +16,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md,css,html}\""
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "eslint": "^9.18.0",
     "prettier": "^3.4.2",
     "typescript": "^5.7.2",

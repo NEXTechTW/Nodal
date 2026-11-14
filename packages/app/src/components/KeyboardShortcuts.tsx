@@ -1,29 +1,32 @@
+import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
 import { CloseIcon, KeyboardIcon } from "./Icons.js";
 
 export function KeyboardShortcuts() {
   const shortcutsOpen = useEditor((s) => s.shortcutsOpen);
   const setShortcutsOpen = useEditor((s) => s.setShortcutsOpen);
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (k: string) => t(uiLang, k);
 
   if (!shortcutsOpen) return null;
 
   const shortcuts: { key: string; desc: string; category: string }[] = [
-    { key: "V", desc: "Select Tool", category: "Tools" },
-    { key: "A", desc: "Add Station Tool", category: "Tools" },
-    { key: "C", desc: "Connect Stations Tool", category: "Tools" },
-    { key: "H", desc: "Pan Hand Tool", category: "Tools" },
-    { key: "Space + Drag", desc: "Temporary Pan Hand", category: "Navigation" },
-    { key: "Scroll Wheel", desc: "Zoom to Cursor", category: "Navigation" },
-    { key: "Ctrl + + / -", desc: "Zoom In / Out", category: "Navigation" },
-    { key: "F", desc: "Fit All in View", category: "Navigation" },
-    { key: "Ctrl + Z", desc: "Undo Edit", category: "Edit" },
-    { key: "Ctrl + Shift + Z", desc: "Redo Edit", category: "Edit" },
-    { key: "Ctrl + D", desc: "Duplicate Selected Station", category: "Edit" },
-    { key: "Delete / Backspace", desc: "Delete Selected Station", category: "Edit" },
-    { key: "Esc", desc: "Deselect / Cancel Connect", category: "Selection" },
-    { key: "Ctrl + '", desc: "Toggle Grid", category: "View" },
-    { key: "Ctrl + ;", desc: "Toggle Snap to Grid", category: "View" },
-    { key: "Ctrl + R", desc: "Toggle Rulers", category: "View" },
+    { key: "V", desc: tr("ToolSelect"), category: tr("View") },
+    { key: "A", desc: tr("ToolAddStation"), category: tr("View") },
+    { key: "C", desc: tr("ToolConnect"), category: tr("View") },
+    { key: "H", desc: tr("ToolPan"), category: tr("View") },
+    { key: "Space + Drag", desc: tr("ToolHelpPan"), category: tr("View") },
+    { key: "Scroll Wheel", desc: `${tr("ZoomIn")} / ${tr("ZoomOut")}`, category: tr("View") },
+    { key: "Ctrl + + / -", desc: `${tr("ZoomIn")} / ${tr("ZoomOut")}`, category: tr("View") },
+    { key: "F", desc: tr("FitView"), category: tr("View") },
+    { key: "Ctrl + Z", desc: tr("Undo"), category: tr("Edit") },
+    { key: "Ctrl + Shift + Z", desc: tr("Redo"), category: tr("Edit") },
+    { key: "Ctrl + D", desc: tr("DuplicateStation"), category: tr("Edit") },
+    { key: "Delete / Backspace", desc: tr("DeleteSelected"), category: tr("Edit") },
+    { key: "Esc", desc: tr("NoSelection"), category: tr("Edit") },
+    { key: "Ctrl + '", desc: tr("ToggleGrid"), category: tr("View") },
+    { key: "Ctrl + ;", desc: tr("ToggleSnap"), category: tr("View") },
+    { key: "Ctrl + R", desc: tr("ToggleRulers"), category: tr("View") },
   ];
 
   return (
@@ -32,13 +35,13 @@ export function KeyboardShortcuts() {
         <div className="kbd-head">
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <KeyboardIcon />
-            <h2 className="kbd-title">Keyboard Shortcuts</h2>
+            <h2 className="kbd-title">{tr("KeyboardShortcutsTitle")}</h2>
           </div>
           <button
             type="button"
             className="btn btn-tool icon-btn"
             onClick={() => setShortcutsOpen(false)}
-            aria-label="Close shortcuts"
+            aria-label={tr("CloseShortcuts")}
           >
             <CloseIcon />
           </button>
@@ -47,9 +50,9 @@ export function KeyboardShortcuts() {
         <table className="kbd-table">
           <thead>
             <tr style={{ color: "var(--color-text-secondary)", fontSize: "var(--text-11)", textTransform: "uppercase" }}>
-              <th style={{ textAlign: "left", padding: "4px 8px" }}>Key</th>
-              <th style={{ textAlign: "left", padding: "4px 8px" }}>Action</th>
-              <th style={{ textAlign: "left", padding: "4px 8px" }}>Category</th>
+              <th style={{ textAlign: "left", padding: "4px 8px" }}>{tr("KeyCol")}</th>
+              <th style={{ textAlign: "left", padding: "4px 8px" }}>{tr("ActionCol")}</th>
+              <th style={{ textAlign: "left", padding: "4px 8px" }}>{tr("CategoryCol")}</th>
             </tr>
           </thead>
           <tbody>
@@ -65,11 +68,10 @@ export function KeyboardShortcuts() {
 
         <div style={{ marginTop: "var(--space-4)", display: "flex", justifyContent: "flex-end" }}>
           <button type="button" className="btn btn-primary" onClick={() => setShortcutsOpen(false)}>
-            Done
+            {tr("Done")}
           </button>
         </div>
       </div>
     </div>
   );
 }
-

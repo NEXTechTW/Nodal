@@ -87,13 +87,13 @@ export function Toolbar() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    setToast("Map saved as JSON");
+    setToast(tr("MapSavedAsJSON"));
   };
 
   const exportSVG = () => {
     try {
       downloadSVG(toSVGString(map, { showGrid: false }), `${map.meta.title || "map"}.svg`);
-      setToast("SVG exported");
+      setToast(tr("SVGExported"));
     } catch {
       setError("Unable to export SVG. Try exporting again.");
     }
@@ -102,7 +102,7 @@ export function Toolbar() {
   const exportPNG = async () => {
     try {
       await downloadPNG(map, map.meta.title || "map");
-      setToast("PNG exported (2×)");
+      setToast(tr("PNGExported"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to export PNG.");
     }
@@ -111,7 +111,7 @@ export function Toolbar() {
   const exportPDF = () => {
     try {
       printPDF(map);
-      setToast("PDF print view opened");
+      setToast(tr("PDFExported"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to open PDF view.");
     }
@@ -125,7 +125,7 @@ export function Toolbar() {
       const text = await file.text();
       loadMap(parseMapFile(text));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load map file.");
+      setError(err instanceof Error ? err.message : "Couldn't load that file.");
     }
   };
 
@@ -137,10 +137,10 @@ export function Toolbar() {
   };
 
   const toolLabels: Record<string, string> = {
-    select: "Select",
-    "add-station": "Add Station",
-    connect: "Connect",
-    pan: "Hand",
+    select: tr("ToolSelect"),
+    "add-station": tr("ToolAddStation"),
+    connect: tr("ToolConnect"),
+    pan: tr("ToolPan"),
   };
 
   const activeLine = activeLineId ? map.lines[activeLineId] : null;
@@ -148,7 +148,7 @@ export function Toolbar() {
   return (
     <header className="toolbar" aria-label="Control bar">
       {/* Tool Badge */}
-      <div className="toolbar-tool-badge" title={`Active Tool: ${toolLabels[tool]}`}>
+      <div className="toolbar-tool-badge" title={`${tr("ActiveTool")}: ${toolLabels[tool]}`}>
         <span style={{ color: "var(--color-accent)", display: "flex" }}>{toolIcons[tool]}</span>
         <span>{toolLabels[tool]}</span>
       </div>
@@ -162,9 +162,9 @@ export function Toolbar() {
         value={map.meta.title}
         onChange={(e) => renameMap(e.target.value)}
         onBlur={(e) => {
-          if (!e.target.value.trim()) renameMap("Untitled map");
+          if (!e.target.value.trim()) renameMap(tr("UntitledMap"));
         }}
-        placeholder="Untitled map"
+        placeholder={tr("UntitledMap")}
       />
 
       <div className="toolbar-sep" aria-hidden="true" />
@@ -174,8 +174,8 @@ export function Toolbar() {
         <button
           type="button"
           className="btn btn-tool icon-btn"
-          aria-label="Undo"
-          title="Undo (Ctrl+Z)"
+          aria-label={tr("Undo")}
+          title={`${tr("Undo")} (Ctrl+Z)`}
           disabled={!canUndo}
           onClick={undo}
         >
@@ -184,8 +184,8 @@ export function Toolbar() {
         <button
           type="button"
           className="btn btn-tool icon-btn"
-          aria-label="Redo"
-          title="Redo (Ctrl+Shift+Z)"
+          aria-label={tr("Redo")}
+          title={`${tr("Redo")} (Ctrl+Shift+Z)`}
           disabled={!canRedo}
           onClick={redo}
         >
@@ -200,7 +200,7 @@ export function Toolbar() {
         {tool === "connect" ? (
           activeLine ? (
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span>Drawing line:</span>
+              <span>{tr("DrawingLine")}:</span>
               <span
                 style={{
                   display: "inline-block",
@@ -215,14 +215,14 @@ export function Toolbar() {
               </span>
             </span>
           ) : (
-            <span>Select or add a line to connect stations</span>
+            <span>{tr("ConnectHint")}</span>
           )
         ) : selectedStationId ? (
-          <span>Station selected</span>
+          <span>{tr("StationSelected")}</span>
         ) : selectedLineId ? (
-          <span>Line selected</span>
+          <span>{tr("LineSelected")}</span>
         ) : (
-          <span style={{ color: "var(--color-text-tertiary)" }}>No selection</span>
+          <span style={{ color: "var(--color-text-tertiary)" }}>{tr("NoSelection")}</span>
         )}
       </div>
 
@@ -237,21 +237,21 @@ export function Toolbar() {
           aria-expanded={fileOpen}
           onClick={() => setFileOpen((v) => !v)}
         >
-          <ExportIcon /> Export
+          <ExportIcon /> {tr("Export")}
         </button>
         {fileOpen && (
           <div className="menu-pop" role="menu" aria-label="Export menu" style={{ right: 0, left: "auto", minWidth: 200 }}>
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportSVG(); }}>
               <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> {tr("ExportSVG")}</span>
-              <span className="menu-shortcut">Vector</span>
+              <span className="menu-shortcut">{tr("Vector")}</span>
             </button>
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportPNG(); }}>
               <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> {tr("PNG")}</span>
-              <span className="menu-shortcut">Image</span>
+              <span className="menu-shortcut">{tr("Image")}</span>
             </button>
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); exportPDF(); }}>
               <span style={{ display: "flex", gap: 8, alignItems: "center" }}><ExportIcon /> {tr("PDF")}</span>
-              <span className="menu-shortcut">Doc</span>
+              <span className="menu-shortcut">{tr("Doc")}</span>
             </button>
             <div className="menu-divider" />
             <button type="button" className="menu-item" onClick={() => { setFileOpen(false); saveJSON(); }}>
@@ -263,8 +263,8 @@ export function Toolbar() {
               <span className="menu-shortcut">Ctrl+O</span>
             </button>
             <div className="menu-divider" />
-            <button type="button" className="menu-item" onClick={() => { setFileOpen(false); loadMap(exampleMap()); setToast("Lumen City example loaded"); }}>
-              <span>Load Lumen City Demo</span>
+            <button type="button" className="menu-item" onClick={() => { setFileOpen(false); loadMap(exampleMap()); setToast(tr("ExampleMapLoaded")); }}>
+              <span>{tr("LoadLumenCity")}</span>
             </button>
           </div>
         )}
@@ -283,8 +283,8 @@ export function Toolbar() {
         <button
           type="button"
           className="btn btn-tool icon-btn"
-          aria-label={isDarkTheme(theme) ? "Switch to light theme" : "Switch to dark theme"}
-          title={isDarkTheme(theme) ? "Light Theme" : "Dark Theme"}
+          aria-label={isDarkTheme(theme) ? tr("LightMode") : tr("DarkMode")}
+          title={isDarkTheme(theme) ? tr("LightMode") : tr("DarkMode")}
           onClick={toggleTheme}
         >
           {isDarkTheme(theme) ? <SunIcon /> : <MoonIcon />}
@@ -294,8 +294,8 @@ export function Toolbar() {
       <button
         type="button"
         className="btn btn-tool icon-btn"
-        aria-label="Manage addons"
-        title="Addons & Extensions"
+        aria-label={tr("AddonManager")}
+        title={tr("AddonsModalTitle")}
         onClick={() => setAddonManagerOpen(true)}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M14 3h7v7" /><path d="M9 21H3v-6" /><path d="M21 3l-9 9" /><path d="M3 21l9-9" /></svg>
@@ -308,7 +308,7 @@ export function Toolbar() {
         target="_blank"
         rel="noreferrer noopener"
         aria-label="GitHub Repository"
-        title="GitHub — NEXTechTW/Nodal"
+        title="Nodal on GitHub"
         style={{ textDecoration: "none" }}
       >
         <GitHubIcon />

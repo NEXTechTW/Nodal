@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useEditor } from "../store/useEditor.js";
 
-/** Standalone station-mark designer — a big professional editor window. */
+/** Big station-mark editor window. */
 export function MarkDesigner({ onClose }: { onClose: () => void }) {
   const selectedStationId = useEditor((s) => s.selectedStationId);
   const setStationKind = useEditor((s) => s.setStationKind);
@@ -35,8 +35,8 @@ export function MarkDesigner({ onClose }: { onClose: () => void }) {
       <div className="mark-editor">
         <div className="mark-editor-head">
           <div>
-            <h2 id="mark-title" className="mark-editor-title">Station Mark Editor</h2>
-            <p className="mark-editor-sub">Nodal Mark Designer — rectangle properties and code. Applies to the selected station.</p>
+            <h2 id="mark-title" className="mark-editor-title">Station mark editor</h2>
+            <p className="mark-editor-sub">Size, shape, and colors for one station mark.</p>
           </div>
           <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
             <button type="button" className="btn btn-sm" onClick={onClose}>Close</button>
@@ -59,7 +59,7 @@ export function MarkDesigner({ onClose }: { onClose: () => void }) {
                 <text x={200} y={155} textAnchor="middle" fontSize="16" fill={stroke} fontFamily="monospace" fontWeight={700} dominantBaseline="middle">{code}</text>
               </g>
             </svg>
-            <p className="mark-editor-canvas-note">Live preview — edit properties on the right.</p>
+            <p className="mark-editor-canvas-note">Preview updates as you edit.</p>
           </div>
 
           <aside className="mark-editor-props" aria-label="Mark properties">
@@ -83,10 +83,10 @@ export function MarkDesigner({ onClose }: { onClose: () => void }) {
               <label className="mark-field">Fill
                 <input type="color" value={fill} onChange={(e) => setFill(e.target.value)} />
               </label>
-              <label className="mark-field">Border
+              <label className="mark-field">Stroke
                 <input type="color" value={stroke} onChange={(e) => setStroke(e.target.value)} />
               </label>
-              <label className="mark-field">Border width
+              <label className="mark-field">Stroke width
                 <input type="number" className="prop-input" value={strokeW} min={1} max={12} onChange={(e) => setStrokeW(Number(e.target.value) || 4)} />
               </label>
               <label className="mark-field">Code
@@ -94,7 +94,7 @@ export function MarkDesigner({ onClose }: { onClose: () => void }) {
               </label>
             </section>
             <p className="mark-editor-foot">
-              {station ? `Applying to: ${station.name.en ?? station.id}` : "No station selected — select one on the canvas first."}
+              {station ? `Station: ${station.name.en ?? station.id}` : "Select a station on the canvas first."}
             </p>
           </aside>
         </div>

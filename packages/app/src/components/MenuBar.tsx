@@ -69,24 +69,24 @@ export function MenuBar() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    setToast("Map saved as JSON");
+    setToast(L("MapSavedAsJSON"));
   };
 
   const exportSVG = () => {
     downloadSVG(toSVGString(map), `${map.meta.title || "map"}.svg`);
-    setToast("SVG exported");
+    setToast(L("SVGExported"));
   };
 
   const exportPNG = () => {
     downloadPNG(map, map.meta.title || "map")
-      .then(() => setToast("PNG exported"))
+      .then(() => setToast(L("PNGExported")))
       .catch((e) => setError(e instanceof Error ? e.message : "PNG export failed"));
   };
 
   const exportPDF = () => {
     try {
       printPDF(map);
-      setToast("PDF print view opened");
+      setToast(L("PDFExported"));
     } catch (e) {
       setError(e instanceof Error ? e.message : "PDF export failed");
     }
@@ -114,13 +114,13 @@ export function MenuBar() {
         { label: L("Redo"), action: redo, disabled: !canRedo, shortcut: "Ctrl+Shift+Z" },
         { divider: true },
         {
-          label: "Duplicate Station",
+          label: L("DuplicateStation"),
           action: () => selectedStationId && duplicateStation(selectedStationId),
           disabled: !selectedStationId,
           shortcut: "Ctrl+D",
         },
         {
-          label: "Delete Selected",
+          label: L("DeleteSelected"),
           action: deleteSelectedStation,
           disabled: !selectedStationId,
           shortcut: "Del",
@@ -130,13 +130,13 @@ export function MenuBar() {
     {
       label: L("Map"),
       items: [
-        { label: "Auto-Resolve Label Overlaps", action: avoidLabels },
+        { label: L("AutoResolveOverlaps"), action: avoidLabels },
         { divider: true },
         {
-          label: "Load Lumen City Demo",
+          label: L("LoadLumenCity"),
           action: () => {
             loadMap(exampleMap());
-            setToast("Example map loaded");
+            setToast(L("ExampleMapLoaded"));
           },
         },
       ],
@@ -144,21 +144,21 @@ export function MenuBar() {
     {
       label: L("View"),
       items: [
-        { label: "Toggle Grid", action: toggleGrid, shortcut: "Ctrl+'" },
-        { label: "Toggle Snap to Grid", action: toggleSnap, shortcut: "Ctrl+;" },
-        { label: "Toggle Canvas Rulers", action: toggleRulers, shortcut: "Ctrl+R" },
-        { label: "Toggle Navigator Mini-Map", action: toggleMiniMap },
-        { label: "Toggle Bilingual Labels", action: toggleBilingual },
-        { label: "Toggle Transfer Badges", action: toggleTransferBadges },
-        { label: "Toggle Canvas D-Pad", action: toggleDPad },
+        { label: L("ToggleGrid"), action: toggleGrid, shortcut: "Ctrl+'" },
+        { label: L("ToggleSnap"), action: toggleSnap, shortcut: "Ctrl+;" },
+        { label: L("ToggleRulers"), action: toggleRulers, shortcut: "Ctrl+R" },
+        { label: L("ToggleMiniMap"), action: toggleMiniMap },
+        { label: L("ToggleBilingual"), action: toggleBilingual },
+        { label: L("ToggleTransferBadges"), action: toggleTransferBadges },
+        { label: L("ToggleDPad"), action: toggleDPad },
         { divider: true },
-        { label: "Zoom In", action: zoomIn, shortcut: "Ctrl++" },
-        { label: "Zoom Out", action: zoomOut, shortcut: "Ctrl+-" },
-        { label: "Fit All in View", action: zoomFit, shortcut: "F" },
+        { label: L("ZoomIn"), action: zoomIn, shortcut: "Ctrl++" },
+        { label: L("ZoomOut"), action: zoomOut, shortcut: "Ctrl+-" },
+        { label: L("FitView"), action: zoomFit, shortcut: "F" },
       ],
     },
     {
-      label: "Language",
+      label: L("Language"),
       items: [
         { label: "English", action: () => setUiLang("en") },
         { label: "繁體中文", action: () => setUiLang("zh-Hant") },
@@ -169,7 +169,7 @@ export function MenuBar() {
         { label: "Русский", action: () => setUiLang("ru") },
         { divider: true },
         {
-          label: `Current: ${uiLang}`,
+          label: `${L("Language")}: ${uiLang}`,
           action: () => {},
           disabled: true,
         },
@@ -179,34 +179,34 @@ export function MenuBar() {
       label: L("Window"),
       items: [
         {
-          label: `App Theme: ${theme} (whole app)`,
+          label: `${L("AppTheme")}: ${theme}`,
           action: toggleTheme,
         },
         { divider: true },
         ...UI_THEMES.map((t) => ({
-          label: `${t.name} (whole app)${theme === t.id ? " ✓" : ""}`,
+          label: `${t.name}${theme === t.id ? " ✓" : ""}`,
           action: () => setTheme(t.id),
         })),
         { divider: true },
         {
-          label: "Addon & Extension Manager…",
+          label: L("AddonManager"),
           action: () => useEditor.getState().setAddonManagerOpen(true),
         },
         {
-          label: "Reset Startup Welcome Screen",
+          label: L("ResetStartup"),
           action: () => useEditor.getState().setStartupOpen(true),
         },
       ],
     },
     {
-      label: "Translate",
+      label: L("Translate"),
       items: [
         {
-          label: "Open Crowdin project",
+          label: L("CrowdinProject"),
           action: () => window.open("https://crowdin.com/project/nodal", "_blank", "noopener"),
         },
         {
-          label: "Translation sources (en.json)",
+          label: L("TranslationSources"),
           action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/packages/app/src/locales/en.json", "_blank", "noopener"),
         },
       ],
@@ -214,18 +214,18 @@ export function MenuBar() {
     {
       label: L("Help"),
       items: [
-        { label: "Keyboard Shortcuts…", action: () => setShortcutsOpen(true), shortcut: "F1 / ?" },
+        { label: L("KeyboardShortcuts"), action: () => setShortcutsOpen(true), shortcut: "F1 / ?" },
         { divider: true },
         {
-          label: "Online Documentation & Tutorial",
+          label: L("OnlineDocs"),
           action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/TUTORIAL.md", "_blank", "noopener"),
         },
         {
-          label: "Nodal JSON Format Specification",
+          label: L("JsonFormatSpec"),
           action: () => window.open("https://github.com/NEXTechTW/Nodal/blob/main/docs/FORMAT.md", "_blank", "noopener"),
         },
         {
-          label: "GitHub Project Repository",
+          label: L("GitHubRepo"),
           action: () => window.open("https://github.com/NEXTechTW/Nodal", "_blank", "noopener"),
         },
       ],
@@ -240,7 +240,7 @@ export function MenuBar() {
       const text = await f.text();
       loadMap(parseMapFile(text));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load map file.");
+      setError(err instanceof Error ? err.message : "Couldn't load that file.");
     }
   };
 

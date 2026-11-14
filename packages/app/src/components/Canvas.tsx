@@ -35,7 +35,7 @@ function toMapCoords(client: Vec2, rect: DOMRect, vp: { x: number; y: number; k:
   return { x: (client.x - rect.left - vp.x) / vp.k, y: (client.y - rect.top - vp.y) / vp.k };
 }
 
-/** Mini-Map / Navigator (Photoshop Navigator panel style) */
+/** Mini-map navigator. */
 function MiniMap({
   stations,
   lines,
@@ -455,7 +455,7 @@ export function Canvas() {
     if (!effectivePan && hit) {
       if (tool === "connect") {
         if (!activeLineId) {
-          setToast("Select or create a transit line first, then drag between stations");
+          setToast("Add or select a line first.");
           return;
         }
         if (!connectFrom) {
@@ -555,17 +555,10 @@ export function Canvas() {
       let dxMap = (client.x - d.startClient.x) / viewport.k;
       let dyMap = (client.y - d.startClient.y) / viewport.k;
 
-      // Shift constraint: 0, 45, 90 degree axis lock
+      // Shift lock: keep the larger drag axis, drop the other.
       if (shiftDown) {
-        const absX = Math.abs(dxMap);
-        const absY = Math.abs(dyMap);
-        if (absX > absY * 2) dyMap = 0;
-        else if (absY > absX * 2) dxMap = 0;
-        else {
-          const avg = (absX + absY) / 2;
-          dxMap = Math.sign(dxMap) * avg;
-          dyMap = Math.sign(dyMap) * avg;
-        }
+        if (Math.abs(dxMap) > Math.abs(dyMap)) dyMap = 0;
+        else dxMap = 0;
       }
 
       let pos = { x: d.startStationPos.x + dxMap, y: d.startStationPos.y + dyMap };
@@ -1120,5 +1113,3 @@ function hitStation(
   }
   return best;
 }
-
-export { roundedPolyline };

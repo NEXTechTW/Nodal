@@ -1,15 +1,17 @@
-import { UI_LANGUAGES, dicts, order, type UiLang } from "../i18n.js";
+import { UI_LANGUAGES, dicts, t, type UiLang } from "../i18n.js";
 
 /** Live coverage for each locale: how many en keys have a non-empty translation. */
-export function coverage(lang: UiLang): number {
+function coverage(lang: UiLang): number {
   const enKeys = Object.keys(dicts.en);
   if (enKeys.length === 0) return 0;
   const d = dicts[lang];
+  if (!d) return 0;
   let done = 0;
   for (const k of enKeys) {
     const v = d[k];
-    if (typeof v === "string" && v.trim() !== "" && v !== k) done++;
-    else if (lang === "en" && typeof v === "string" && v.trim() !== "") done++;
+    if (typeof v === "string" && v.trim() !== "") {
+      done++;
+    }
   }
   return Math.round((done / enKeys.length) * 100);
 }
@@ -19,10 +21,12 @@ export function coverage(lang: UiLang): number {
  * The canonical number lives on Crowdin; this mirrors the shipped JSON.
  */
 export function CrowdinPanel({ lang }: { lang: UiLang }) {
+  const tr = (k: string) => t(lang, k);
+
   return (
-    <div className="crowdin-panel" aria-label="Translations">
-      <p className="crowdin-title">Help translate Nodal</p>
-      <p className="crowdin-sub">Live coverage from the shipped locale files. The full record is on Crowdin.</p>
+    <div className="crowdin-panel" aria-label={tr("Translate")}>
+      <p className="crowdin-title">{tr("CrowdinPanelTitle")}</p>
+      <p className="crowdin-sub">{tr("CrowdinPanelSub")}</p>
       <div className="crowdin-list" role="list">
         {UI_LANGUAGES.map((l) => {
           const pct = coverage(l.code);
@@ -46,12 +50,9 @@ export function CrowdinPanel({ lang }: { lang: UiLang }) {
         rel="noreferrer noopener"
         style={{ textDecoration: "none", marginTop: 8, display: "inline-flex" }}
       >
-        Open Crowdin →
+        {tr("OpenCrowdinBtn")}
       </a>
-      <p className="crowdin-foot">Sources: `packages/app/src/locales/en.json` · Sync: `crowdin.yml`</p>
+      <p className="crowdin-foot">{tr("CrowdinSourceInfo")}</p>
     </div>
   );
 }
-
-// Re-export order for tests that import i18n order.
-export { order };

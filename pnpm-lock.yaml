@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.39.5
+        version: 9.39.5
       eslint:
         specifier: ^9.18.0
         version: 9.39.5
@@ -26,12 +29,6 @@ importers:
       '@linewright/app':
         specifier: workspace:*
         version: link:../../packages/app
-      '@linewright/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@linewright/renderer':
-        specifier: workspace:*
-        version: link:../../packages/renderer
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -75,9 +72,6 @@ importers:
       react:
         specifier: ^18.3.1
         version: 18.3.1
-      react-dom:
-        specifier: ^18.3.1
-        version: 18.3.1(react@18.3.1)
       zustand:
         specifier: ^5.0.2
         version: 5.1.0(@types/react@18.3.31)(react@18.3.1)
@@ -85,9 +79,6 @@ importers:
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.31
-      '@types/react-dom':
-        specifier: ^18.3.0
-        version: 18.3.7(@types/react@18.3.31)
       eslint:
         specifier: ^9.18.0
         version: 9.39.5
@@ -127,10 +118,6 @@ importers:
         version: 3.2.7
 
   packages/schema:
-    dependencies:
-      '@linewright/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       eslint:
         specifier: ^9.18.0

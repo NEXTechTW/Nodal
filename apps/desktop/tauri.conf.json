@@ -13,7 +13,7 @@
     "withGlobalTauri": false,
     "windows": [
       {
-        "title": "Nodal — Transit map editor",
+        "title": "Nodal - Transit map editor",
         "width": 1280,
         "height": 800,
         "minWidth": 900,

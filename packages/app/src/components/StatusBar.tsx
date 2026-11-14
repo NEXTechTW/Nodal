@@ -1,3 +1,4 @@
+import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
 
 export function StatusBar() {
@@ -12,29 +13,31 @@ export function StatusBar() {
   const zoomIn = useEditor((s) => s.zoomIn);
   const zoomOut = useEditor((s) => s.zoomOut);
   const zoomFit = useEditor((s) => s.zoomFit);
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (k: string) => t(uiLang, k);
 
   const station = selectedStationId ? map.stations[selectedStationId] : undefined;
   const line = selectedLineId ? map.lines[selectedLineId] : undefined;
 
   const toolHelp: Record<string, string> = {
-    select: "Select Tool: Click to select station/line. Drag to move.",
-    "add-station": "Add Station: Click canvas to place new transit station.",
-    connect: "Connect Tool: Drag from one station to another to connect track.",
-    pan: "Hand Tool: Drag canvas to pan view.",
+    select: tr("ToolHelpSelect"),
+    "add-station": tr("ToolHelpAddStation"),
+    connect: tr("ToolHelpConnect"),
+    pan: tr("ToolHelpPan"),
   };
 
   return (
     <footer className="statusbar" aria-label="Status bar">
       {/* Tool / Operation Hint */}
       <span aria-live="polite" style={{ color: "var(--color-text)" }}>
-        {lastAction ? `Last Action: ${lastAction}` : toolHelp[tool] ?? "Ready"}
+        {lastAction ? `${tr("LastAction")}: ${lastAction}` : toolHelp[tool] ?? tr("StatusReady")}
       </span>
 
       <div className="statusbar-sep" />
 
       {/* Network Stats */}
       <span>
-        {Object.keys(map.stations).length} stations · {Object.keys(map.lines).length} lines
+        {Object.keys(map.stations).length} {tr("StatusStations")} · {Object.keys(map.lines).length} {tr("StatusLines")}
       </span>
 
       <div className="statusbar-sep" />
@@ -42,18 +45,18 @@ export function StatusBar() {
       {/* Selection detail */}
       {station && (
         <span className="mono" style={{ color: "var(--color-accent)" }}>
-          Station: {station.name["en"] || station.id} (x: {Math.round(station.position.x)}, y: {Math.round(station.position.y)})
+          {tr("Station")}: {station.name[uiLang] || station.name.en || station.id} (x: {Math.round(station.position.x)}, y: {Math.round(station.position.y)})
         </span>
       )}
       {line && !station && (
         <span className="mono" style={{ color: "var(--color-accent)" }}>
-          Line: {line.name["en"] || line.id} ({line.segments.length} segments)
+          {tr("Line")}: {line.name[uiLang] || line.name.en || line.id} ({line.segments.length} {tr("StatusSegments")})
         </span>
       )}
 
       {/* Cursor position */}
       {cursorPos && (
-        <span className="mono" title="Canvas map coordinate cursor position">
+        <span className="mono" title="Cursor position">
           x: {cursorPos.x}px · y: {cursorPos.y}px
         </span>
       )}
@@ -61,8 +64,8 @@ export function StatusBar() {
       <div className="statusbar-sep" />
 
       {/* Snap State */}
-      <span title="Snap state">
-        {snapToGrid ? "Snap: ON (45° / Grid)" : "Snap: OFF"}
+      <span title="Grid snap">
+        {snapToGrid ? tr("SnapOn") : tr("SnapOff")}
       </span>
 
       {/* Zoom scale controls */}
@@ -70,8 +73,8 @@ export function StatusBar() {
         <button
           type="button"
           className="btn btn-tool btn-sm"
-          aria-label="Zoom out"
-          title="Zoom out"
+          aria-label={tr("ZoomOut")}
+          title={tr("ZoomOut")}
           onClick={zoomOut}
         >
           −
@@ -82,8 +85,8 @@ export function StatusBar() {
         <button
           type="button"
           className="btn btn-tool btn-sm"
-          aria-label="Zoom in"
-          title="Zoom in"
+          aria-label={tr("ZoomIn")}
+          title={tr("ZoomIn")}
           onClick={zoomIn}
         >
           +
@@ -91,16 +94,16 @@ export function StatusBar() {
         <button
           type="button"
           className="btn btn-tool btn-sm"
-          aria-label="Fit View"
-          title="Fit to view (F)"
+          aria-label={tr("FitView")}
+          title={`${tr("FitView")} (F)`}
           onClick={zoomFit}
         >
-          Fit
+          {tr("FitView")}
         </button>
       </div>
 
       <div className="statusbar-sep" />
-      <span>v0.3</span>
+      <span>v0.4</span>
     </footer>
   );
 }

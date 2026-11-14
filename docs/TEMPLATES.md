@@ -34,9 +34,9 @@ Design it here, no file needed:
 
 1. Open the **Map** tab.
 2. Tune background, fonts, station size, corner radius, and line colours with the controls.
-3. Click **Export current style as template…** to save it, or **Upload template…** to apply someone else's.
+3. Click **Export style as template…** to save it, or **Upload template…** to apply someone else's.
 
-Uploading does the same thing in reverse: the map recolours instantly. It is a normal edit — Undo (Ctrl+Z) reverts it.
+Uploading does the same thing in reverse: the map recolours instantly. Undo (Ctrl+Z) reverts it.
 
 ## What people build first
 
@@ -44,4 +44,4 @@ Uploading does the same thing in reverse: the map recolours instantly. It is a n
 - Print templates: white background, `labelColor: "#000000"`, high weight.
 - Dark boards: dark background, light `labelColor`, saturated palette.
 
-Validate yours with the same field names as `packages/schema` — typos are reported with the field that failed.
+Validate yours with the same field names as `packages/schema`. Typos are reported with the field that failed.

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { displayName, type Anchor, type StationKind } from "@linewright/core";
+import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
 import {
   AlignCenterIcon,
@@ -40,7 +41,7 @@ const TRANSIT_PALETTE = [
   { name: "Taipei Tamsui", color: "#CB2C30" },
 ];
 
-/** Collapsible Accordion Section (Photoshop/Illustrator palette style) */
+/** Collapsible section. */
 function CollapsibleSection({
   title,
   children,
@@ -88,6 +89,8 @@ export function LinesPanel() {
   const addLine = useEditor((s) => s.addLine);
   const hiddenLineIds = useEditor((s) => s.hiddenLineIds);
   const toggleLineVisibility = useEditor((s) => s.toggleLineVisibility);
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (k: string) => t(uiLang, k);
 
   const [name, setName] = useState("");
   const lines = Object.values(map.lines);
@@ -104,7 +107,7 @@ export function LinesPanel() {
           aria-selected={tab === "lines"}
           onClick={() => setTab("lines")}
         >
-          <LayersIcon /> Lines
+          <LayersIcon /> <span className="panel-tab-label">{tr("TabLines")}</span>
         </button>
         <button
           type="button"
@@ -113,17 +116,17 @@ export function LinesPanel() {
           aria-selected={tab === "history"}
           onClick={() => setTab("history")}
         >
-          <HistoryIcon /> History
+          <HistoryIcon /> <span className="panel-tab-label">{tr("TabHistory")}</span>
         </button>
       </div>
 
       <div className="panel-content">
         {tab === "lines" ? (
           <>
-            <CollapsibleSection title="Transit Lines" defaultOpen={true}>
+            <CollapsibleSection title={tr("TransitLines")} defaultOpen={true}>
               {lines.length === 0 ? (
                 <p style={{ margin: "4px 0", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
-                  No transit lines yet. Create a line below to start connecting stations.
+                  {tr("NoLinesYet")}
                 </p>
               ) : (
                 <div role="list" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -162,7 +165,7 @@ export function LinesPanel() {
                             selectLine(l.id);
                           }}
                         >
-                          {displayName(l.name, "Line")}
+                          {displayName(l.name, tr("Line"))}
                         </span>
                         <span className="line-badge" title="Number of connected segments">
                           {l.segments.length}s
@@ -188,20 +191,20 @@ export function LinesPanel() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="New line name..."
+                  placeholder={tr("NewLineName")}
                   className="prop-input"
-                  aria-label="New line name"
+                  aria-label={tr("NewLineName")}
                 />
-                <button type="submit" className="btn btn-primary btn-sm" aria-label="Add line">
-                  <PlusIcon /> Add
+                <button type="submit" className="btn btn-primary btn-sm" aria-label={tr("AddLine")}>
+                  <PlusIcon /> {tr("AddLine")}
                 </button>
               </form>
             </CollapsibleSection>
 
             {/* Transit Swatch Presets */}
-            <CollapsibleSection title="Quick Swatches" defaultOpen={true}>
+            <CollapsibleSection title={tr("QuickSwatches")} defaultOpen={true}>
               <div style={{ fontSize: "var(--text-11)", color: "var(--color-text-secondary)", marginBottom: 4 }}>
-                Global transit palette standards:
+                {tr("GlobalPaletteStandards")}
               </div>
               <div className="swatch-palette">
                 {TRANSIT_PALETTE.map((p) => (
@@ -224,11 +227,11 @@ export function LinesPanel() {
             </CollapsibleSection>
           </>
         ) : (
-          <CollapsibleSection title="Action Stack" defaultOpen={true}>
+          <CollapsibleSection title={tr("ActionStack")} defaultOpen={true}>
             <div className="history-list">
               {historyList.length === 0 ? (
                 <div style={{ padding: "8px", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
-                  Initial document state
+                  {tr("InitialDocState")}
                 </div>
               ) : (
                 historyList.map((action, idx) => (
@@ -240,7 +243,7 @@ export function LinesPanel() {
                     <span>{action}</span>
                     {idx === 0 && (
                       <span style={{ marginLeft: "auto", fontSize: "var(--text-10)", color: "var(--color-accent)" }}>
-                        CURRENT
+                        {tr("CurrentState")}
                       </span>
                     )}
                   </div>
@@ -255,7 +258,7 @@ export function LinesPanel() {
                 disabled={!stack.canUndo}
                 onClick={() => useEditor.getState().undo()}
               >
-                Undo (Ctrl+Z)
+                {tr("Undo")} (Ctrl+Z)
               </button>
               <button
                 type="button"
@@ -264,7 +267,7 @@ export function LinesPanel() {
                 disabled={!stack.canRedo}
                 onClick={() => useEditor.getState().redo()}
               >
-                Redo (Ctrl+Shift+Z)
+                {tr("Redo")} (Ctrl+Shift+Z)
               </button>
             </div>
           </CollapsibleSection>
@@ -278,12 +281,6 @@ const ANCHOR_MATRIX: (Anchor | null)[][] = [
   ["NW", "N", "NE"],
   ["W", null, "E"],
   ["SW", "S", "SE"],
-];
-
-const STATION_KINDS: { value: StationKind; label: string }[] = [
-  { value: "normal", label: "Normal Stop" },
-  { value: "interchange", label: "Interchange Ring" },
-  { value: "terminus", label: "Terminus Square" },
 ];
 
 /** Right Docked Panel: Properties, Map Appearance, Alignment */
@@ -332,6 +329,14 @@ export function PropertiesPanel() {
   const pasteStationAttrs = useEditor((s) => s.pasteStationAttrs);
   const autoEnglishName = useEditor((s) => s.autoEnglishName);
   const copiedStationAttrs = useEditor((s) => s.copiedStationAttrs);
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (k: string) => t(uiLang, k);
+
+  const stationKinds: { value: StationKind; label: string }[] = [
+    { value: "normal", label: tr("NormalStop") },
+    { value: "interchange", label: tr("InterchangeRing") },
+    { value: "terminus", label: tr("TerminusSquare") },
+  ];
 
   const station = selectedStationId ? map.stations[selectedStationId] : undefined;
   const line = selectedLineId ? map.lines[selectedLineId] : undefined;
@@ -347,7 +352,7 @@ export function PropertiesPanel() {
           aria-selected={tab === "props"}
           onClick={() => setTab("props")}
         >
-          <SlidersIcon /> Properties
+          <SlidersIcon /> <span className="panel-tab-label">{tr("TabProperties")}</span>
         </button>
         <button
           type="button"
@@ -356,7 +361,7 @@ export function PropertiesPanel() {
           aria-selected={tab === "map"}
           onClick={() => setTab("map")}
         >
-          <MapIcon /> Appearance
+          <MapIcon /> <span className="panel-tab-label">{tr("TabAppearance")}</span>
         </button>
         <button
           type="button"
@@ -365,7 +370,7 @@ export function PropertiesPanel() {
           aria-selected={tab === "align"}
           onClick={() => setTab("align")}
         >
-          <AlignCenterIcon /> Align
+          <AlignCenterIcon /> <span className="panel-tab-label">{tr("TabAlign")}</span>
         </button>
       </div>
 
@@ -374,8 +379,8 @@ export function PropertiesPanel() {
           <>
             {station && (
               <>
-                <CollapsibleSection title="Station Identity" defaultOpen={true}>
-                  <PropRow label="站名（主）">
+                <CollapsibleSection title={tr("StationIdentity")} defaultOpen={true}>
+                  <PropRow label={tr("StationNameMain")}>
                     <input
                       type="text"
                       className="prop-input"
@@ -383,11 +388,11 @@ export function PropertiesPanel() {
                       onChange={(e) => renameStation(station.id, e.target.value, "en")}
                     />
                   </PropRow>
-                  <PropRow label="副站名">
+                  <PropRow label={tr("StationNameSub")}>
                     <input
                       type="text"
                       className="prop-input"
-                      placeholder="Optional station name"
+                      placeholder={tr("OptionalStationName")}
                       value={station.name["zh-TW"] ?? ""}
                       onChange={(e) => renameStation(station.id, e.target.value, "zh-TW")}
                     />
@@ -395,27 +400,27 @@ export function PropertiesPanel() {
                       <button
                         type="button"
                         className="btn btn-sm btn-tool"
-                        title="Auto-translate / romanize Chinese to English (RMP style)"
+                        title={tr("AutoTranslateTooltip")}
                         onClick={() => autoEnglishName(station.id)}
                       >
                         <SparklesIcon />
                       </button>
                     )}
                   </PropRow>
-                  <PropRow label="Symbol">
+                  <PropRow label={tr("StationSymbol")}>
                     <select
                       className="prop-input"
                       value={station.kind}
                       onChange={(e) => setStationKind(station.id, e.target.value as StationKind)}
                     >
-                      {STATION_KINDS.map((k) => (
+                      {stationKinds.map((k) => (
                         <option key={k.value} value={k.value}>{k.label}</option>
                       ))}
                     </select>
                   </PropRow>
                 </CollapsibleSection>
 
-                <CollapsibleSection title="Transform & Position" defaultOpen={true}>
+                <CollapsibleSection title={tr("TransformPosition")} defaultOpen={true}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 4 }}>
                     <PropRow label="X">
                       <input
@@ -437,7 +442,7 @@ export function PropertiesPanel() {
                     </PropRow>
                   </div>
 
-                  <PropRow label="Rotate">
+                  <PropRow label={tr("Rotate")}>
                     <input
                       type="range"
                       min={0}
@@ -459,12 +464,13 @@ export function PropertiesPanel() {
                       style={{ flex: 1 }}
                       onClick={() => duplicateStation(station.id)}
                     >
-                      <DuplicateIcon /> Duplicate (Ctrl+D)
+                      <DuplicateIcon /> {tr("Duplicate")} (Ctrl+D)
                     </button>
                     <button
                       type="button"
                       className="btn btn-danger btn-sm"
                       onClick={deleteSelectedStation}
+                      aria-label={tr("Delete")}
                     >
                       <TrashIcon />
                     </button>
@@ -476,9 +482,9 @@ export function PropertiesPanel() {
                       className="btn btn-tool btn-sm"
                       style={{ flex: 1 }}
                       onClick={() => copyStationAttrs(station.id)}
-                      title="Copy style attributes from this station"
+                      title={tr("CopyStyle")}
                     >
-                      Copy Style
+                      {tr("CopyStyle")}
                     </button>
                     <button
                       type="button"
@@ -486,16 +492,16 @@ export function PropertiesPanel() {
                       style={{ flex: 1 }}
                       disabled={!copiedStationAttrs}
                       onClick={() => pasteStationAttrs(station.id)}
-                      title="Paste copied station style"
+                      title={tr("PasteStyle")}
                     >
-                      Paste Style
+                      {tr("PasteStyle")}
                     </button>
                   </div>
                 </CollapsibleSection>
 
-                <CollapsibleSection title="Label Placement" defaultOpen={true}>
+                <CollapsibleSection title={tr("LabelPlacement")} defaultOpen={true}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                    <span className="prop-label">Anchor</span>
+                    <span className="prop-label">{tr("Anchor")}</span>
                     <div className="anchor-grid">
                       {ANCHOR_MATRIX.map((row, rIdx) =>
                         row.map((cell, cIdx) => (
@@ -516,7 +522,7 @@ export function PropertiesPanel() {
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                    <PropRow label="Nudge X">
+                    <PropRow label={tr("NudgeX")}>
                       <input
                         type="number"
                         className="prop-input"
@@ -524,7 +530,7 @@ export function PropertiesPanel() {
                         onChange={(e) => setStationLabelOffset(station.id, { x: Number(e.target.value) || 0, y: station.labelOffset?.y ?? 0 })}
                       />
                     </PropRow>
-                    <PropRow label="Nudge Y">
+                    <PropRow label={tr("NudgeY")}>
                       <input
                         type="number"
                         className="prop-input"
@@ -539,8 +545,8 @@ export function PropertiesPanel() {
 
             {line && (
               <>
-                <CollapsibleSection title="Line Properties" defaultOpen={true}>
-                  <PropRow label="Name">
+                <CollapsibleSection title={tr("LineProperties")} defaultOpen={true}>
+                  <PropRow label={tr("LineName")}>
                     <input
                       type="text"
                       className="prop-input"
@@ -548,7 +554,7 @@ export function PropertiesPanel() {
                       onChange={(e) => renameLine(line.id, e.target.value, "en")}
                     />
                   </PropRow>
-                  <PropRow label="Color">
+                  <PropRow label={tr("Color")}>
                     <input
                       type="color"
                       value={line.color}
@@ -578,20 +584,20 @@ export function PropertiesPanel() {
                   </div>
                 </CollapsibleSection>
 
-                <CollapsibleSection title="Stroke & Styling" defaultOpen={true}>
-                  <PropRow label="Style">
+                <CollapsibleSection title={tr("StrokeStyling")} defaultOpen={true}>
+                  <PropRow label={tr("Style")}>
                     <select
                       className="prop-input"
                       value={line.style}
                       onChange={(e) => setLineStyle(line.id, e.target.value as "solid" | "dashed" | "double")}
                     >
-                      <option value="solid">Solid Track</option>
-                      <option value="dashed">Under Construction / Dashed</option>
-                      <option value="double">High Speed / Double</option>
+                      <option value="solid">{tr("SolidTrack")}</option>
+                      <option value="dashed">{tr("DashedTrack")}</option>
+                      <option value="double">{tr("DoubleTrack")}</option>
                     </select>
                   </PropRow>
 
-                  <PropRow label="Width">
+                  <PropRow label={tr("Width")}>
                     <input
                       type="range"
                       min={3}
@@ -613,7 +619,7 @@ export function PropertiesPanel() {
                       style={{ width: "100%" }}
                       onClick={() => deleteLine(line.id)}
                     >
-                      <TrashIcon /> Delete Line
+                      <TrashIcon /> {tr("DeleteLine")}
                     </button>
                   </div>
                 </CollapsibleSection>
@@ -623,16 +629,16 @@ export function PropertiesPanel() {
             {!station && !line && (
               <div style={{ padding: "16px 12px", textAlign: "center" }}>
                 <p style={{ margin: "0 0 8px", fontSize: "var(--text-13)", fontWeight: 600 }}>
-                  No Selection
+                  {tr("NoSelectionTitle")}
                 </p>
                 <p style={{ margin: 0, fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
-                  Click a station or select a transit line on the canvas to inspect and edit its properties.
+                  {tr("NoSelectionDesc")}
                 </p>
                 <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 4, textAlign: "left", fontSize: "var(--text-11)", color: "var(--color-text-secondary)" }}>
-                  <div><kbd>V</kbd> Select tool</div>
-                  <div><kbd>A</kbd> Add new station</div>
-                  <div><kbd>C</kbd> Connect stations into line</div>
-                  <div><kbd>H</kbd> Hand tool for panning</div>
+                  <div><kbd>V</kbd> {tr("ToolSelect")}</div>
+                  <div><kbd>A</kbd> {tr("ToolAddStation")}</div>
+                  <div><kbd>C</kbd> {tr("ToolConnect")}</div>
+                  <div><kbd>H</kbd> {tr("ToolPan")}</div>
                 </div>
               </div>
             )}
@@ -641,9 +647,9 @@ export function PropertiesPanel() {
 
         {tab === "map" && (
           <>
-            <CollapsibleSection title="Map Template" defaultOpen={true}>
+            <CollapsibleSection title={tr("MapTemplate")} defaultOpen={true}>
               <p style={{ margin: "0 0 8px", fontSize: "var(--text-12)", color: "var(--color-text-secondary)" }}>
-                Upload a template JSON, or design one right here with the controls below — then export it to share.
+                {tr("MapTemplateDesc")}
               </p>
               <button
                 type="button"
@@ -667,14 +673,14 @@ export function PropertiesPanel() {
                   URL.revokeObjectURL(url);
                 }}
               >
-                Export current style as template…
+                {tr("ExportTemplate")}
               </button>
               <label className="btn btn-sm" style={{ width: "100%", justifyContent: "center", cursor: "pointer" }}>
-                Upload template…
+                {tr("UploadTemplate")}
                 <input
                   type="file"
                   accept="application/json,.json"
-                  aria-label="Upload template JSON"
+                  aria-label={tr("UploadTemplate")}
                   hidden
                   onChange={async (e) => {
                     const f = e.target.files?.[0];
@@ -685,21 +691,21 @@ export function PropertiesPanel() {
                       const parsed = JSON.parse(await f.text());
                       const issues = validateTemplate(parsed);
                       if (issues.length) {
-                        useEditor.getState().setError(`Template invalid: ${issues[0]}. See docs/TEMPLATES.md.`);
+                        useEditor.getState().setError("Template invalid: " + issues[0] + ". See docs/TEMPLATES.md.");
                         return;
                       }
                       const next = applyTemplate(useEditor.getState().map, parsed);
                       useEditor.getState().loadMap(next);
                       useEditor.getState().setToast(`Template applied: ${parsed.name}`);
                     } catch {
-                      useEditor.getState().setError("Unable to read that template. Choose a .json file like docs/TEMPLATES.md and try again.");
+                      useEditor.getState().setError("Couldn't read that template. Use a .json file.");
                     }
                   }}
                 />
               </label>
             </CollapsibleSection>
-            <CollapsibleSection title="Map & Canvas" defaultOpen={true}>
-              <PropRow label="Background">
+            <CollapsibleSection title={tr("MapCanvas")} defaultOpen={true}>
+              <PropRow label={tr("Background")}>
                 <input
                   type="color"
                   value={map.style.background}
@@ -715,7 +721,7 @@ export function PropertiesPanel() {
                 />
               </PropRow>
 
-              <PropRow label="Grid Step">
+              <PropRow label={tr("GridStep")}>
                 <input
                   type="range"
                   min={10}
@@ -730,7 +736,7 @@ export function PropertiesPanel() {
                 </span>
               </PropRow>
 
-              <PropRow label="Corner Rad">
+              <PropRow label={tr("CornerRadius")}>
                 <input
                   type="range"
                   min={0}
@@ -746,8 +752,8 @@ export function PropertiesPanel() {
               </PropRow>
             </CollapsibleSection>
 
-            <CollapsibleSection title="Typography & Dimensions" defaultOpen={true}>
-              <PropRow label="Station Size">
+            <CollapsibleSection title={tr("TypographyDimensions")} defaultOpen={true}>
+              <PropRow label={tr("StationSize")}>
                 <input
                   type="range"
                   min={3}
@@ -762,7 +768,7 @@ export function PropertiesPanel() {
                 </span>
               </PropRow>
 
-              <PropRow label="Font Size">
+              <PropRow label={tr("FontSize")}>
                 <input
                   type="range"
                   min={8}
@@ -777,7 +783,7 @@ export function PropertiesPanel() {
                 </span>
               </PropRow>
 
-              <PropRow label="Language">
+              <PropRow label={tr("PrimaryLanguage")}>
                 <select
                   className="prop-input"
                   value={map.style.labelLanguage ?? "en"}
@@ -789,7 +795,7 @@ export function PropertiesPanel() {
                 </select>
               </PropRow>
 
-              <PropRow label="Font">
+              <PropRow label={tr("Font")}>
                 <select
                   className="prop-input"
                   value={map.style.fontFamily ?? "Noto Sans, sans-serif"}
@@ -835,26 +841,26 @@ export function PropertiesPanel() {
                 </select>
               </PropRow>
 
-              <PropRow label="Text color">
+              <PropRow label={tr("TextColor")}>
                 <input
                   type="color"
                   value={map.style.labelColor ?? "#000000"}
                   onChange={(e) => setLabelColor(e.target.value)}
-                  aria-label="Label text color"
+                  aria-label={tr("TextColor")}
                 />
               </PropRow>
 
-              <PropRow label="Weight">
+              <PropRow label={tr("Weight")}>
                 <select className="prop-input" value={String(map.style.fontWeight ?? 500)}
                   onChange={(e) => setFontWeight(Number(e.target.value))}>
-                  <option value="400">Normal (400)</option>
-                  <option value="500">Medium (500)</option>
-                  <option value="600">Semi-bold (600)</option>
-                  <option value="700">Bold (700)</option>
+                  <option value="400">{tr("FontNormal")}</option>
+                  <option value="500">{tr("FontMedium")}</option>
+                  <option value="600">{tr("FontSemiBold")}</option>
+                  <option value="700">{tr("FontBold")}</option>
                 </select>
               </PropRow>
 
-              <PropRow label="Style">
+              <PropRow label={tr("FontStyle")}>
                 <select className="prop-input" value={map.style.fontStyle ?? "normal"}
                   onChange={(e) => setFontStyle(e.target.value)}>
                   <option value="normal">Normal</option>
@@ -862,7 +868,7 @@ export function PropertiesPanel() {
                 </select>
               </PropRow>
 
-              <PropRow label="Case">
+              <PropRow label={tr("Case")}>
                 <select className="prop-input" value={map.style.textTransform ?? "none"}
                   onChange={(e) => setTextTransform(e.target.value)}>
                   <option value="none">None</option>
@@ -871,7 +877,7 @@ export function PropertiesPanel() {
                 </select>
               </PropRow>
 
-              <PropRow label="Tracking">
+              <PropRow label={tr("Tracking")}>
                 <input type="number" className="prop-input" min={-2} max={8} step={0.5}
                   value={map.style.letterSpacing ?? 0}
                   onChange={(e) => setLetterSpacing(Number(e.target.value) || 0)} />
@@ -884,12 +890,12 @@ export function PropertiesPanel() {
                   style={{ width: "100%" }}
                   onClick={avoidLabelOverlaps}
                 >
-                  <SparklesIcon /> Auto-Resolve Label Overlaps
+                  <SparklesIcon /> {tr("AutoResolveOverlaps")}
                 </button>
               </div>
             </CollapsibleSection>
 
-            <CollapsibleSection title="Transit Diagram Features" defaultOpen={true}>
+            <CollapsibleSection title={tr("TransitDiagramFeatures")} defaultOpen={true}>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-12)", cursor: "pointer" }}>
                   <input
@@ -897,7 +903,7 @@ export function PropertiesPanel() {
                     checked={bilingualLabels}
                     onChange={toggleBilingual}
                   />
-                  <span>Bilingual Dual Labels (中文 + EN)</span>
+                  <span>{tr("BilingualLabels")}</span>
                 </label>
 
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-12)", cursor: "pointer" }}>
@@ -906,7 +912,7 @@ export function PropertiesPanel() {
                     checked={showTransferBadges}
                     onChange={toggleTransferBadges}
                   />
-                  <span>Transfer Line Route Badges</span>
+                  <span>{tr("TransferRouteBadges")}</span>
                 </label>
 
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-12)", cursor: "pointer" }}>
@@ -915,7 +921,7 @@ export function PropertiesPanel() {
                     checked={showDPad}
                     onChange={toggleDPad}
                   />
-                  <span>Canvas D-Pad Controller</span>
+                  <span>{tr("CanvasDPadController")}</span>
                 </label>
               </div>
             </CollapsibleSection>
@@ -923,15 +929,15 @@ export function PropertiesPanel() {
         )}
 
         {tab === "align" && (
-          <CollapsibleSection title="Alignment Tools" defaultOpen={true}>
+          <CollapsibleSection title={tr("AlignmentTools")} defaultOpen={true}>
             <div style={{ fontSize: "var(--text-11)", color: "var(--color-text-secondary)", marginBottom: 10 }}>
-              Align and distribute stations to schematic transit grid lines:
+              {tr("AlignmentDesc")}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginBottom: 12 }}>
               <button
                 type="button"
                 className="btn btn-tool"
-                title="Align to Left 45°"
+                title={tr("AlignLeft")}
                 onClick={() => {
                   if (station) {
                     const snapX = Math.round(station.position.x / 40) * 40;
@@ -939,12 +945,12 @@ export function PropertiesPanel() {
                   }
                 }}
               >
-                <AlignLeftIcon /> Left
+                <AlignLeftIcon /> {tr("AlignLeft")}
               </button>
               <button
                 type="button"
                 className="btn btn-tool"
-                title="Align to Center Column"
+                title={tr("AlignCenter")}
                 onClick={() => {
                   if (station) {
                     const snapX = Math.round(station.position.x / 20) * 20;
@@ -952,12 +958,12 @@ export function PropertiesPanel() {
                   }
                 }}
               >
-                <AlignCenterIcon /> Center
+                <AlignCenterIcon /> {tr("AlignCenter")}
               </button>
               <button
                 type="button"
                 className="btn btn-tool"
-                title="Align to Right"
+                title={tr("AlignRight")}
                 onClick={() => {
                   if (station) {
                     const snapX = Math.ceil(station.position.x / 40) * 40;
@@ -965,13 +971,13 @@ export function PropertiesPanel() {
                   }
                 }}
               >
-                <AlignRightIcon /> Right
+                <AlignRightIcon /> {tr("AlignRight")}
               </button>
 
               <button
                 type="button"
                 className="btn btn-tool"
-                title="Align to Top Row"
+                title={tr("AlignTop")}
                 onClick={() => {
                   if (station) {
                     const snapY = Math.round(station.position.y / 40) * 40;
@@ -979,12 +985,12 @@ export function PropertiesPanel() {
                   }
                 }}
               >
-                <AlignTopIcon /> Top
+                <AlignTopIcon /> {tr("AlignTop")}
               </button>
               <button
                 type="button"
                 className="btn btn-tool"
-                title="Align to Middle"
+                title={tr("AlignMiddle")}
                 onClick={() => {
                   if (station) {
                     const snapY = Math.round(station.position.y / 20) * 20;
@@ -992,12 +998,12 @@ export function PropertiesPanel() {
                   }
                 }}
               >
-                <AlignCenterIcon /> Middle
+                <AlignCenterIcon /> {tr("AlignMiddle")}
               </button>
               <button
                 type="button"
                 className="btn btn-tool"
-                title="Align to Bottom"
+                title={tr("AlignBottom")}
                 onClick={() => {
                   if (station) {
                     const snapY = Math.ceil(station.position.y / 40) * 40;
@@ -1005,12 +1011,12 @@ export function PropertiesPanel() {
                   }
                 }}
               >
-                <AlignBottomIcon /> Bottom
+                <AlignBottomIcon /> {tr("AlignBottom")}
               </button>
             </div>
 
             <div style={{ padding: "8px", background: "var(--color-bg-inset)", borderRadius: "var(--radius-1)", fontSize: "var(--text-11)", color: "var(--color-text-secondary)" }}>
-              Tip: Press <kbd>Shift</kbd> while dragging any station to restrict motion to 0°, 45°, or 90° angles.
+              {tr("ShiftKeyTip")}
             </div>
           </CollapsibleSection>
         )}

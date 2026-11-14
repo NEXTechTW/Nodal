@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { t } from "../i18n.js";
 import { UI_THEMES, useEditor } from "../store/useEditor.js";
 import { PaletteIcon } from "./Icons.js";
 
@@ -41,6 +42,8 @@ export function ThemePicker() {
   const rootRef = useRef<HTMLDivElement>(null);
   const theme = useEditor((s) => s.theme);
   const setTheme = useEditor((s) => s.setTheme);
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (k: string) => t(uiLang, k);
 
   useEffect(() => {
     if (!open) return;
@@ -64,8 +67,8 @@ export function ThemePicker() {
         type="button"
         className="btn btn-tool icon-btn"
         aria-expanded={open}
-        aria-label="Theme (App)"
-        title="Theme (App) — whole-app"
+        aria-label={tr("AppTheme")}
+        title={tr("WholeAppTheme")}
         onClick={() => setOpen((v) => !v)}
       >
         <PaletteIcon />
@@ -85,10 +88,10 @@ export function ThemePicker() {
           }}
         >
           <p style={{ margin: "4px 8px 2px", fontSize: 11, fontWeight: 700, color: "var(--color-text)" }}>
-            Whole-app theme
+            {tr("WholeAppTheme")}
           </p>
           <p style={{ margin: "0 8px 6px", fontSize: 10, lineHeight: 1.4, color: "var(--color-text-secondary)" }}>
-            Changes toolbar, panels, menu bar and canvas grid. Saved locally.
+            {tr("WholeAppThemeDesc")}
           </p>
           {UI_THEMES.map((t) => {
             const isCur = theme === t.id;

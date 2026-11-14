@@ -12,7 +12,7 @@ fn main() {
             // Bundled font note: Noto Sans (SIL OFL) ships with the shell.
             // The editor falls back to system fonts in the browser.
             if let Some(window) = app.get_webview_window("main") {
-                let _ = window.set_title("Nodal — Transit map editor");
+                let _ = window.set_title("Nodal - Transit map editor");
             }
             Ok(())
         })

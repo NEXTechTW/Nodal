@@ -1,7 +1,6 @@
 /**
- * Zustand store — UI state (viewport, selection, tool) + domain state (MetroMap).
+ * Zustand store: UI state (viewport, selection, tool) and domain state (MetroMap).
  * Undo/redo via CommandStack from @linewright/core (PROJECT.md §3).
- * Modeled after Nodal Creative Cloud workbench state management.
  */
 import { create } from "zustand";
 import {
@@ -51,19 +50,19 @@ export type Theme =
   | "teal";
 
 export const UI_THEMES: { id: Theme; name: string; dark: boolean; hint: string }[] = [
-  { id: "light", name: "Nodal Light", dark: false, hint: "Inter · standard" },
-  { id: "dark", name: "Nodal Dark", dark: true, hint: "Inter · standard" },
-  { id: "midnight", name: "Midnight", dark: true, hint: "Space Grotesk · compact" },
-  { id: "forest", name: "Forest", dark: true, hint: "serif · soft · wide" },
-  { id: "crimson", name: "Crimson Line", dark: true, hint: "Oswald · sharp · bold" },
-  { id: "violet", name: "Violet Night", dark: true, hint: "Space Grotesk · pill" },
-  { id: "teal", name: "Deep Teal", dark: true, hint: "Jakarta · rounded" },
-  { id: "solar", name: "Solar Paper", dark: false, hint: "serif · paper · loose" },
-  { id: "lavender", name: "Lavender", dark: false, hint: "Quicksand · airy" },
-  { id: "mint", name: "Mint", dark: false, hint: "Manrope · fresh" },
-  { id: "sky", name: "Sky", dark: false, hint: "Poppins · clean" },
-  { id: "rose", name: "Rose", dark: false, hint: "Nunito · soft" },
-  { id: "high-contrast", name: "High Contrast (A11y)", dark: false, hint: "mono · square · large" },
+  { id: "light", name: "Nodal Light", dark: false, hint: "Inter" },
+  { id: "dark", name: "Nodal Dark", dark: true, hint: "Inter" },
+  { id: "midnight", name: "Midnight", dark: true, hint: "Space Grotesk, compact" },
+  { id: "forest", name: "Forest", dark: true, hint: "Serif, wide" },
+  { id: "crimson", name: "Crimson Line", dark: true, hint: "Oswald, bold" },
+  { id: "violet", name: "Violet Night", dark: true, hint: "Space Grotesk, rounded" },
+  { id: "teal", name: "Deep Teal", dark: true, hint: "Plus Jakarta Sans" },
+  { id: "solar", name: "Solar Paper", dark: false, hint: "Serif, paper" },
+  { id: "lavender", name: "Lavender", dark: false, hint: "Quicksand" },
+  { id: "mint", name: "Mint", dark: false, hint: "Manrope" },
+  { id: "sky", name: "Sky", dark: false, hint: "Poppins" },
+  { id: "rose", name: "Rose", dark: false, hint: "Nunito" },
+  { id: "high-contrast", name: "High Contrast (A11y)", dark: false, hint: "Monospace, large" },
 ];
 
 export function isDarkTheme(t: Theme): boolean {
