@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   chainPoints,
   computeParallelOffsets,
@@ -7,6 +7,10 @@ import {
   roundedPolyline,
   stationLabelLines,
   svgPath,
+  type Line,
+  type Station,
+  type StationLabelLine,
+  type StationSymbol,
   type Vec2,
 } from "@nodal/core";
 import { useEditor } from "../store/useEditor.js";
@@ -50,18 +54,20 @@ function toMapCoords(client: Vec2, rect: DOMRect, vp: { x: number; y: number; k:
 }
 
 /** Mini-map navigator. */
-function MiniMap({
+const MiniMap = memo(function MiniMap({
   stations,
   lines,
   viewport,
   setViewport,
-  containerRect,
+  canvasWidth,
+  canvasHeight,
 }: {
   stations: ReturnType<typeof useEditor.getState>["map"]["stations"];
   lines: ReturnType<typeof useEditor.getState>["map"]["lines"];
   viewport: { x: number; y: number; k: number };
   setViewport: (v: Partial<{ x: number; y: number; k: number }>) => void;
-  containerRect: DOMRect | null;
+  canvasWidth: number;
+  canvasHeight: number;
 }) {
   const toggleMiniMap = useEditor((s) => s.toggleMiniMap);
   const stationList = Object.values(stations);
@@ -78,8 +84,8 @@ function MiniMap({
   const mapH = Math.max(140, maxY - minY);
 
   // Viewport rect in map coordinates
-  const vw = containerRect ? containerRect.width : 800;
-  const vh = containerRect ? containerRect.height : 600;
+  const vw = canvasWidth;
+  const vh = canvasHeight;
   const vpMapX = -viewport.x / viewport.k;
   const vpMapY = -viewport.y / viewport.k;
   const vpMapW = vw / viewport.k;
@@ -161,7 +167,190 @@ function MiniMap({
       </svg>
     </div>
   );
-}
+});
+
+const EMPTY_LABELS: StationLabelLine[] = [];
+const EMPTY_LINES: Line[] = [];
+
+type StationTextStyle = {
+  fontFamily: string;
+  fontWeight: number;
+  fontStyle: string;
+  letterSpacing: number;
+  labelColor: string;
+  textTransform: string;
+};
+
+/** One station marker. Memoized so dragging one station leaves the rest alone. */
+const StationMarker = memo(function StationMarker({
+  station,
+  pos,
+  radius,
+  stroke,
+  selected,
+  hovered,
+  connectTool,
+  labels,
+  lines,
+  showTransferBadges,
+  zoom,
+  text,
+  symbol,
+  onMenu,
+}: {
+  station: Station;
+  pos: Vec2;
+  radius: number;
+  stroke: string;
+  selected: boolean;
+  hovered: boolean;
+  connectTool: boolean;
+  labels: StationLabelLine[];
+  lines: Line[];
+  showTransferBadges: boolean;
+  zoom: number;
+  text: StationTextStyle;
+  symbol: StationSymbol | undefined;
+  onMenu: (id: string, e: React.MouseEvent) => void;
+}) {
+  const selectionExtent =
+    (symbol ? radius * 2.5 : radius + (station.kind === "interchange" ? 7 : 2)) + 5 / zoom;
+  const handleSize = 4 / zoom;
+  const sw = 2.5;
+
+  return (
+    <g
+      transform={`translate(${pos.x} ${pos.y}) rotate(${station.rotation ?? 0})`}
+      data-station={station.id}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onMenu(station.id, e);
+      }}
+      style={{ cursor: connectTool ? "crosshair" : "pointer" }}
+    >
+      {symbol ? <circle r={radius * 2.5} fill="transparent" /> : <circle r={radius + 5} fill="#ffffff" />}
+      {/* Keep editor selection chrome separate from the map symbol. */}
+      {hovered && !selected && (
+        <circle
+          r={selectionExtent}
+          fill="none"
+          stroke="var(--color-accent)"
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+          pointerEvents="none"
+        />
+      )}
+      {selected && (
+        <g className="station-selection" pointerEvents="none">
+          <rect
+            x={-selectionExtent}
+            y={-selectionExtent}
+            width={selectionExtent * 2}
+            height={selectionExtent * 2}
+            fill="none"
+            vectorEffect="non-scaling-stroke"
+          />
+          {[-1, 1].flatMap((x) => [-1, 1].map((y) => (
+            <rect
+              key={`${x}-${y}`}
+              x={x * selectionExtent - handleSize / 2}
+              y={y * selectionExtent - handleSize / 2}
+              width={handleSize}
+              height={handleSize}
+              fill="var(--color-bg-surface)"
+              vectorEffect="non-scaling-stroke"
+            />
+          )))}
+        </g>
+      )}
+
+      {symbol ? <g className="station-custom-artwork" transform={`scale(${radius / 12})`} color={stroke}><StationSymbolArtwork symbol={symbol} /></g> : station.kind === "interchange" ? (
+        <>
+          <circle r={radius + 6} fill="none" stroke={stroke} strokeWidth={2} />
+          <circle r={radius} fill="#ffffff" stroke={stroke} strokeWidth={sw} />
+        </>
+      ) : station.kind === "terminus" ? (
+        <rect
+          x={-radius}
+          y={-radius}
+          width={radius * 2}
+          height={radius * 2}
+          rx={2}
+          fill="#ffffff"
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      ) : (
+        <circle r={radius} fill="#ffffff" stroke={stroke} strokeWidth={sw} />
+      )}
+
+      {/* Station Label & Bilingual Support */}
+      {labels.map((line, lineIndex) => {
+        const raw = line.text;
+        const label =
+          text.textTransform === "uppercase"
+            ? raw.toUpperCase()
+            : text.textTransform === "lowercase"
+              ? raw.toLowerCase()
+              : raw;
+        return (
+          <text
+            key={lineIndex}
+            x={line.x}
+            y={line.y}
+            textAnchor={line.textAnchor}
+            dominantBaseline="auto"
+            fontFamily={text.fontFamily}
+            fontSize={line.fontSize}
+            fontWeight={lineIndex === 0 ? text.fontWeight : 400}
+            fontStyle={text.fontStyle}
+            letterSpacing={text.letterSpacing}
+            style={{
+              pointerEvents: "none",
+              fill: lineIndex === 1 ? "var(--color-text-secondary)" : text.labelColor,
+            }}
+          >
+            {label}
+          </text>
+        );
+      })}
+
+      {/* Transfer Line Bullet Badges (RMP / Real Metro Style) */}
+      {showTransferBadges && lines.length > 0 && (lines.length >= 2 || station.kind === "interchange") && (() => {
+        const badgeY = radius + 10 + (station.labelAnchor.includes("S") ? 18 : 0);
+        const badgeW = 16;
+        const totalW = lines.length * (badgeW + 3) - 3;
+        const startX = -totalW / 2;
+
+        return (
+          <g transform={`translate(0, ${badgeY})`} style={{ pointerEvents: "none" }}>
+            {lines.map((l, lIdx) => {
+              const bx = startX + lIdx * (badgeW + 3);
+              const code = (displayName(l.name, "L")).slice(0, 2).toUpperCase();
+              return (
+                <g key={l.id} transform={`translate(${bx}, 0)`}>
+                  <rect x={0} y={0} width={badgeW} height={11} rx={3} fill={l.color} />
+                  <text
+                    x={badgeW / 2}
+                    y={8.5}
+                    textAnchor="middle"
+                    fill="#ffffff"
+                    fontSize={7.5}
+                    fontFamily="var(--font-mono)"
+                    fontWeight={700}
+                  >
+                    {code}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        );
+      })()}
+    </g>
+  );
+});
 
 /** RMP-style floating canvas navigation & action D-Pad controller */
 function DPadController({
@@ -341,6 +530,8 @@ export function Canvas() {
   const [menu, setMenu] = useState<CanvasMenu | null>(null);
 
   const svgRef = useRef<SVGSVGElement>(null);
+  const canvasRect = useRef<DOMRect | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
   const dragRef = useRef<DragState>({
     kind: "none",
     startClient: { x: 0, y: 0 },
@@ -360,7 +551,69 @@ export function Canvas() {
   const [cursorScreen, setCursorScreen] = useState<Vec2>({ x: 0, y: 0 });
 
   const stationCount = Object.keys(map.stations).length;
-  const parallel = computeParallelOffsets(map).bySegment;
+
+  // Geometry only changes when the map or corner radius changes, so keep it
+  // out of the pointer-move hot path.
+  const parallel = useMemo(() => computeParallelOffsets(map).bySegment, [map]);
+  const linePaths = useMemo(() => {
+    const styledMap = { ...map, style: { ...map.style, cornerRadius } };
+    const paths: Record<string, string[]> = {};
+    for (const line of Object.values(map.lines)) {
+      paths[line.id] = lineChains(styledMap, line.id)
+        .map((chain) => {
+          const raw = chainPoints(map, chain, line.id, parallel);
+          return raw.length < 2 ? null : svgPath(roundedPolyline(raw, cornerRadius));
+        })
+        .filter((d): d is string => Boolean(d));
+    }
+    return paths;
+  }, [map, cornerRadius, parallel]);
+
+  // One pass over the lines keeps the per-station lookups out of the render.
+  const stationIndex = useMemo(() => {
+    const colors: Record<string, string> = {};
+    const visibleLines: Record<string, Line[]> = {};
+    for (const line of Object.values(map.lines)) {
+      const touched = new Set<string>();
+      for (const seg of line.segments) {
+        touched.add(seg.from);
+        touched.add(seg.to);
+      }
+      for (const id of touched) {
+        colors[id] ??= line.color;
+        if (!hiddenLineIds[line.id]) (visibleLines[id] ??= []).push(line);
+      }
+    }
+    return { colors, visibleLines };
+  }, [map, hiddenLineIds]);
+
+  // Label geometry is stored relative to the station so dragging only moves
+  // the station group.
+  const stationLabels = useMemo(() => {
+    const labels: Record<string, StationLabelLine[]> = {};
+    for (const station of Object.values(map.stations)) {
+      labels[station.id] = stationLabelLines(station, map, station.labelAnchor, bilingualLabels).map(
+        (line) => ({
+          ...line,
+          x: line.x - station.position.x,
+          y: line.y - station.position.y,
+        }),
+      );
+    }
+    return labels;
+  }, [map, bilingualLabels]);
+
+  const stationTextStyle = useMemo<StationTextStyle>(
+    () => ({
+      fontFamily: map.style.fontFamily ?? "Noto Sans, sans-serif",
+      fontWeight: map.style.fontWeight ?? 500,
+      fontStyle: map.style.fontStyle ?? "normal",
+      letterSpacing: map.style.letterSpacing ?? 0,
+      labelColor: map.style.labelColor ?? "#000000",
+      textTransform: map.style.textTransform ?? "none",
+    }),
+    [map.style],
+  );
 
   // Global Keyboard Shortcuts (Nodal Standards: V, A, C, H, F, Ctrl+Z, Ctrl+D, Ctrl+', Ctrl+;, etc.)
   useEffect(() => {
@@ -473,14 +726,53 @@ export function Canvas() {
     };
   }, [setTool, selectStation, duplicateStation, undo, redo, toggleGrid, toggleSnap, toggleRulers, zoomFit, zoomIn, zoomOut, setShortcutsOpen]);
 
-  const getRectMap = useCallback((client: Vec2): Vec2 => {
+  // Cache the canvas rect so pointer moves do not force a layout read.
+  const measureCanvas = useCallback(() => {
+    const rect = svgRef.current?.getBoundingClientRect() ?? null;
+    canvasRect.current = rect;
+    if (rect) {
+      setCanvasSize((prev) =>
+        prev.width === rect.width && prev.height === rect.height
+          ? prev
+          : { width: rect.width, height: rect.height },
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     const svg = svgRef.current;
-    if (!svg) return client;
-    return toMapCoords(client, svg.getBoundingClientRect(), viewport);
-  }, [viewport]);
+    if (!svg) return;
+    measureCanvas();
+    const observer = new ResizeObserver(measureCanvas);
+    observer.observe(svg);
+    window.addEventListener("resize", measureCanvas);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measureCanvas);
+    };
+  }, [measureCanvas]);
+
+  const getRectMap = useCallback(
+    (client: Vec2): Vec2 => {
+      const rect = canvasRect.current ?? svgRef.current?.getBoundingClientRect();
+      return rect ? toMapCoords(client, rect, viewport) : client;
+    },
+    [viewport],
+  );
+
+  const openStationMenu = useCallback(
+    (id: string, e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectStation(id);
+      setMenu({ kind: "station", id, x: e.clientX, y: e.clientY });
+    },
+    [selectStation],
+  );
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (e.button === 2) return;
+    measureCanvas();
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const client = { x: e.clientX, y: e.clientY };
     const mapPt = getRectMap(client);
@@ -570,15 +862,32 @@ export function Canvas() {
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
     const client = { x: e.clientX, y: e.clientY };
     const mapPt = getRectMap(client);
-    setCursorPos({ x: Math.round(mapPt.x), y: Math.round(mapPt.y) });
 
-    if (svgRef.current) {
-      const rect = svgRef.current.getBoundingClientRect();
-      setCursorScreen({ x: client.x - rect.left, y: client.y - rect.top });
+    const cursor = { x: Math.round(mapPt.x), y: Math.round(mapPt.y) };
+    const previousCursor = useEditor.getState().cursorPos;
+    if (
+      !previousCursor ||
+      previousCursor.x !== cursor.x ||
+      previousCursor.y !== cursor.y
+    ) {
+      setCursorPos(cursor);
+    }
+
+    if (showRulers) {
+      const rect = canvasRect.current ?? svgRef.current?.getBoundingClientRect();
+      if (rect) {
+        const next = { x: client.x - rect.left, y: client.y - rect.top };
+        setCursorScreen((prev) =>
+          prev.x === next.x && prev.y === next.y ? prev : next,
+        );
+      }
     }
 
     const hit = hitStation(mapPt, map.stations, 16 / viewport.k, map.style.stationRadius * 2.5);
-    setHoverStation(hit?.id ?? null);
+    setHoverStation((prev) => {
+      const next = hit?.id ?? null;
+      return prev === next ? prev : next;
+    });
 
     const d = dragRef.current;
     if (d.kind === "pan") {
@@ -589,6 +898,10 @@ export function Canvas() {
         d.moved = true;
       }
     } else if (d.kind === "move" && d.stationId && d.startStationPos) {
+      if (!d.moved && Math.abs(client.x - d.startClient.x) + Math.abs(client.y - d.startClient.y) < 3) {
+        return;
+      }
+      d.moved = true;
       let dxMap = (client.x - d.startClient.x) / viewport.k;
       let dyMap = (client.y - d.startClient.y) / viewport.k;
 
@@ -604,7 +917,6 @@ export function Canvas() {
       }
       setDragStationPos({ [d.stationId]: pos });
       d.currentMap = pos;
-      d.moved = true;
     } else if (d.kind === "connect" || (connectFrom && tool === "connect")) {
       setConnectPreview(mapPt);
     }
@@ -654,7 +966,7 @@ export function Canvas() {
       const factor = Math.exp(-e.deltaY * 0.0012);
       const vp = useEditor.getState().viewport;
       const k = Math.min(5, Math.max(0.15, vp.k * factor));
-      const rect = svg.getBoundingClientRect();
+      const rect = canvasRect.current ?? svg.getBoundingClientRect();
       const cx = e.clientX - rect.left;
       const cy = e.clientY - rect.top;
       const mapX = (cx - vp.x) / vp.k;
@@ -954,10 +1266,12 @@ export function Canvas() {
             />
           )}
 
-          {/* Transit Lines ??one rounded path per continuous chain */}
+          {/* Transit Lines: one rounded path per continuous chain */}
           {Object.values(map.lines).map((line) => {
             if (hiddenLineIds[line.id]) return null;
-            const chains = lineChains({ ...map, style: { ...map.style, cornerRadius } }, line.id);
+            const paths = linePaths[line.id] ?? [];
+            const w = line.width ?? 10;
+            const selected = line.id === selectedLineId;
             return (
               <g
                 key={line.id}
@@ -971,13 +1285,7 @@ export function Canvas() {
                 }}
                 style={{ cursor: "context-menu" }}
               >
-                {chains.map((chain, ci) => {
-                  const raw = chainPoints(map, chain, line.id, parallel);
-                  if (raw.length < 2) return null;
-                  const pts = roundedPolyline(raw, cornerRadius);
-                  const d = svgPath(pts);
-                  const w = line.width ?? 10;
-                  const selected = line.id === selectedLineId;
+                {paths.map((d, ci) => {
                   if (line.style === "double") {
                     return (
                       <g key={ci}>
@@ -1024,168 +1332,25 @@ export function Canvas() {
           )}
 
           {/* Transit Stations */}
-          {Object.values(map.stations).map((s) => {
-            const pos = dragStationPos[s.id] ?? s.position;
-            const isSel = s.id === selectedStationId;
-            const isHover = s.id === hoverStation;
-            const r = map.style.stationRadius;
-            const lineColor = Object.values(map.lines).find((l) =>
-              l.segments.some((seg) => seg.from === s.id || seg.to === s.id),
-            )?.color;
-            const stroke = lineColor ?? "#1e1e1e";
-            const sw = 2.5;
-            const symbol = s.symbolId ? map.stationSymbols?.[s.symbolId] : undefined;
-            const selectionExtent = (symbol ? r * 2.5 : r + (s.kind === "interchange" ? 7 : 2)) + 5 / viewport.k;
-            const handleSize = 4 / viewport.k;
-
-            return (
-              <g
-                key={s.id}
-                transform={`translate(${pos.x} ${pos.y}) rotate(${s.rotation ?? 0})`}
-                data-station={s.id}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  selectStation(s.id);
-                  setMenu({ kind: "station", id: s.id, x: e.clientX, y: e.clientY });
-                }}
-                style={{ cursor: tool === "connect" ? "crosshair" : "pointer" }}
-              >
-                {symbol ? <circle r={r * 2.5} fill="transparent" /> : <circle r={r + 5} fill="#ffffff" />}
-                {/* Keep editor selection chrome separate from the map symbol. */}
-                {isHover && !isSel && (
-                  <circle
-                    r={selectionExtent}
-                    fill="none"
-                    stroke="var(--color-accent)"
-                    strokeWidth={1}
-                    vectorEffect="non-scaling-stroke"
-                    pointerEvents="none"
-                  />
-                )}
-                {isSel && (
-                  <g className="station-selection" pointerEvents="none">
-                    <rect
-                      x={-selectionExtent}
-                      y={-selectionExtent}
-                      width={selectionExtent * 2}
-                      height={selectionExtent * 2}
-                      fill="none"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    {[-1, 1].flatMap((x) => [-1, 1].map((y) => (
-                      <rect
-                        key={`${x}-${y}`}
-                        x={x * selectionExtent - handleSize / 2}
-                        y={y * selectionExtent - handleSize / 2}
-                        width={handleSize}
-                        height={handleSize}
-                        fill="var(--color-bg-surface)"
-                        vectorEffect="non-scaling-stroke"
-                      />
-                    )))}
-                  </g>
-                )}
-
-                {symbol ? <g className="station-custom-artwork" transform={`scale(${r / 12})`} color={stroke}><StationSymbolArtwork symbol={symbol} /></g> : s.kind === "interchange" ? (
-                  <>
-                    <circle r={r + 6} fill="none" stroke={stroke} strokeWidth={2} />
-                    <circle r={r} fill="#ffffff" stroke={stroke} strokeWidth={sw} />
-                  </>
-                ) : s.kind === "terminus" ? (
-                  <rect
-                    x={-r}
-                    y={-r}
-                    width={r * 2}
-                    height={r * 2}
-                    rx={2}
-                    fill="#ffffff"
-                    stroke={stroke}
-                    strokeWidth={sw}
-                  />
-                ) : (
-                  <circle r={r} fill="#ffffff" stroke={stroke} strokeWidth={sw} />
-                )}
-
-                {/* Station Label & Bilingual Support */}
-                {stationLabelLines({ ...s, position: pos }, map, s.labelAnchor, bilingualLabels).map((line, lineIndex) => {
-                  const raw = line.text;
-                  const text =
-                    map.style.textTransform === "uppercase"
-                      ? raw.toUpperCase()
-                      : map.style.textTransform === "lowercase"
-                        ? raw.toLowerCase()
-                        : raw;
-                  return (
-                    <text
-                      key={lineIndex}
-                      x={line.x - pos.x}
-                      y={line.y - pos.y}
-                      textAnchor={line.textAnchor}
-                      dominantBaseline="auto"
-                      fontFamily={map.style.fontFamily ?? "Noto Sans, sans-serif"}
-                      fontSize={line.fontSize}
-                      fontWeight={lineIndex === 0 ? (map.style.fontWeight ?? 500) : 400}
-                      fontStyle={(map.style.fontStyle as "normal" | "italic") ?? "normal"}
-                      letterSpacing={map.style.letterSpacing ?? 0}
-                      style={{
-                        pointerEvents: "none",
-                        fill: lineIndex === 1 ? "var(--color-text-secondary)" : (map.style.labelColor ?? "#000000"),
-                      }}
-                    >
-                      {text}
-                    </text>
-                  );
-                })}
-
-                {/* Transfer Line Bullet Badges (RMP / Real Metro Style) */}
-                {showTransferBadges && (() => {
-                  const stationLines = Object.values(map.lines).filter(
-                    (l) => !hiddenLineIds[l.id] && l.segments.some((seg) => seg.from === s.id || seg.to === s.id)
-                  );
-                  if (stationLines.length < 2 && s.kind !== "interchange") return null;
-                  if (stationLines.length === 0) return null;
-
-                  const badgeY = r + 10 + (s.labelAnchor.includes("S") ? 18 : 0);
-                  const badgeW = 16;
-                  const totalW = stationLines.length * (badgeW + 3) - 3;
-                  const startX = -totalW / 2;
-
-                  return (
-                    <g transform={`translate(0, ${badgeY})`} style={{ pointerEvents: "none" }}>
-                      {stationLines.map((l, lIdx) => {
-                        const bx = startX + lIdx * (badgeW + 3);
-                        const code = (displayName(l.name, "L")).slice(0, 2).toUpperCase();
-                        return (
-                          <g key={l.id} transform={`translate(${bx}, 0)`}>
-                            <rect
-                              x={0}
-                              y={0}
-                              width={badgeW}
-                              height={11}
-                              rx={3}
-                              fill={l.color}
-                            />
-                            <text
-                              x={badgeW / 2}
-                              y={8.5}
-                              textAnchor="middle"
-                              fill="#ffffff"
-                              fontSize={7.5}
-                              fontFamily="var(--font-mono)"
-                              fontWeight={700}
-                            >
-                              {code}
-                            </text>
-                          </g>
-                        );
-                      })}
-                    </g>
-                  );
-                })()}
-              </g>
-            );
-          })}
+          {Object.values(map.stations).map((s) => (
+            <StationMarker
+              key={s.id}
+              station={s}
+              pos={dragStationPos[s.id] ?? s.position}
+              radius={map.style.stationRadius}
+              stroke={stationIndex.colors[s.id] ?? "#1e1e1e"}
+              selected={s.id === selectedStationId}
+              hovered={s.id === hoverStation}
+              connectTool={tool === "connect"}
+              labels={stationLabels[s.id] ?? EMPTY_LABELS}
+              lines={stationIndex.visibleLines[s.id] ?? EMPTY_LINES}
+              showTransferBadges={showTransferBadges}
+              zoom={viewport.k}
+              text={stationTextStyle}
+              symbol={s.symbolId ? map.stationSymbols?.[s.symbolId] : undefined}
+              onMenu={openStationMenu}
+            />
+          ))}
 
           {/* Transfer footpaths (dashed) */}
           {Object.values(map.transfers ?? {}).map((tr) => {
@@ -1376,7 +1541,8 @@ export function Canvas() {
           lines={map.lines}
           viewport={viewport}
           setViewport={setViewport}
-          containerRect={svgRef.current?.getBoundingClientRect() ?? null}
+          canvasWidth={canvasSize.width}
+          canvasHeight={canvasSize.height}
         />
       )}
 
