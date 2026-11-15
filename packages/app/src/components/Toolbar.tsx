@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { parseMapFile } from "@linewright/core";
-import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@linewright/renderer";
+import { parseMapFile } from "@nodal/core";
+import { downloadPNG, downloadSVG, printPDF, toSVGString } from "@nodal/renderer";
 import { t } from "../i18n.js";
 import { isDarkTheme, useEditor } from "../store/useEditor.js";
 import { AddonManager } from "./AddonManager.js";

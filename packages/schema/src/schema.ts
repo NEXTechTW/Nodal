@@ -1,10 +1,10 @@
 /**
- * JSON Schema for MetroMap v1 — published alongside the format (PROJECT.md §3, §8).
+ * JSON Schema for MetroMap v1 ??published alongside the format (PROJECT.md §3, §8).
  * `core.validateMap` is the runtime validator; this schema is for editors / docs.
  */
 export const metroMapSchema = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://linewright.dev/schemas/metro-map.v1.json",
+  $id: "https://nodal.app/schemas/metro-map.v1.json",
   title: "MetroMap",
   type: "object",
   required: ["schemaVersion", "meta", "stations", "lines", "labels", "style"],
@@ -39,6 +39,41 @@ export const metroMapSchema = {
             properties: { x: { type: "number" }, y: { type: "number" } },
           },
           rotation: { type: "number", description: "Station rotation in degrees." },
+          symbolId: { type: "string", description: "Key of a reusable mark in stationSymbols." },
+        },
+      },
+    },
+    stationSymbols: {
+      type: "object",
+      additionalProperties: {
+        type: "object",
+        required: ["id", "name", "layers"],
+        properties: {
+          id: { type: "string", minLength: 1 },
+          name: { type: "string" },
+          layers: {
+            type: "array",
+            maxItems: 100,
+            items: {
+              type: "object",
+              required: ["id", "type", "x", "y", "width", "height", "fill", "stroke", "strokeWidth", "rotation"],
+              properties: {
+                id: { type: "string", minLength: 1 },
+                type: { enum: ["circle", "rect", "line", "path"] },
+                x: { type: "number", minimum: -24, maximum: 24 },
+                y: { type: "number", minimum: -24, maximum: 24 },
+                width: { type: "number", minimum: 0, maximum: 100000 },
+                height: { type: "number", minimum: 0, maximum: 100000 },
+                fill: { type: "string", pattern: "^(?:#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|none|currentColor)$" },
+                stroke: { type: "string", pattern: "^(?:#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|none|currentColor)$" },
+                strokeWidth: { type: "number", minimum: 0, maximum: 100000 },
+                rotation: { type: "number", minimum: -360, maximum: 360 },
+                d: { type: "string", maxLength: 10000, pattern: "^\\s*[Mm][MmZzLlHhVvCcSsQqTtAa0-9eE+.,\\s-]*$" },
+                matrix: { type: "array", minItems: 6, maxItems: 6, items: { type: "number", minimum: -10000, maximum: 10000 } },
+              },
+              allOf: [{ if: { properties: { type: { const: "path" } } }, then: { required: ["d"] } }],
+            },
+          },
         },
       },
     },

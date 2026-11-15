@@ -1,6 +1,6 @@
 # Brand notes
 
-Nodal is the app. The monorepo is Linewright. Use "Nodal" in the headline.
+Use "Nodal" in the headline.
 
 The logo is the interchange glyph: two circles sharing a ring. It lives at `apps/web/public/logo.svg`.
 

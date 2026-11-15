@@ -4,6 +4,7 @@
  */
 import { CURRENT_SCHEMA_VERSION, type MetroMap } from "./types.js";
 import { aarcToMetroMap, isAarc } from "./aarc.js";
+import { validateStationSymbol } from "./station-symbols.js";
 
 export interface ValidationIssue {
   path: string;
@@ -36,6 +37,12 @@ export function validateMap(value: unknown): ValidationIssue[] {
   if (!isObj(value.lines)) push("$.lines", "lines must be an object");
   if (!isObj(value.labels)) push("$.labels", "labels must be an object");
   if (value.transfers !== undefined && !isObj(value.transfers)) push("$.transfers", "transfers must be an object");
+  const symbols = isObj(value.stationSymbols) ? value.stationSymbols : {};
+  if (value.stationSymbols !== undefined && !isObj(value.stationSymbols)) push("$.stationSymbols", "stationSymbols must be an object");
+  for (const [id, symbol] of Object.entries(symbols)) {
+    for (const issue of validateStationSymbol(symbol)) push(`$.stationSymbols.${id}${issue.path.slice(1)}`, issue.message);
+    if (isObj(symbol) && symbol.id !== id) push(`$.stationSymbols.${id}.id`, "must match the symbol dictionary key");
+  }
   if (!isObj(value.style)) {
     push("$.style", "style must be an object");
     return issues;
@@ -60,7 +67,7 @@ export function validateMap(value: unknown): ValidationIssue[] {
   if (typeof style.fontSize !== "number" || !(style.fontSize > 0)) push("$.style.fontSize", "must be number > 0");
   if (typeof style.stationRadius !== "number" || !(style.stationRadius > 0)) push("$.style.stationRadius", "must be number > 0");
 
-  const stations = value.stations as Record<string, unknown>;
+  const stations = isObj(value.stations) ? value.stations : {};
   for (const [id, raw] of Object.entries(stations)) {
     if (!isObj(raw)) { push(`$.stations.${id}`, "must be object"); continue; }
     const pos = raw.position as { x?: unknown; y?: unknown } | undefined;
@@ -77,9 +84,12 @@ export function validateMap(value: unknown): ValidationIssue[] {
       push(`$.stations.${id}.rotation`, "rotation must be a number");
     }
     if (!isObj(raw.name)) push(`$.stations.${id}.name`, "name must be an object");
+    if (raw.symbolId !== undefined && (typeof raw.symbolId !== "string" || !Object.hasOwn(symbols, raw.symbolId))) {
+      push(`$.stations.${id}.symbolId`, "must reference an existing station symbol");
+    }
   }
 
-  const lines = value.lines as Record<string, unknown>;
+  const lines = isObj(value.lines) ? value.lines : {};
   for (const [id, raw] of Object.entries(lines)) {
     if (!isObj(raw)) { push(`$.lines.${id}`, "must be object"); continue; }
     if (typeof raw.color !== "string" || !HEX_RE.test(raw.color)) {

@@ -1,5 +1,5 @@
 {
-    "name": "@linewright/web",
+    "name": "@nodal/web",
     "version": "0.1.0",
     "private": true,
     "type": "module",
@@ -13,7 +13,7 @@
         "lint": "eslint src playwright.config.ts e2e"
     },
     "dependencies": {
-        "@linewright/app": "workspace:*",
+        "@nodal/app": "workspace:*",
         "react": "^18.3.1",
         "react-dom": "^18.3.1"
     },

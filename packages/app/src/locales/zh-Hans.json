@@ -204,5 +204,9 @@
   "CategoryCol": "类别",
   "CloseShortcuts": "关闭快捷键说明",
   "WholeAppTheme": "应用主题",
-  "WholeAppThemeDesc": "应用到工具栏、面板、菜单栏和网格，并保存在此浏览器。"
+  "WholeAppThemeDesc": "应用到工具栏、面板、菜单栏和网格，并保存在此浏览器。",
+  "AddStationHere": "在此新增车站",
+  "AutoEnglishName": "自动英文名称",
+  "HideLine": "隐藏线路",
+  "ShowLine": "显示线路"
 }

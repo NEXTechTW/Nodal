@@ -84,6 +84,11 @@ export class CommandStack {
     this.redoStack = [];
   }
 
+  /** Adopt external edits without changing undo/redo history. */
+  sync(map: MetroMap): void {
+    this.map = map;
+  }
+
   /** Labels for history UI (most recent first). */
   history(): string[] {
     return [...this.undoStack].reverse().map((c) => c.label);

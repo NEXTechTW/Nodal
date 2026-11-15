@@ -2,7 +2,7 @@
  * Turns a MetroMap into a standalone SVG string for export.
  * Kept free of DOM calls so it can run in Node.
  */
-import { anchorBaseline, anchorOffset, anchorTextAnchor, chainPoints, computeParallelOffsets, displayName, lineChains, offsetPolyline, roundedPolyline, svgPath, type MetroMap, type Vec2 } from "@linewright/core";
+import { anchorBaseline, anchorOffset, anchorTextAnchor, chainPoints, computeParallelOffsets, displayName, lineChains, offsetPolyline, roundedPolyline, stationSymbolExtent, stationSymbolSVG, svgPath, type MetroMap, type Vec2 } from "@nodal/core";
 
 export interface RenderOptions {
   width?: number;
@@ -38,13 +38,19 @@ export function linePathPoints(
 export function stationLabelPos(map: MetroMap, stationId: string): Vec2 {
   const s = map.stations[stationId];
   if (!s) return { x: 0, y: 0 };
-  const off = anchorOffset(s.labelAnchor, map.style.stationRadius + 8);
+  const off = anchorOffset(s.labelAnchor, stationSymbolExtent(map, s) + 8);
   return { x: s.position.x + off.x + (s.labelOffset?.x ?? 0), y: s.position.y + off.y + (s.labelOffset?.y ?? 0) };
 }
 
 export function computeBounds(map: MetroMap): { x: number; y: number; w: number; h: number } {
   const pts: Vec2[] = [];
-  for (const s of Object.values(map.stations)) pts.push(s.position);
+  for (const s of Object.values(map.stations)) {
+    pts.push(s.position);
+    if (s.symbolId !== undefined && Object.hasOwn(map.stationSymbols ?? {}, s.symbolId)) {
+      const extent = stationSymbolExtent(map, s);
+      pts.push({ x: s.position.x - extent, y: s.position.y - extent }, { x: s.position.x + extent, y: s.position.y + extent });
+    }
+  }
   for (const l of Object.values(map.lines)) {
     for (const seg of l.segments) {
       for (const wp of seg.waypoints ?? []) pts.push(wp);
@@ -90,7 +96,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
   // Parallel offsets: shared tracks are nudged apart (PROJECT.md §5).
   const offsets = computeParallelOffsets(map).bySegment;
 
-  // Lines — one rounded path per continuous chain so bends between
+  // Lines ??one rounded path per continuous chain so bends between
   // segments curve instead of meeting at a sharp point.
   for (const line of Object.values(map.lines)) {
     const w = line.width ?? 10;
@@ -147,6 +153,11 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
     )?.color;
     const stroke = isSel ? "#0B5FFF" : (lineColor ?? "#111");
     const rot = s.rotation ? ` transform="rotate(${s.rotation} ${s.position.x} ${s.position.y})"` : "";
+    const symbol = s.symbolId !== undefined && Object.hasOwn(map.stationSymbols ?? {}, s.symbolId)
+      ? map.stationSymbols![s.symbolId] : undefined;
+    if (symbol) {
+      parts.push(`<g data-station="${esc(s.id)}"${rot}><g transform="translate(${s.position.x} ${s.position.y}) scale(${r / 12})" color="${esc(lineColor ?? "#111")}">${stationSymbolSVG(symbol)}</g></g>`);
+    } else {
     // White halo hides line casings notching into the station disc.
     parts.push(`<circle cx="${s.position.x}" cy="${s.position.y}" r="${r + 5}" fill="#fff"/>`);
     if (s.kind === "interchange") {
@@ -155,6 +166,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
       parts.push(`<g data-station="${esc(s.id)}"${rot}><rect x="${s.position.x - r}" y="${s.position.y - r}" width="${r * 2}" height="${r * 2}" rx="3" fill="#fff" stroke="${stroke}" stroke-width="2.5"/></g>`);
     } else {
       parts.push(`<g data-station="${esc(s.id)}"${rot}><circle cx="${s.position.x}" cy="${s.position.y}" r="${r}" fill="#fff" stroke="${stroke}" stroke-width="2.5"/></g>`);
+    }
     }
     const lp = stationLabelPos(map, s.id);
     let name = displayName(s.name, "Untitled station", map.style.labelLanguage);
@@ -171,7 +183,7 @@ export function toSVGString(map: MetroMap, opts: RenderOptions = {}): string {
   return parts.join("\n");
 }
 
-/** Download helper — browser only, kept out of pure string API. */
+/** Download helper ??browser only, kept out of pure string API. */
 export function downloadSVG(svg: string, filename: string): void {
   const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -232,7 +244,7 @@ export async function downloadPNG(map: MetroMap, filename: string): Promise<void
 
 /**
  * PDF via the browser print path: open a clean page with the SVG and invoke
- * print (the user picks “Save as PDF”). No Rust/print-js dependency (MIT-safe).
+ * print (the user picks ?�Save as PDF??. No Rust/print-js dependency (MIT-safe).
  */
 export function printPDF(map: MetroMap): void {
   const svg = toSVGString(map, { showGrid: false });

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { parseMapFile } from "@linewright/core";
+import { parseMapFile } from "@nodal/core";
 import { t } from "../i18n.js";
 import { useEditor } from "../store/useEditor.js";
 import { exampleMap } from "../example.js";

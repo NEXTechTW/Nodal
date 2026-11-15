@@ -204,5 +204,9 @@
   "CategoryCol": "功能類別",
   "CloseShortcuts": "關閉快速鍵說明",
   "WholeAppTheme": "應用程式主題",
-  "WholeAppThemeDesc": "套用到工具列、面板、選單列與網格，並儲存在此瀏覽器。"
+  "WholeAppThemeDesc": "套用到工具列、面板、選單列與網格，並儲存在此瀏覽器。",
+  "AddStationHere": "在此新增車站",
+  "AutoEnglishName": "自動英文名稱",
+  "HideLine": "隱藏路線",
+  "ShowLine": "顯示路線"
 }

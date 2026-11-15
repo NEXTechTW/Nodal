@@ -3,8 +3,9 @@
  * Pure and deterministic so renderer + Canvas share the same result.
  * The parallel-offset boundary cases are isolated here for heavy unit tests.
  */
-import { anchorOffset, normalOf } from "./geometry.js";
+import { anchorOffset, anchorTextAnchor, normalOf } from "./geometry.js";
 import { displayName } from "./types.js";
+import { stationSymbolExtent } from "./station-symbols.js";
 import type { Vec2, MetroMap, Anchor } from "./types.js";
 
 /** Unordered station-pair key so A→B and B→A count as the same track. */
@@ -181,7 +182,7 @@ export function offsetPolyline(points: Vec2[], offset: number): Vec2[] {
 
 /* ---------------- Label auto-avoidance ---------------- */
 
-interface Box {
+export interface Box {
   x0: number;
   y0: number;
   x1: number;
@@ -192,27 +193,104 @@ function boxesOverlap(a: Box, b: Box): boolean {
   return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
 }
 
-/** Rough label box: width ≈ 0.62 × fontSize × charCount, height ≈ fontSize × 1.2. */
+function overlapArea(a: Box, b: Box): number {
+  const w = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+  const h = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
+  return w > 0 && h > 0 ? w * h : 0;
+}
+
+/**
+ * Rough text width. CJK and full-width characters are close to one em,
+ * Latin characters average a little over half an em.
+ */
+export function estimateTextWidth(text: string, fontSize: number): number {
+  let units = 0;
+  for (const ch of text) {
+    if (/\s/.test(ch)) units += 0.3;
+    else if (/[\u3000-\u9fff\uac00-\ud7af\uff00-\uffef]/.test(ch)) units += 1;
+    else units += 0.6;
+  }
+  return units * fontSize;
+}
+
+export interface StationLabelLine {
+  text: string;
+  x: number;
+  y: number;
+  fontSize: number;
+  textAnchor: "start" | "middle" | "end";
+}
+
+/**
+ * Baseline positions for a station name. Bilingual labels stack Chinese above
+ * English and stay clear of the station: above for N anchors, below for S,
+ * and centred beside the mark for E/W.
+ */
+export function stationLabelLines(
+  station: MetroMap["stations"][string],
+  map: MetroMap,
+  anchor: Anchor = station.labelAnchor,
+  bilingual = true,
+): StationLabelLine[] {
+  const off = anchorOffset(anchor, stationSymbolExtent(map, station) + 8);
+  const x = station.position.x + off.x + (station.labelOffset?.x ?? 0);
+  const y = station.position.y + off.y + (station.labelOffset?.y ?? 0);
+  const fs = map.style.fontSize;
+  const textAnchor = anchorTextAnchor(anchor);
+  const zh = station.name["zh-TW"] || station.name["zh"];
+  const en = station.name["en"];
+
+  if (bilingual && zh && en) {
+    const gap = fs * 1.05;
+    const enSize = Math.max(8, Math.round(fs * 0.78));
+    if (anchor.startsWith("N")) {
+      return [
+        { text: zh, x, y: y - gap, fontSize: fs, textAnchor },
+        { text: en, x, y, fontSize: enSize, textAnchor },
+      ];
+    }
+    if (anchor.startsWith("S")) {
+      return [
+        { text: zh, x, y, fontSize: fs, textAnchor },
+        { text: en, x, y: y + gap, fontSize: enSize, textAnchor },
+      ];
+    }
+    return [
+      { text: zh, x, y: y - gap / 2, fontSize: fs, textAnchor },
+      { text: en, x, y: y + gap / 2, fontSize: enSize, textAnchor },
+    ];
+  }
+
+  const raw = displayName(station.name, "Station", map.style.labelLanguage);
+  return [{ text: raw, x, y, fontSize: fs, textAnchor }];
+}
+
+function textLineBox(line: StationLabelLine): Box {
+  const w = Math.max(24, estimateTextWidth(line.text, line.fontSize));
+  const x0 =
+    line.textAnchor === "start" ? line.x : line.textAnchor === "end" ? line.x - w : line.x - w / 2;
+  return {
+    x0,
+    x1: x0 + w,
+    y0: line.y - line.fontSize * 0.9,
+    y1: line.y + line.fontSize * 0.3,
+  };
+}
+
+/** Union of the boxes for every line of a station label. */
 export function labelBox(
   station: MetroMap["stations"][string],
   map: MetroMap,
   anchor: Anchor = station.labelAnchor,
+  bilingual = true,
 ): Box {
-  const off = anchorOffset(anchor, map.style.stationRadius + 8);
-  const cx = station.position.x + off.x;
-  const cy = station.position.y + off.y;
-  const text = displayName(station.name, "Station");
-  const w = Math.max(24, text.length * map.style.fontSize * 0.62);
-  const h = map.style.fontSize * 1.25;
-  let x0: number, x1: number;
-  if (anchor.includes("E")) { x0 = cx; x1 = cx + w; }
-  else if (anchor.includes("W")) { x0 = cx - w; x1 = cx; }
-  else { x0 = cx - w / 2; x1 = cx + w / 2; }
-  let y0: number, y1: number;
-  if (anchor.startsWith("N")) { y0 = cy - h; y1 = cy; }
-  else if (anchor.startsWith("S")) { y0 = cy; y1 = cy + h; }
-  else { y0 = cy - h / 2; y1 = cy + h / 2; }
-  return { x0, y0, x1, y1 };
+  const boxes = stationLabelLines(station, map, anchor, bilingual).map(textLineBox);
+  return {
+    x0: Math.min(...boxes.map((b) => b.x0)),
+    y0: Math.min(...boxes.map((b) => b.y0)),
+    x1: Math.max(...boxes.map((b) => b.x1)),
+    y1: Math.max(...boxes.map((b) => b.y1)),
+  };
 }
 
 const PREFERRED: Anchor[] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
@@ -223,7 +301,7 @@ const PREFERRED: Anchor[] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
  * Manual placements are preserved when they already avoid overlap.
  * Returns a new map (immutable, undoable as one command).
  */
-export function avoidLabelOverlaps(map: MetroMap): MetroMap {
+export function avoidLabelOverlaps(map: MetroMap, bilingual = true): MetroMap {
   const placed: Box[] = [];
   const stations: MetroMap["stations"] = {};
   // Deterministic order: by id so results don't depend on object insertion order.
@@ -232,9 +310,9 @@ export function avoidLabelOverlaps(map: MetroMap): MetroMap {
     const station = map.stations[id]!;
     const order: Anchor[] = [station.labelAnchor, ...PREFERRED.filter((a) => a !== station.labelAnchor)];
     let chosen: Anchor = station.labelAnchor;
-    let chosenBox = labelBox(station, map, station.labelAnchor);
+    let chosenBox = labelBox(station, map, station.labelAnchor, bilingual);
     for (const anchor of order) {
-      const box = labelBox(station, map, anchor);
+      const box = labelBox(station, map, anchor, bilingual);
       if (!placed.some((p) => boxesOverlap(box, p))) {
         chosen = anchor;
         chosenBox = box;
@@ -245,4 +323,91 @@ export function avoidLabelOverlaps(map: MetroMap): MetroMap {
     stations[id] = { ...station, labelAnchor: chosen };
   }
   return { ...map, stations };
+}
+
+/* ---------------- Line-name placement ---------------- */
+
+export interface LineLabelPlacement {
+  x: number;
+  y: number;
+  textAnchor: "start" | "middle" | "end";
+}
+
+/**
+ * Place each line name beside its route. Candidates sit along every segment,
+ * offset to either side; the first one that clears station labels and other
+ * line names wins. Deterministic so editor and export match.
+ */
+export function placeLineLabels(map: MetroMap, bilingual = true): Record<string, LineLabelPlacement> {
+  const placed: Box[] = Object.values(map.stations).map((s) =>
+    labelBox(s, map, s.labelAnchor, bilingual),
+  );
+  const fs = map.style.fontSize;
+  const out: Record<string, LineLabelPlacement> = {};
+
+  for (const line of Object.values(map.lines)) {
+    const text = displayName(line.name, "Line", map.style.labelLanguage);
+    if (!text.trim()) continue;
+    const gap = (line.width ?? 8) / 2 + fs * 1.15 + 4;
+    const candidates: LineLabelPlacement[] = [];
+
+    for (const seg of line.segments) {
+      const a = map.stations[seg.from];
+      const b = map.stations[seg.to];
+      if (!a || !b) continue;
+      const dx = b.position.x - a.position.x;
+      const dy = b.position.y - a.position.y;
+      const len = Math.hypot(dx, dy);
+      if (len < 1) continue;
+      const nx = -dy / len;
+      const ny = dx / len;
+      for (const t of [0.5, 0.35, 0.65, 0.25, 0.75]) {
+        const cx = a.position.x + dx * t;
+        const cy = a.position.y + dy * t;
+        for (const side of [1, -1]) {
+          for (const extra of [0, gap * 0.8]) {
+            const d = side * (gap + extra);
+            candidates.push({ x: cx + nx * d, y: cy + ny * d, textAnchor: "middle" });
+          }
+        }
+      }
+    }
+
+    let best: LineLabelPlacement | null = null;
+    let bestScore = Infinity;
+    for (const cand of candidates) {
+      const w = Math.max(24, estimateTextWidth(text, fs));
+      const box: Box = {
+        x0: cand.x - w / 2,
+        y0: cand.y - fs * 0.9,
+        x1: cand.x + w / 2,
+        y1: cand.y + fs * 0.3,
+      };
+      const score = placed.reduce((sum, other) => sum + overlapArea(box, other), 0);
+      if (score < bestScore) {
+        best = cand;
+        bestScore = score;
+        if (score === 0) break;
+      }
+    }
+
+    if (!best) {
+      const seg = line.segments[0];
+      const a = seg ? map.stations[seg.from] : undefined;
+      const b = seg ? map.stations[seg.to] : undefined;
+      if (!a || !b) continue;
+      best = { x: (a.position.x + b.position.x) / 2, y: (a.position.y + b.position.y) / 2, textAnchor: "middle" };
+    }
+
+    out[line.id] = best;
+    const w = Math.max(24, estimateTextWidth(text, fs));
+    placed.push({
+      x0: best.x - w / 2,
+      y0: best.y - fs * 0.9,
+      x1: best.x + w / 2,
+      y1: best.y + fs * 0.3,
+    });
+  }
+
+  return out;
 }

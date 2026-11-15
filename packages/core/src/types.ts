@@ -1,5 +1,5 @@
 /**
- * Nodal / Linewright — core data model.
+ * Nodal ??core data model.
  * Spec: PROJECT.md §4 (draft). This is the single source of truth.
  * `core` has zero UI dependencies so it runs in Node for CLI / batch export.
  */
@@ -17,6 +17,29 @@ export type StationKind = "normal" | "interchange" | "terminus";
 
 export type LineStyle = "solid" | "dashed" | "double";
 
+export interface StationSymbolLayer {
+  id: string;
+  type: "circle" | "rect" | "line" | "path";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+  rotation: number;
+  /** Native local SVG path coordinates; width/height do not resize paths. */
+  d?: string;
+  /** Native SVG geometry normalization, applied before editable rotation/translation. */
+  matrix?: [number, number, number, number, number, number];
+}
+
+export interface StationSymbol {
+  id: string;
+  name: string;
+  layers: StationSymbolLayer[];
+}
+
 export interface Station {
   id: ID;
   /** Multi-locale names, e.g. { en: "Central", "zh-TW": "中央" } */
@@ -28,6 +51,7 @@ export interface Station {
   labelOffset?: Vec2;
   /** Rotation in degrees for the station mark + label. */
   rotation?: number;
+  symbolId?: string;
 }
 
 export interface Segment {
@@ -82,7 +106,7 @@ export interface TransferLink {
   id: ID;
   from: ID;
   to: ID;
-  /** e.g. "透過林口長庚醫院" — drawn at the midpoint. */
+  /** e.g. "?��??�口?��??�院" ??drawn at the midpoint. */
   label?: Record<string, string>;
 }
 
@@ -93,6 +117,7 @@ export interface MetroMap {
   lines: Record<ID, Line>;
   labels: Record<ID, Label>;
   transfers?: Record<ID, TransferLink>;
+  stationSymbols?: Record<string, StationSymbol>;
   style: MapStyle;
 }
 

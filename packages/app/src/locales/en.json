@@ -204,5 +204,9 @@
   "CategoryCol": "Category",
   "CloseShortcuts": "Close shortcuts",
   "WholeAppTheme": "App theme",
-  "WholeAppThemeDesc": "Changes the toolbar, panels, menu bar, and grid. Saved in this browser."
+  "WholeAppThemeDesc": "Changes the toolbar, panels, menu bar, and grid. Saved in this browser.",
+  "AddStationHere": "Add station here",
+  "AutoEnglishName": "Auto English name",
+  "HideLine": "Hide line",
+  "ShowLine": "Show line"
 }

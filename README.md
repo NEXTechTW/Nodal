@@ -2,7 +2,7 @@
 
 A browser-based editor for drawing schematic transit maps. You place stations, drag to connect them, and export.
 
-Nodal is the app. The repo is called Linewright (that's just the monorepo name). MIT license. Maps save as JSON so you can put them in git.
+MIT license. Maps save as JSON so you can put them in git.
 
 ![Nodal banner](docs/banner.svg)
 

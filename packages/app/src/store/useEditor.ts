@@ -1,6 +1,6 @@
 /**
  * Zustand store: UI state (viewport, selection, tool) and domain state (MetroMap).
- * Undo/redo via CommandStack from @linewright/core (PROJECT.md §3).
+ * Undo/redo via CommandStack from @nodal/core (PROJECT.md §3).
  */
 import { create } from "zustand";
 import {
@@ -23,8 +23,9 @@ import {
   type LineStyle,
   type MetroMap,
   type StationKind,
+  type StationSymbol,
   type Vec2,
-} from "@linewright/core";
+} from "@nodal/core";
 
 export type Tool = "select" | "add-station" | "connect" | "pan" | "measure" | "label";
 
@@ -82,7 +83,7 @@ function initialTheme(): Theme {
     const fromAddon = normalizeThemeId(addon);
     if (fromAddon) return fromAddon;
   } catch {
-    /* ignore — storage may be unavailable */
+    /* ignore ??storage may be unavailable */
   }
   try {
     const saved = localStorage.getItem("nodal:theme");
@@ -109,6 +110,13 @@ function getStoredBool(key: string, def: boolean): boolean {
     /* ignore */
   }
   return def;
+}
+
+function withStationSymbol(station: import("@nodal/core").Station, symbolId: string | undefined) {
+  const next = { ...station };
+  if (symbolId) next.symbolId = symbolId;
+  else delete next.symbolId;
+  return next;
 }
 
 interface EditorState {
@@ -141,6 +149,7 @@ interface EditorState {
   showDPad: boolean;
   copiedStationAttrs: {
     kind: StationKind;
+    symbolId?: string;
     labelAnchor: Anchor;
     rotation?: number;
     labelOffset?: Vec2;
@@ -149,7 +158,7 @@ interface EditorState {
   measureTo: Vec2 | null;
   setMeasurePoints(a: Vec2 | null, b: Vec2 | null): void;
   addStandaloneLabel(pos: Vec2, text: string): void;
-  applyTemplate(tpl: import("@linewright/core").StationTemplate): void;
+  applyTemplate(tpl: import("@nodal/core").StationTemplate): void;
 
   // actions
   setStartupOpen(open: boolean): void;
@@ -167,6 +176,8 @@ interface EditorState {
   deleteSelectedStation(): void;
   renameStation(id: string, name: string, lang?: string): void;
   setStationKind(id: string, kind: StationKind): void;
+  setStationSymbol(id: string, symbolId: string | undefined): void;
+  saveStationSymbol(symbol: StationSymbol, stationId?: string): void;
   setStationAnchor(id: string, anchor: Anchor): void;
   addLine(name: string): string;
   setActiveLine(id: string | null): void;
@@ -276,7 +287,7 @@ export const useEditor = create<EditorState>((set, get) => {
     measureTo: null,
     setMeasurePoints: (a, b) => set({ measureFrom: a, measureTo: b }),
     applyTemplate: (tpl) => {
-      const { applyTemplate } = { applyTemplate: (m: MetroMap, t: import("@linewright/core").StationTemplate) => {
+      const { applyTemplate } = { applyTemplate: (m: MetroMap, t: import("@nodal/core").StationTemplate) => {
         const lines: MetroMap["lines"] = {};
         const ids = Object.keys(m.lines);
         ids.forEach((id, idx) => {
@@ -403,6 +414,7 @@ export const useEditor = create<EditorState>((set, get) => {
       if (!s) return;
       const attrs = {
         kind: s.kind,
+        ...(s.symbolId ? { symbolId: s.symbolId } : {}),
         labelAnchor: s.labelAnchor,
         ...(s.rotation !== undefined ? { rotation: s.rotation } : {}),
         ...(s.labelOffset ? { labelOffset: structuredClone(s.labelOffset) } : {}),
@@ -423,7 +435,7 @@ export const useEditor = create<EditorState>((set, get) => {
           stations: {
             ...st.map.stations,
             [id]: {
-              ...st.map.stations[id]!,
+              ...withStationSymbol(st.map.stations[id]!, copiedStationAttrs.symbolId && st.map.stationSymbols?.[copiedStationAttrs.symbolId] ? copiedStationAttrs.symbolId : undefined),
               kind: copiedStationAttrs.kind,
               labelAnchor: copiedStationAttrs.labelAnchor,
               ...(copiedStationAttrs.rotation !== undefined ? { rotation: copiedStationAttrs.rotation } : {}),
@@ -502,11 +514,12 @@ export const useEditor = create<EditorState>((set, get) => {
       const s = get().map.stations[id];
       if (!s) return null;
       const newId = createId();
-      const clone: import("@linewright/core").Station = {
+      const clone: import("@nodal/core").Station = {
         id: newId,
         name: structuredClone(s.name),
         position: { x: s.position.x + 40, y: s.position.y + 40 },
         kind: s.kind,
+        ...(s.symbolId ? { symbolId: s.symbolId } : {}),
         labelAnchor: s.labelAnchor,
         ...(s.labelOffset ? { labelOffset: structuredClone(s.labelOffset) } : {}),
         ...(s.rotation !== undefined ? { rotation: s.rotation } : {}),
@@ -537,7 +550,7 @@ export const useEditor = create<EditorState>((set, get) => {
       }
       const id = selectedStationId;
       const stationSnapshot = structuredClone(station);
-      const cmd: import("@linewright/core").Command = {
+      const cmd: import("@nodal/core").Command = {
         name: "DeleteStation",
         label: "Delete station",
         apply: (m: MetroMap) => {
@@ -580,11 +593,39 @@ export const useEditor = create<EditorState>((set, get) => {
       const cmd = {
         name: "SetStationKind" as const,
         label: "Change station type",
-        apply: (m: MetroMap) => ({ ...m, stations: { ...m.stations, [id]: { ...m.stations[id]!, kind } } }),
-        revert: (m: MetroMap) => ({ ...m, stations: { ...m.stations, [id]: { ...m.stations[id]!, kind: from } } }),
+        apply: (m: MetroMap) => ({ ...m, stations: { ...m.stations, [id]: { ...withStationSymbol(m.stations[id]!, undefined), kind } } }),
+        revert: (m: MetroMap) => ({ ...m, stations: { ...m.stations, [id]: { ...withStationSymbol(m.stations[id]!, s.symbolId), kind: from } } }),
       };
       const map = get().stack.dispatch(cmd);
       set({ map, lastActionLabel: cmd.label });
+    },
+    setStationSymbol: (id, symbolId) => {
+      const state = get();
+      const station = state.map.stations[id];
+      if (!station || (symbolId && !state.map.stationSymbols?.[symbolId])) return;
+      const cmd = {
+        name: "SetStationKind" as const,
+        label: "Apply station mark",
+        apply: (m: MetroMap) => ({ ...m, stations: { ...m.stations, [id]: withStationSymbol(m.stations[id]!, symbolId) } }),
+        revert: (m: MetroMap) => ({ ...m, stations: { ...m.stations, [id]: withStationSymbol(m.stations[id]!, station.symbolId) } }),
+      };
+      set({ map: state.stack.dispatch(cmd), lastActionLabel: cmd.label });
+    },
+    saveStationSymbol: (symbol, stationId) => {
+      const state = get();
+      const before = state.map;
+      const saved = structuredClone(symbol);
+      const cmd = {
+        name: "SetStationKind" as const,
+        label: "Save station mark",
+        apply: (m: MetroMap) => ({
+          ...m,
+          stationSymbols: { ...m.stationSymbols, [saved.id]: saved },
+          stations: stationId && m.stations[stationId] ? { ...m.stations, [stationId]: { ...m.stations[stationId]!, symbolId: saved.id } } : m.stations,
+        }),
+        revert: (m: MetroMap) => ({ ...m, stationSymbols: before.stationSymbols ?? {}, stations: stationId && before.stations[stationId] ? { ...m.stations, [stationId]: before.stations[stationId]! } : m.stations }),
+      };
+      set({ map: state.stack.dispatch(cmd), lastActionLabel: cmd.label });
     },
     setStationAnchor: (id, anchor) => {
       const s = get().map.stations[id];
@@ -629,7 +670,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const l = get().map.lines[id];
       if (!l) return;
       const prev = structuredClone(l);
-      const cmd: import("@linewright/core").Command = {
+      const cmd: import("@nodal/core").Command = {
         name: "SetLineColor",
         label: "Change line width",
         apply: (m) => ({ ...m, lines: { ...m.lines, [id]: { ...m.lines[id]!, width } } }),
@@ -790,8 +831,8 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     avoidLabelOverlaps: () => {
       const before = get().map;
-      const after = avoidLabels(before);
-      const cmd: import("@linewright/core").Command = {
+      const after = avoidLabels(before, get().bilingualLabels);
+      const cmd: import("@nodal/core").Command = {
         name: "SetTitle",
         label: "Arrange labels",
         apply: () => after,

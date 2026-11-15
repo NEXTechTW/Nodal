@@ -8,7 +8,7 @@ You need Rust 1.77 or newer and the Tauri CLI:
 cargo install tauri-cli --version "^2"
 ```
 
-Run the web editor in one terminal (`pnpm --filter @linewright/web dev`), then:
+Run the web editor in one terminal (`pnpm --filter @nodal/web dev`), then:
 
 ```
 cd apps/desktop

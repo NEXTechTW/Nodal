@@ -1,5 +1,5 @@
 {
-    "name":  "@linewright/renderer",
+    "name":  "@nodal/renderer",
     "version":  "0.1.0",
     "private":  true,
     "type":  "module",
@@ -15,7 +15,7 @@
                     "lint":  "eslint src"
                 },
     "dependencies":  {
-                         "@linewright/core":  "workspace:*"
+                         "@nodal/core":  "workspace:*"
                      },
     "devDependencies":  {
                             "typescript":  "^5.7.2",

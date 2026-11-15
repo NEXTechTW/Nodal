@@ -204,5 +204,9 @@
   "CategoryCol": "カテゴリ",
   "CloseShortcuts": "閉じる",
   "WholeAppTheme": "アプリテーマ",
-  "WholeAppThemeDesc": "ツールバー、パネル、メニューバー、グリッドに適用します。このブラウザに保存されます。"
+  "WholeAppThemeDesc": "ツールバー、パネル、メニューバー、グリッドに適用します。このブラウザに保存されます。",
+  "AddStationHere": "ここに駅を追加",
+  "AutoEnglishName": "英語名を自動入力",
+  "HideLine": "路線を非表示",
+  "ShowLine": "路線を表示"
 }

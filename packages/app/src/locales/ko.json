@@ -204,5 +204,9 @@
   "CategoryCol": "범주",
   "CloseShortcuts": "단축키 닫기",
   "WholeAppTheme": "앱 테마",
-  "WholeAppThemeDesc": "툴바, 패널, 메뉴 바, 격자에 적용됩니다. 이 브라우저에 저장됩니다."
+  "WholeAppThemeDesc": "툴바, 패널, 메뉴 바, 격자에 적용됩니다. 이 브라우저에 저장됩니다.",
+  "AddStationHere": "여기에 역 추가",
+  "AutoEnglishName": "영문 이름 자동 입력",
+  "HideLine": "노선 숨기기",
+  "ShowLine": "노선 표시"
 }

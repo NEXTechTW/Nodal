@@ -9,7 +9,7 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: "pnpm --filter @linewright/web dev --port 5173",
+        command: "pnpm --filter @nodal/web dev --port 5173",
         url: "http://localhost:5173",
         reuseExistingServer: !process.env.CI,
         timeout: 60_000,

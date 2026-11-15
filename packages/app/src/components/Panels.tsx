@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { displayName, type Anchor, type StationKind } from "@linewright/core";
+import { displayName, type Anchor, type StationKind } from "@nodal/core";
 import { t } from "../i18n.js";
+import { TRANSIT_PALETTE } from "../palette.js";
 import { useEditor } from "../store/useEditor.js";
+import { StationMarkEditor } from "./StationMarkEditor.js";
+import { StationSymbolArtwork } from "./StationSymbolArtwork.js";
 import {
   AlignCenterIcon,
   AlignLeftIcon,
@@ -20,26 +23,6 @@ import {
   SparklesIcon,
   TrashIcon,
 } from "./Icons.js";
-
-/* Preset iconic transit palettes */
-const TRANSIT_PALETTE = [
-  { name: "London Bakerloo", color: "#B36305" },
-  { name: "London Central", color: "#E32017" },
-  { name: "London District", color: "#00782A" },
-  { name: "London Jubilee", color: "#A0A5A9" },
-  { name: "London Northern", color: "#000000" },
-  { name: "London Piccadilly", color: "#003688" },
-  { name: "London Victoria", color: "#0098D4" },
-  { name: "NYC Express", color: "#EE352E" },
-  { name: "NYC 8th Ave", color: "#0039A6" },
-  { name: "Tokyo Marunouchi", color: "#F62E36" },
-  { name: "Tokyo Ginza", color: "#FF9500" },
-  { name: "Tokyo Tozai", color: "#009BBF" },
-  { name: "Paris M1", color: "#FFCE00" },
-  { name: "Paris M4", color: "#BF0A30" },
-  { name: "Taipei Bannan", color: "#0070BD" },
-  { name: "Taipei Tamsui", color: "#CB2C30" },
-];
 
 /** Collapsible section. */
 function CollapsibleSection({
@@ -285,6 +268,7 @@ const ANCHOR_MATRIX: (Anchor | null)[][] = [
 
 /** Right Docked Panel: Properties, Map Appearance, Alignment */
 export function PropertiesPanel() {
+  const [markEditor, setMarkEditor] = useState<{ symbolId?: string | undefined } | null>(null);
   const [tab, setTab] = useState<"props" | "map" | "align">("props");
   const map = useEditor((s) => s.map);
   const selectedStationId = useEditor((s) => s.selectedStationId);
@@ -343,6 +327,7 @@ export function PropertiesPanel() {
 
   return (
     <aside className="right-panel" aria-label="Properties and Appearance">
+      {markEditor && <StationMarkEditor symbol={markEditor.symbolId ? map.stationSymbols?.[markEditor.symbolId] : undefined} stationId={station?.id} onClose={() => setMarkEditor(null)} />}
       {/* Panel Tabs */}
       <div className="panel-tabs" role="tablist">
         <button
@@ -408,24 +393,52 @@ export function PropertiesPanel() {
                     )}
                   </PropRow>
                   <PropRow label={tr("StationSymbol")}>
-                    <select
-                      className="prop-input"
-                      value={station.kind}
-                      onChange={(e) => setStationKind(station.id, e.target.value as StationKind)}
-                    >
+                    <div className="station-symbols" role="group" aria-label={tr("StationSymbol")}>
                       {stationKinds.map((k) => (
-                        <option key={k.value} value={k.value}>{k.label}</option>
+                        <button
+                          key={k.value}
+                          type="button"
+                          className="station-symbol-btn"
+                          aria-label={k.label}
+                          aria-pressed={!station.symbolId && station.kind === k.value}
+                          title={k.label}
+                          onClick={() => setStationKind(station.id, k.value)}
+                        >
+                          <svg viewBox="0 0 40 32" aria-hidden="true">
+                            <path className="station-symbol-track" d="M2 16H38" />
+                            {k.value === "terminus" ? (
+                              <rect x="14" y="10" width="12" height="12" rx="1" />
+                            ) : (
+                              <>
+                                {k.value === "interchange" && <circle cx="20" cy="16" r="10" />}
+                                <circle cx="20" cy="16" r="6" />
+                              </>
+                            )}
+                          </svg>
+                          <span>{k.label}</span>
+                        </button>
                       ))}
-                    </select>
+                    </div>
                   </PropRow>
                 </CollapsibleSection>
 
+                <CollapsibleSection title="Custom Station Marks">
+                  <div className="station-custom-marks">
+                    <button type="button" className="btn btn-sm" onClick={() => setMarkEditor({})}><PlusIcon />Create station mark</button>
+                    {Object.values(map.stationSymbols ?? {}).length ? <div className="station-mark-library" role="group" aria-label="Saved station marks">
+                      {Object.values(map.stationSymbols ?? {}).map((symbol) => <button type="button" key={symbol.id} className="station-symbol-btn" title={symbol.name} aria-label={symbol.name} aria-pressed={station.symbolId === symbol.id} onClick={() => useEditor.getState().setStationSymbol(station.id, symbol.id)}><svg viewBox="-32 -32 64 64" aria-hidden="true"><StationSymbolArtwork symbol={symbol} /></svg><span>{symbol.name}</span></button>)}
+                    </div> : <p className="mark-editor-hint">Combine shapes or import an SVG, then reuse your mark on any station.</p>}
+                    {station.symbolId && <button type="button" className="btn btn-sm" onClick={() => setMarkEditor({ symbolId: station.symbolId })}>Edit selected mark</button>}
+                  </div>
+                </CollapsibleSection>
+
                 <CollapsibleSection title={tr("TransformPosition")} defaultOpen={true}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 4 }}>
+                  <div className="station-coordinate-fields">
                     <PropRow label="X">
                       <input
                         type="number"
                         className="prop-input"
+                        aria-label="X"
                         step={10}
                         value={Math.round(station.position.x)}
                         onChange={(e) => setStationPosition(station.id, { x: Number(e.target.value) || 0, y: station.position.y })}
@@ -435,6 +448,7 @@ export function PropertiesPanel() {
                       <input
                         type="number"
                         className="prop-input"
+                        aria-label="Y"
                         step={10}
                         value={Math.round(station.position.y)}
                         onChange={(e) => setStationPosition(station.id, { x: station.position.x, y: Number(e.target.value) || 0 })}
@@ -500,32 +514,37 @@ export function PropertiesPanel() {
                 </CollapsibleSection>
 
                 <CollapsibleSection title={tr("LabelPlacement")} defaultOpen={true}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                  <div className="station-anchor-row">
                     <span className="prop-label">{tr("Anchor")}</span>
-                    <div className="anchor-grid">
+                    <div className="anchor-grid" role="group" aria-label={tr("Anchor")}>
                       {ANCHOR_MATRIX.map((row, rIdx) =>
-                        row.map((cell, cIdx) => (
+                        row.map((cell, cIdx) => cell ? (
                           <button
                             key={`${rIdx}-${cIdx}`}
                             type="button"
                             className="anchor-btn"
-                            disabled={!cell}
                             aria-pressed={cell === station.labelAnchor}
-                            onClick={() => cell && setStationAnchor(station.id, cell)}
-                            title={cell ? `Anchor ${cell}` : undefined}
+                            aria-label={`${tr("Anchor")} ${cell}`}
+                            onClick={() => setStationAnchor(station.id, cell)}
+                            title={`${tr("Anchor")} ${cell}`}
                           >
-                            {cell ?? "•"}
+                            <svg viewBox="0 0 16 16" aria-hidden="true" style={{ transform: `rotate(${Math.atan2(rIdx - 1, cIdx - 1) * 180 / Math.PI + 90}deg)` }}>
+                              <path d="M8 12V4M4.5 7.5 8 4l3.5 3.5" />
+                            </svg>
                           </button>
+                        ) : (
+                          <span key={`${rIdx}-${cIdx}`} className="anchor-center" aria-hidden="true"><span /></span>
                         ))
                       )}
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                  <div className="station-coordinate-fields">
                     <PropRow label={tr("NudgeX")}>
                       <input
                         type="number"
                         className="prop-input"
+                        aria-label={tr("NudgeX")}
                         value={station.labelOffset?.x ?? 0}
                         onChange={(e) => setStationLabelOffset(station.id, { x: Number(e.target.value) || 0, y: station.labelOffset?.y ?? 0 })}
                       />
@@ -534,6 +553,7 @@ export function PropertiesPanel() {
                       <input
                         type="number"
                         className="prop-input"
+                        aria-label={tr("NudgeY")}
                         value={station.labelOffset?.y ?? 0}
                         onChange={(e) => setStationLabelOffset(station.id, { x: station.labelOffset?.x ?? 0, y: Number(e.target.value) || 0 })}
                       />
@@ -687,7 +707,7 @@ export function PropertiesPanel() {
                     e.target.value = "";
                     if (!f) return;
                     try {
-                      const { validateTemplate, applyTemplate } = await import("@linewright/core");
+                      const { validateTemplate, applyTemplate } = await import("@nodal/core");
                       const parsed = JSON.parse(await f.text());
                       const issues = validateTemplate(parsed);
                       if (issues.length) {
@@ -790,8 +810,8 @@ export function PropertiesPanel() {
                   onChange={(e) => setLabelLanguage(e.target.value)}
                 >
                   <option value="en">English Primary</option>
-                  <option value="zh-TW">繁體中文 Primary</option>
-                  <option value="ja">日本語 Primary</option>
+                  <option value="zh-TW">繁�?中�? Primary</option>
+                  <option value="ja">?�本�?Primary</option>
                 </select>
               </PropRow>
 

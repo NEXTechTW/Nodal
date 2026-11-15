@@ -1,4 +1,4 @@
-import { emptyMap, type MetroMap } from "@linewright/core";
+import { emptyMap, type MetroMap } from "@nodal/core";
 
 /** Fictional city example (PROJECT.md §9: trademark-safe). */
 export function exampleMap(): MetroMap {

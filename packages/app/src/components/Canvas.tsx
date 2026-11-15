@@ -1,24 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  anchorBaseline,
-  anchorOffset,
-  anchorTextAnchor,
   chainPoints,
   computeParallelOffsets,
   lineChains,
   displayName,
   roundedPolyline,
+  stationLabelLines,
   svgPath,
   type Vec2,
-} from "@linewright/core";
+} from "@nodal/core";
 import { useEditor } from "../store/useEditor.js";
+import { StationSymbolArtwork } from "./StationSymbolArtwork.js";
+import { t } from "../i18n.js";
+import { TRANSIT_PALETTE } from "../palette.js";
+import { ContextMenu, type ContextMenuItem } from "./ContextMenu.js";
 import {
+  AddStationIcon,
   CloseIcon,
   CompassIcon,
   ConnectIcon,
+  CopyIcon,
   DuplicateIcon,
+  EyeIcon,
+  EyeOffIcon,
+  GridIcon,
+  MapIcon,
+  PaletteIcon,
+  PasteIcon,
+  RulersIcon,
+  SnapIcon,
   SparklesIcon,
   TrashIcon,
+  UndoIcon,
+  RedoIcon,
 } from "./Icons.js";
 
 interface DragState {
@@ -190,7 +204,7 @@ function DPadController({
           title="Pan Up"
           aria-label="Pan Up"
         >
-          ▲
+          ??
         </button>
         <button
           type="button"
@@ -199,7 +213,7 @@ function DPadController({
           title="Pan Left"
           aria-label="Pan Left"
         >
-          ◀
+          ?�
         </button>
         <button
           type="button"
@@ -208,7 +222,7 @@ function DPadController({
           title="Fit Canvas View (F)"
           aria-label="Fit Canvas View"
         >
-          •
+          ??
         </button>
         <button
           type="button"
@@ -217,7 +231,7 @@ function DPadController({
           title="Pan Right"
           aria-label="Pan Right"
         >
-          ▶
+          ??
         </button>
         <button
           type="button"
@@ -226,7 +240,7 @@ function DPadController({
           title="Pan Down"
           aria-label="Pan Down"
         >
-          ▼
+          ??
         </button>
       </div>
 
@@ -255,7 +269,7 @@ function DPadController({
           onClick={() => setCollapsed(true)}
           title="Minimize Controller"
         >
-          −
+          ??
         </button>
       </div>
     </div>
@@ -303,6 +317,28 @@ export function Canvas() {
   const autoEnglishName = useEditor((s) => s.autoEnglishName);
   const copiedStationAttrs = useEditor((s) => s.copiedStationAttrs);
   const deleteSelectedStation = useEditor((s) => s.deleteSelectedStation);
+  const selectedLineId = useEditor((s) => s.selectedLineId);
+  const selectLine = useEditor((s) => s.selectLine);
+  const setActiveLine = useEditor((s) => s.setActiveLine);
+  const setLineColor = useEditor((s) => s.setLineColor);
+  const setLineWidth = useEditor((s) => s.setLineWidth);
+  const setLineStyle = useEditor((s) => s.setLineStyle);
+  const deleteLine = useEditor((s) => s.deleteLine);
+  const toggleLineVisibility = useEditor((s) => s.toggleLineVisibility);
+  const toggleMiniMap = useEditor((s) => s.toggleMiniMap);
+  const toggleBilingual = useEditor((s) => s.toggleBilingual);
+  const avoidLabelOverlaps = useEditor((s) => s.avoidLabelOverlaps);
+  const canUndo = useEditor((s) => s.stack.canUndo);
+  const canRedo = useEditor((s) => s.stack.canRedo);
+  const uiLang = useEditor((s) => s.uiLang);
+  const tr = (key: string) => t(uiLang, key);
+
+  type CanvasMenu =
+    | { kind: "station"; id: string; x: number; y: number }
+    | { kind: "line"; id: string; x: number; y: number }
+    | { kind: "canvas"; x: number; y: number; point: Vec2 };
+
+  const [menu, setMenu] = useState<CanvasMenu | null>(null);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const dragRef = useRef<DragState>({
@@ -444,12 +480,13 @@ export function Canvas() {
   }, [viewport]);
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (e.button === 2) return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const client = { x: e.clientX, y: e.clientY };
     const mapPt = getRectMap(client);
 
     // Station hit test
-    const hit = hitStation(mapPt, map.stations, 16 / viewport.k);
+    const hit = hitStation(mapPt, map.stations, 16 / viewport.k, map.style.stationRadius * 2.5);
     const effectivePan = tool === "pan" || spaceDown || e.button === 1;
 
     if (!effectivePan && hit) {
@@ -540,7 +577,7 @@ export function Canvas() {
       setCursorScreen({ x: client.x - rect.left, y: client.y - rect.top });
     }
 
-    const hit = hitStation(mapPt, map.stations, 16 / viewport.k);
+    const hit = hitStation(mapPt, map.stations, 16 / viewport.k, map.style.stationRadius * 2.5);
     setHoverStation(hit?.id ?? null);
 
     const d = dragRef.current;
@@ -586,7 +623,7 @@ export function Canvas() {
       setDragStationPos({});
       selectStation(d.stationId);
     } else if (d.kind === "connect" && d.stationId && activeLineId) {
-      const hit = hitStation(mapPt, map.stations, 16 / viewport.k);
+      const hit = hitStation(mapPt, map.stations, 16 / viewport.k, map.style.stationRadius * 2.5);
       if (hit && hit.id !== d.stationId) {
         connectStations(activeLineId, d.stationId, hit.id);
       }
@@ -631,6 +668,208 @@ export function Canvas() {
   const fromPos = connectFrom ? map.stations[connectFrom]?.position : null;
   const selectedStation = selectedStationId ? map.stations[selectedStationId] : null;
 
+  const menuItems: ContextMenuItem[] = (() => {
+    if (!menu) return [];
+
+    if (menu.kind === "station") {
+      const station = map.stations[menu.id];
+      if (!station) return [];
+      const hasChinese = Boolean(station.name["zh-TW"] || station.name["zh"]);
+      return [
+        { id: "title", header: true, label: displayName(station.name, tr("Station")) },
+        {
+          id: "duplicate",
+          label: tr("Duplicate"),
+          icon: <DuplicateIcon />,
+          shortcut: "Ctrl+D",
+          onSelect: () => duplicateStation(station.id),
+        },
+        {
+          id: "connect",
+          label: tr("ToolConnect"),
+          icon: <ConnectIcon />,
+          shortcut: "C",
+          onSelect: () => {
+            setTool("connect");
+            setConnectFrom(station.id);
+          },
+        },
+        {
+          id: "copy-style",
+          separatorBefore: true,
+          label: tr("CopyStyle"),
+          icon: <CopyIcon />,
+          onSelect: () => copyStationAttrs(station.id),
+        },
+        {
+          id: "paste-style",
+          label: tr("PasteStyle"),
+          icon: <PasteIcon />,
+          disabled: !copiedStationAttrs,
+          onSelect: () => pasteStationAttrs(station.id),
+        },
+        {
+          id: "auto-english",
+          label: tr("AutoEnglishName"),
+          icon: <SparklesIcon />,
+          disabled: !hasChinese,
+          onSelect: () => autoEnglishName(station.id),
+        },
+        {
+          id: "delete",
+          separatorBefore: true,
+          danger: true,
+          label: tr("Delete"),
+          icon: <TrashIcon />,
+          shortcut: "Del",
+          onSelect: deleteSelectedStation,
+        },
+      ];
+    }
+
+    if (menu.kind === "line") {
+      const line = map.lines[menu.id];
+      if (!line) return [];
+      const hidden = Boolean(hiddenLineIds[line.id]);
+      const width = line.width ?? 10;
+      return [
+        { id: "title", header: true, label: displayName(line.name, tr("Line")) },
+        {
+          id: "color",
+          label: tr("Color"),
+          icon: <PaletteIcon />,
+          submenu: TRANSIT_PALETTE.slice(0, 8).map((preset) => ({
+            id: `color-${preset.color}`,
+            label: preset.name,
+            swatch: preset.color,
+            checked: line.color.toUpperCase() === preset.color.toUpperCase(),
+            onSelect: () => setLineColor(line.id, preset.color),
+          })),
+        },
+        {
+          id: "width",
+          label: tr("Width"),
+          submenu: [4, 6, 8, 10, 12, 16].map((value) => ({
+            id: `width-${value}`,
+            label: `${value} px`,
+            checked: width === value,
+            onSelect: () => setLineWidth(line.id, value),
+          })),
+        },
+        {
+          id: "style",
+          label: tr("Style"),
+          submenu: [
+            { id: "style-solid", label: tr("SolidTrack"), checked: line.style === "solid", onSelect: () => setLineStyle(line.id, "solid") },
+            { id: "style-dashed", label: tr("DashedTrack"), checked: line.style === "dashed", onSelect: () => setLineStyle(line.id, "dashed") },
+            { id: "style-double", label: tr("DoubleTrack"), checked: line.style === "double", onSelect: () => setLineStyle(line.id, "double") },
+          ],
+        },
+        {
+          id: "visibility",
+          separatorBefore: true,
+          label: hidden ? tr("ShowLine") : tr("HideLine"),
+          icon: hidden ? <EyeIcon /> : <EyeOffIcon />,
+          onSelect: () => toggleLineVisibility(line.id),
+        },
+        {
+          id: "delete-line",
+          danger: true,
+          label: tr("DeleteLine"),
+          icon: <TrashIcon />,
+          onSelect: () => deleteLine(line.id),
+        },
+      ];
+    }
+
+    return [
+      {
+        id: "add-station",
+        label: tr("AddStationHere"),
+        icon: <AddStationIcon />,
+        onSelect: () => {
+          const pos = snapToGrid ? gridSnap(menu.point, map.style.gridStep) : menu.point;
+          addStation(pos);
+        },
+      },
+      {
+        id: "arrange-labels",
+        label: tr("AutoResolveOverlaps"),
+        icon: <SparklesIcon />,
+        onSelect: avoidLabelOverlaps,
+      },
+      {
+        id: "undo",
+        separatorBefore: true,
+        label: tr("Undo"),
+        icon: <UndoIcon />,
+        shortcut: "Ctrl+Z",
+        disabled: !canUndo,
+        onSelect: undo,
+      },
+      {
+        id: "redo",
+        label: tr("Redo"),
+        icon: <RedoIcon />,
+        shortcut: "Ctrl+Shift+Z",
+        disabled: !canRedo,
+        onSelect: redo,
+      },
+      {
+        id: "grid",
+        separatorBefore: true,
+        label: tr("ToggleGrid"),
+        icon: <GridIcon />,
+        checked: showGrid,
+        onSelect: toggleGrid,
+      },
+      {
+        id: "snap",
+        label: tr("ToggleSnap"),
+        icon: <SnapIcon />,
+        checked: snapToGrid,
+        onSelect: toggleSnap,
+      },
+      {
+        id: "rulers",
+        label: tr("ToggleRulers"),
+        icon: <RulersIcon />,
+        checked: showRulers,
+        onSelect: toggleRulers,
+      },
+      {
+        id: "navigator",
+        label: tr("ToggleMiniMap"),
+        icon: <CompassIcon />,
+        checked: showMiniMap,
+        onSelect: toggleMiniMap,
+      },
+      {
+        id: "bilingual",
+        label: tr("ToggleBilingual"),
+        icon: <EyeIcon />,
+        checked: bilingualLabels,
+        onSelect: toggleBilingual,
+      },
+      {
+        id: "fit",
+        separatorBefore: true,
+        label: tr("FitView"),
+        icon: <MapIcon />,
+        shortcut: "F",
+        onSelect: zoomFit,
+      },
+    ];
+  })();
+
+  const menuLabel = !menu
+    ? ""
+    : menu.kind === "station"
+      ? tr("Station")
+      : menu.kind === "line"
+        ? tr("Line")
+        : tr("Map");
+
   return (
     <main className="canvas-wrap" aria-label="Map canvas">
       {/* Canvas Rulers (Top & Left) */}
@@ -662,6 +901,17 @@ export function Canvas() {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          selectStation(null);
+          selectLine(null);
+          setMenu({
+            kind: "canvas",
+            x: e.clientX,
+            y: e.clientY,
+            point: getRectMap({ x: e.clientX, y: e.clientY }),
+          });
+        }}
         onPointerLeave={() => {
           setConnectPreview(null);
           setCursorPos(null);
@@ -704,21 +954,36 @@ export function Canvas() {
             />
           )}
 
-          {/* Transit Lines — one rounded path per continuous chain */}
+          {/* Transit Lines ??one rounded path per continuous chain */}
           {Object.values(map.lines).map((line) => {
             if (hiddenLineIds[line.id]) return null;
             const chains = lineChains({ ...map, style: { ...map.style, cornerRadius } }, line.id);
             return (
-              <g key={line.id} data-line={line.id}>
+              <g
+                key={line.id}
+                data-line={line.id}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setActiveLine(line.id);
+                  selectLine(line.id);
+                  setMenu({ kind: "line", id: line.id, x: e.clientX, y: e.clientY });
+                }}
+                style={{ cursor: "context-menu" }}
+              >
                 {chains.map((chain, ci) => {
                   const raw = chainPoints(map, chain, line.id, parallel);
                   if (raw.length < 2) return null;
                   const pts = roundedPolyline(raw, cornerRadius);
                   const d = svgPath(pts);
                   const w = line.width ?? 10;
+                  const selected = line.id === selectedLineId;
                   if (line.style === "double") {
                     return (
                       <g key={ci}>
+                        {selected && (
+                          <path d={d} fill="none" stroke="var(--color-accent)" strokeWidth={w + 10} strokeLinecap="round" strokeLinejoin="round" opacity={0.28} pointerEvents="none" />
+                        )}
                         <path d={d} fill="none" stroke={line.color} strokeWidth={w + 6} strokeLinecap="round" strokeLinejoin="round" />
                         <path d={d} fill="none" stroke="#ffffff" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
                         <path d={d} fill="none" stroke={line.color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
@@ -726,16 +991,20 @@ export function Canvas() {
                     );
                   }
                   return (
-                    <path
-                      key={ci}
-                      d={d}
-                      fill="none"
-                      stroke={line.color}
-                      strokeWidth={w}
-                      strokeLinecap="butt"
-                      strokeLinejoin="round"
-                      strokeDasharray={line.style === "dashed" ? "12 8" : undefined}
-                    />
+                    <g key={ci}>
+                      {selected && (
+                        <path d={d} fill="none" stroke="var(--color-accent)" strokeWidth={w + 6} strokeLinecap="round" strokeLinejoin="round" opacity={0.28} pointerEvents="none" />
+                      )}
+                      <path
+                        d={d}
+                        fill="none"
+                        stroke={line.color}
+                        strokeWidth={w}
+                        strokeLinecap="butt"
+                        strokeLinejoin="round"
+                        strokeDasharray={line.style === "dashed" ? "12 8" : undefined}
+                      />
+                    </g>
                   );
                 })}
               </g>
@@ -763,29 +1032,62 @@ export function Canvas() {
             const lineColor = Object.values(map.lines).find((l) =>
               l.segments.some((seg) => seg.from === s.id || seg.to === s.id),
             )?.color;
-            const stroke = isSel ? "var(--color-accent)" : (lineColor ?? "#1e1e1e");
-            const sw = isSel ? 3.5 : 2.5;
+            const stroke = lineColor ?? "#1e1e1e";
+            const sw = 2.5;
+            const symbol = s.symbolId ? map.stationSymbols?.[s.symbolId] : undefined;
+            const selectionExtent = (symbol ? r * 2.5 : r + (s.kind === "interchange" ? 7 : 2)) + 5 / viewport.k;
+            const handleSize = 4 / viewport.k;
 
             return (
               <g
                 key={s.id}
                 transform={`translate(${pos.x} ${pos.y}) rotate(${s.rotation ?? 0})`}
                 data-station={s.id}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  selectStation(s.id);
+                  setMenu({ kind: "station", id: s.id, x: e.clientX, y: e.clientY });
+                }}
                 style={{ cursor: tool === "connect" ? "crosshair" : "pointer" }}
               >
-                <circle r={r + 5} fill="#ffffff" />
-                {/* Nodal Selection Halo Indicator */}
-                {(isSel || isHover) && (
+                {symbol ? <circle r={r * 2.5} fill="transparent" /> : <circle r={r + 5} fill="#ffffff" />}
+                {/* Keep editor selection chrome separate from the map symbol. */}
+                {isHover && !isSel && (
                   <circle
-                    r={r + 6}
+                    r={selectionExtent}
                     fill="none"
                     stroke="var(--color-accent)"
-                    strokeWidth={isSel ? 2 : 1}
-                    opacity={isSel ? 0.9 : 0.5}
+                    strokeWidth={1}
+                    vectorEffect="non-scaling-stroke"
+                    pointerEvents="none"
                   />
                 )}
+                {isSel && (
+                  <g className="station-selection" pointerEvents="none">
+                    <rect
+                      x={-selectionExtent}
+                      y={-selectionExtent}
+                      width={selectionExtent * 2}
+                      height={selectionExtent * 2}
+                      fill="none"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    {[-1, 1].flatMap((x) => [-1, 1].map((y) => (
+                      <rect
+                        key={`${x}-${y}`}
+                        x={x * selectionExtent - handleSize / 2}
+                        y={y * selectionExtent - handleSize / 2}
+                        width={handleSize}
+                        height={handleSize}
+                        fill="var(--color-bg-surface)"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    )))}
+                  </g>
+                )}
 
-                {s.kind === "interchange" ? (
+                {symbol ? <g className="station-custom-artwork" transform={`scale(${r / 12})`} color={stroke}><StationSymbolArtwork symbol={symbol} /></g> : s.kind === "interchange" ? (
                   <>
                     <circle r={r + 6} fill="none" stroke={stroke} strokeWidth={2} />
                     <circle r={r} fill="#ffffff" stroke={stroke} strokeWidth={sw} />
@@ -805,52 +1107,36 @@ export function Canvas() {
                   <circle r={r} fill="#ffffff" stroke={stroke} strokeWidth={sw} />
                 )}
 
-                {/* Station Label & Bilingual Support (RMP Style) */}
-                {(() => {
-                  const off = anchorOffset(s.labelAnchor, r + 8);
-                  const lx = off.x + (s.labelOffset?.x ?? 0);
-                  const ly = off.y + (s.labelOffset?.y ?? 0);
-                  const zhName = s.name["zh-TW"] || s.name["zh"];
-                  const enName = s.name["en"];
-                  const isBilingual = bilingualLabels && zhName && enName;
-
+                {/* Station Label & Bilingual Support */}
+                {stationLabelLines({ ...s, position: pos }, map, s.labelAnchor, bilingualLabels).map((line, lineIndex) => {
+                  const raw = line.text;
+                  const text =
+                    map.style.textTransform === "uppercase"
+                      ? raw.toUpperCase()
+                      : map.style.textTransform === "lowercase"
+                        ? raw.toLowerCase()
+                        : raw;
                   return (
                     <text
-                      x={lx}
-                      y={ly}
-                      textAnchor={anchorTextAnchor(s.labelAnchor)}
-                      dominantBaseline={anchorBaseline(s.labelAnchor)}
+                      key={lineIndex}
+                      x={line.x - pos.x}
+                      y={line.y - pos.y}
+                      textAnchor={line.textAnchor}
+                      dominantBaseline="auto"
                       fontFamily={map.style.fontFamily ?? "Noto Sans, sans-serif"}
-                      fontSize={map.style.fontSize}
-                      fontWeight={isSel ? 600 : (map.style.fontWeight ?? 500)}
+                      fontSize={line.fontSize}
+                      fontWeight={lineIndex === 0 ? (map.style.fontWeight ?? 500) : 400}
                       fontStyle={(map.style.fontStyle as "normal" | "italic") ?? "normal"}
                       letterSpacing={map.style.letterSpacing ?? 0}
-                      style={{ pointerEvents: "none", fill: map.style.labelColor ?? "#000000" }}
+                      style={{
+                        pointerEvents: "none",
+                        fill: lineIndex === 1 ? "var(--color-text-secondary)" : (map.style.labelColor ?? "#000000"),
+                      }}
                     >
-                      {isBilingual ? (
-                        <>
-                          <tspan x={lx} dy={s.labelAnchor.includes("S") ? "0" : "-0.3em"}>
-                            {map.style.textTransform === "uppercase" ? (zhName ?? "").toUpperCase() : map.style.textTransform === "lowercase" ? (zhName ?? "").toLowerCase() : zhName}
-                          </tspan>
-                          <tspan
-                            x={lx}
-                            dy="1.2em"
-                            fontSize={Math.max(8, Math.round(map.style.fontSize * 0.78))}
-                            fontWeight={400}
-                            fill="var(--color-text-secondary)"
-                          >
-                            {map.style.textTransform === "uppercase" ? (enName ?? "").toUpperCase() : map.style.textTransform === "lowercase" ? (enName ?? "").toLowerCase() : enName}
-                          </tspan>
-                        </>
-                      ) : (
-                        (() => {
-                          const raw = displayName(s.name, "Untitled station", map.style.labelLanguage);
-                          return map.style.textTransform === "uppercase" ? raw.toUpperCase() : map.style.textTransform === "lowercase" ? raw.toLowerCase() : raw;
-                        })()
-                      )}
+                      {text}
                     </text>
                   );
-                })()}
+                })}
 
                 {/* Transfer Line Bullet Badges (RMP / Real Metro Style) */}
                 {showTransferBadges && (() => {
@@ -989,6 +1275,16 @@ export function Canvas() {
         </g>
       </svg>
 
+      {menu && menuItems.length > 0 && (
+        <ContextMenu
+          x={menu.x}
+          y={menu.y}
+          label={menuLabel}
+          items={menuItems}
+          onClose={() => setMenu(null)}
+        />
+      )}
+
       {/* Floating contextual toolbar */}
       {selectedStation && (
         <div className="ctx-toolbar" role="toolbar" aria-label="Selected Station Actions">
@@ -1101,13 +1397,14 @@ function gridSnap(p: Vec2, step: number): Vec2 {
 
 function hitStation(
   p: Vec2,
-  stations: Record<string, { id: string; position: Vec2 }>,
-  tol: number
+  stations: Record<string, { id: string; position: Vec2; symbolId?: string }>,
+  tol: number,
+  symbolRadius: number
 ): { id: string; position: Vec2 } | null {
   let best: { id: string; position: Vec2; d: number } | null = null;
   for (const s of Object.values(stations)) {
     const d = Math.hypot(p.x - s.position.x, p.y - s.position.y);
-    if (d <= Math.max(tol, 14) && (!best || d < best.d)) {
+    if (d <= Math.max(tol, s.symbolId ? symbolRadius : 14) && (!best || d < best.d)) {
       best = { id: s.id, position: s.position, d };
     }
   }

@@ -104,6 +104,15 @@ export const SlidersIcon = (p: SVGProps<SVGSVGElement>) => (
 export const DuplicateIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
 );
+export const CopyIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
+);
+export const PasteIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M9 13h6M9 17h4" /></svg>
+);
+export const CheckIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}><path d="M20 6L9 17l-5-5" /></svg>
+);
 export const AlignCenterIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}><line x1="18" y1="10" x2="6" y2="10" /><line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="14" x2="3" y2="14" /><line x1="18" y1="18" x2="6" y2="18" /></svg>
 );
