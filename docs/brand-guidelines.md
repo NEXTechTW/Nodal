@@ -2,7 +2,7 @@
 
 Use "Nodal" in the headline.
 
-The logo is the interchange glyph: two circles sharing a ring. It lives at `apps/web/public/logo.svg`.
+The wordmark lives at `packages/app/src/logo/logo_white.png` and `logo_black.png`. The square app icon source is `apps/desktop/icons/app-icon.png`; the generated Windows and macOS sizes sit next to it in the same folder.
 
 How it writes: speak to the reader ("you"), start buttons with a verb (Save, Delete station), and when something fails say what to do next. No jokes in error messages. If an edit can be undone, just undo it instead of asking first.
 

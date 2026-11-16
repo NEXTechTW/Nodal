@@ -22,6 +22,15 @@ cd apps/desktop
 cargo tauri build
 ```
 
-Bundles land in `apps/desktop/target/release/bundle/`. Icons are missing at the moment. Generate them from `../web/public/logo.svg` with `cargo tauri icon ../web/public/logo.svg` and drop them in `icons/`.
+Bundles land in `apps/desktop/target/release/bundle/`. The installer is in `bundle/nsis/` and the raw app is `target/release/nodal-desktop.exe`, which works as a portable build.
+
+The square app icon source is `icons/app-icon.png`. Regenerate the Windows, macOS and Linux icon files after replacing it:
+
+```
+cd apps/desktop
+npx @tauri-apps/cli icon icons/app-icon.png -o icons
+```
+
+Do not add the `android` or `ios` folders the command creates; this project only ships a desktop app.
 
 Noto Sans (SIL OFL) will ship with the desktop build. The browser build just uses system fonts.
