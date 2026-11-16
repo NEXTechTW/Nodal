@@ -8,6 +8,7 @@ import { ThemePicker, isThemeAddonEnabled } from "./ThemePicker.js";
 import {
   AddStationIcon,
   ConnectIcon,
+  DiscordIcon,
   ExportIcon,
   GitHubIcon,
   LoadIcon,
@@ -308,6 +309,19 @@ export function Toolbar() {
         style={{ textDecoration: "none" }}
       >
         <GitHubIcon />
+      </a>
+
+      {/* Discord community */}
+      <a
+        className="btn btn-tool icon-btn"
+        href="https://discord.gg/cndyq8J5pa"
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-label="Nodal Discord server"
+        title="Join the Nodal Discord"
+        style={{ textDecoration: "none" }}
+      >
+        <DiscordIcon />
       </a>
 
       <input ref={fileRef} type="file" accept="application/json,.json" aria-label="Load map JSON file" hidden onChange={onFile} />
