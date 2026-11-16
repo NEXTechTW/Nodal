@@ -67,7 +67,7 @@ export function chainPoints(
     const b = map.stations[toId]?.position;
     if (!a || !b) continue;
 
-    // Explicit waypoints win over auto-routing.
+    // Explicit waypoints define the segment geometry; otherwise draw straight.
     let routed = routedPoints(a, b);
     let segIdx = -1;
     if (line) {
